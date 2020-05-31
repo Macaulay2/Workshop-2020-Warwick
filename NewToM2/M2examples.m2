@@ -67,7 +67,9 @@ degree(I)
 
 hilbertPolynomial(I,Projective=>false)
 
+
 --Maps between rings
+
 R=QQ[x,y]
 S=QQ[t]
 f = map(R,S,{t,t^2})

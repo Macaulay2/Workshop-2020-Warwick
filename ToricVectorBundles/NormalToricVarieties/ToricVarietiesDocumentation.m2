@@ -1,6 +1,10 @@
 ------------------------------------------------------------------------------
 -- Normal Toric Varieties (Documentation)
 ------------------------------------------------------------------------------
+undocumented {
+    (describe, NormalToricVariety)    
+    }
+
 doc ///
     Key
         NormalToricVarieties

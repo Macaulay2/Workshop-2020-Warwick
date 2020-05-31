@@ -362,6 +362,12 @@ smallAmpleToricDivisor (ZZ, ZZ) := ToricDivisor => opts -> (d, i) -> (
 ------------------------------------------------------------------------------
 ToricDivisor == ToricDivisor := Boolean => (D, E) -> 
     variety D === variety E and entries D === entries E;
+ToricDivisor == ZZ := Boolean => (D, m) -> (
+    if m =!= 0 then 
+	error "attempted to compare a divisor with a nonzero integer";
+    all(entries D, e -> e === 0)
+    );
+ZZ == ToricDivisor := Boolean => (m, D) -> D == m   
 
 ToricDivisor + ToricDivisor := ToricDivisor => (D,E) -> (
     X := variety D;

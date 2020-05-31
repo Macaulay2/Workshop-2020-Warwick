@@ -19,7 +19,7 @@ newPackage(
     "NormalToricVarieties",
     AuxiliaryFiles => true,
     Version => "1.9",
-    Date => "18 May 2020",
+    Date => "31 May 2020",
     Authors => {{
         Name => "Gregory G. Smith", 
         Email => "ggsmith@mast.queensu.ca", 
@@ -27,7 +27,7 @@ newPackage(
     Headline => "routines for working with normal toric varieties and related objects",
     PackageExports => {"Polyhedra", "Schubert2"},
     PackageImports => {"FourierMotzkin","Normaliz","LLLBases"},
-    DebuggingMode => true
+    DebuggingMode => false
     )
 
 export {   

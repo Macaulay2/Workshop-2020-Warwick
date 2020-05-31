@@ -1402,6 +1402,8 @@ doc ///
 doc ///
     Key
         (symbol ==, ToricDivisor, ToricDivisor)
+	(symbol ==, ToricDivisor, ZZ)
+	(symbol ==, ZZ, ToricDivisor)
     Headline
         equality of toric divisors
     Usage
@@ -1423,9 +1425,17 @@ doc ///
 	    D1 = toricDivisor({2,-7,3,0,7,5,8,-8}, X)
 	    D2 = 2 * X_0 - 7 * X_1 + 3 * X_2 + 7 * X_4 + 5 * X_5 + 8 * X_6 - 8 * X_7
 	    D1 == D2
-	    assert(D1 == D2 and D2 == D1)
 	    D1 == - D2
-	    assert(D1 =!= - D2)
+	    assert (D1 == D2 and D2 == D1 and D1 =!= - D2)
+	Text
+	    Since the group of torus-equivariant Weil divisors form an abelian
+	    group, it also makes sense to compare a toric divisor with the
+	    zero integer (which we identify with the toric divisor whose
+	    coefficients are equal to zero).
+	Example
+	    D1 == 0
+    	    0*D1 == 0	
+	    assert (D1 =!= 0 and 0*D1 == 0 and 0 == 0*D2)
     SeeAlso
         "working with divisors"
 	(symbol +, ToricDivisor, ToricDivisor)    

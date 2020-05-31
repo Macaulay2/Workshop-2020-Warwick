@@ -17,7 +17,9 @@ NormalToricVariety.GlobalAssignHook = globalAssignFunction
 NormalToricVariety.GlobalReleaseHook = globalReleaseFunction
 expression NormalToricVariety := X -> if hasAttribute (X, ReverseDictionary) 
     then expression getAttribute (X, ReverseDictionary) else 
-    new FunctionApplication from {normalToricVariety, (rays X, max X)}
+    (describe X)#0
+describe NormalToricVariety := X -> Describe (expression normalToricVariety) (
+    expression rays X, expression max X)
 
 normalToricVariety = method (
     TypicalValue => NormalToricVariety, 

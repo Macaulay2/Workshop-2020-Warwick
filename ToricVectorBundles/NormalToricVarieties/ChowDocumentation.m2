@@ -91,9 +91,9 @@ doc ///
 	    the base variety, when omitted the 
 	    @TO2( "Schubert2::point", "default base variety of dimension 0")@ is used
 	ReturnType => 
-	    this option is ignored by this method
+    	    unused
 	DefaultIntegral => 
-	    this option is ignored by this method
+	    unused
     Outputs 
         : AbstractVariety 
 	    determined by the @TO2( (dim, NormalToricVariety), "dimension")@ of
@@ -148,13 +148,13 @@ doc ///
 	F : CoherentSheaf
 	    on {\tt X}
 	Rank => 
-	    this option is ignored by this method
+	    unused
 	ChernCharacter => 
-	    this option is ignored by this method
+	    unused
 	ChernClass => 
-	    this option is ignored by this method	
+	    unused
 	Name => 
-	    this option is ignored by this method		
+	    unused
     Outputs 
         : AbstractSheaf 
     Description
@@ -223,13 +223,13 @@ doc ///
 	D : ToricDivisor
 	    on {\tt X}
 	Rank => 
-	    this option is ignored by this method
+	    unused
 	ChernCharacter => 
-	    this option is ignored by this method
+	    unused
 	ChernClass => 
-	    this option is ignored by this method	
+	    unused
 	Name => 
-	    this option is ignored by this method		
+	    unused
     Outputs 
         : AbstractSheaf 
     Description
@@ -557,7 +557,7 @@ doc ///
         X : NormalToricVariety
 	    that is smooth and complete
 	Projective => 
-	    this option is ignored
+	    unused
     Outputs 
         : RingElement 
 	    the Hilbert polynomial of {\tt X}
@@ -626,7 +626,7 @@ doc ///
 	F : CoherentSheaf
 	    on {\tt X}
 	Projective => 
-	    this option is ignored
+	    unused
     Outputs 
         : RingElement 
 	    the Hilbert polynomial of {\tt X}
@@ -661,10 +661,10 @@ doc ///
 	    R = ring h1;
 	    matrix table(5,5, (i,j) -> sub(h1, {R_0 => j, R_1 => 4-i}))
 	Text
-	    Example 2.16 in [Diane Maclagan, Gregory G. Smith, 
+	    Example 2.16 in Diane Maclagan and Gregory G. Smith's
 	    @HREF("http://arxiv.org/abs/math.AC/0305215", 
 		"Uniform bounds on multigraded regularity")@, 
-	    {\it J. Algebraic Geom.} {\bf 14} (2005), 137-164] shows that the
+	    {\it J. Algebraic Geom.} {\bf 14} (2005), 137-164 shows that the
 	    Hilbert function for a set of points agrees with the Hilbert
 	    polynomial precisedly on the multigraded regularity.
     	Example

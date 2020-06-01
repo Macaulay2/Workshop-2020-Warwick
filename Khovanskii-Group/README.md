@@ -40,11 +40,11 @@ A work in progress. If you have other ideas, include them in your response to th
 
 2. (Related to 1, for extension to [Khovanskii bases](https://arxiv.org/pdf/1610.00298.pdf)) Create a good valuation type. There are many design choices that should be considered here. Should there be a single valuation type or should all common valuation constructions have their own types (inheriting from an abstract base class)? There are advantages to either approach that should be discussed. Some code has been started in this direction, but much more work (and a design) remains. This should also tie in with the TropicalGeometry package.
 
-3. Implement additional algorithms (eg. intrinsic Groebner, toric syzygies as described [here](./Subalgebra-Basics/StuCh11).
+3. Implement additional algorithms (eg. intrinsic Groebner, toric syzygies as described [here](./Subalgebra-Basics/StuCh11.pdf).)
 
 ## References with examples worth looking at
 
-1. [Introductory reference](./Subalgebra-Basics/StuCh11).
+1. [Introductory reference](./Subalgebra-Basics/StuCh11.pdf).
 
 2. [Khovanskii bases / valuations from weight matrices](https://arxiv.org/pdf/1610.00298.pdf)
 

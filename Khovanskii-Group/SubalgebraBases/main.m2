@@ -68,6 +68,7 @@ subalgebraBasis Subring := o -> R -> (
     subalgComp.Pending = new MutableList from toList(o.Limit+1:{}); -- Pending
 
     -- Create an empty matrix of generators.
+    -- todo: check if R.cache.SagbiGens exists: if true, start computation with these
     R.cache.SagbiGens = matrix(ambient R,{{}});
 
     -- Get the maximum degree of the generators.

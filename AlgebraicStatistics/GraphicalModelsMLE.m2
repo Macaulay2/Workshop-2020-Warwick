@@ -120,7 +120,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     return J;
 );
 
-{*
+-*
 scoreEquationsCovariance1 = method();
 scoreEquationsCovariance1(MixedGraph, List) := (G, U) -> (
     R := gaussianRing G;
@@ -159,9 +159,9 @@ scoreEquationsCovariance1(MixedGraph, List) := (G, U) -> (
     J5 := substitute(J4, sR);
     return J5;
 );
-*}
+*-
 
-{*
+-*
 scoreEquationsConcentration1 = method();
 scoreEquationsConcentration1(MixedGraph, List) := (G, U) -> (
     R := gaussianRing G;
@@ -205,9 +205,9 @@ scoreEquationsConcentration1(MixedGraph, List) := (G, U) -> (
     return J5;
 );
 
-*}
+*-
 
-{*
+-*
 
 scoreEquationsCovariance2 = method();
 scoreEquationsCovariance2(MixedGraph,List) := (G, U) -> (
@@ -257,9 +257,9 @@ scoreEquationsCovariance2(MixedGraph,List) := (G, U) -> (
 --    degree J3;
     return J3;
 );
-*}
+*-
 
-{*
+-*
 scoreEquationsConcentration2 = method();
 scoreEquationsConcentration2(MixedGraph,List) := (G, U) -> (
     V := sampleCovarianceMatrix(U);   
@@ -327,7 +327,7 @@ scoreEquationsConcentration2(MixedGraph,List) := (G, U) -> (
     return J4;
 );
 
-*}
+*-
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    -- 
@@ -440,7 +440,7 @@ doc ///
             scoreEquationsFromCovarianceMatrix(R,U)
 ///
 
-{*
+-*
 doc /// 
     Key
         scoreEquationsCovariance1
@@ -468,7 +468,7 @@ doc ///
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsCovariance1(G,U)
 ///
-*}
+*-
 
 --******************************************--
 -- TESTS     	       	    	      	    --
@@ -516,7 +516,7 @@ I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_
 assert(J===I)
 ///     
 
-{*
+-*
 TEST ///
 needsPackage("Graphs");
 needsPackage("GraphicalModels");
@@ -526,7 +526,7 @@ J=scoreEquationsCovariance1(G,U);
 I=ideal(16*s_(4,4)-29,32*s_(3,4)+21,64*s_(3,3)-27,4336*s_(2,4)+5,8672*s_(2,3)-25,16*s_(2,2)-5,8672*s_(1,4)+35,17344*s_(1,3)-175,32*s_(1,2)+13,64*s_(1,1)-115);
 assert(J===I)
 ///
-*}     
+*-     
 --------------------------------------
 --------------------------------------
 end

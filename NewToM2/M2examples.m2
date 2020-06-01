@@ -72,7 +72,7 @@ hilbertPolynomial(I,Projective=>false)
 
 R=QQ[x,y]
 S=QQ[t]
-f = map(R,S,{t,t^2})
+f = map(S,R,{t,t^2})
 
 f(x^2+y^2)
 

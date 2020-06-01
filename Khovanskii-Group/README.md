@@ -8,7 +8,7 @@
 # Where's the Code?
 
 1. [Version on the master branch](https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SubalgebraBases.m2). All tests pass since the release of Macaulay2 1.15.
-2. However, the code was still a bit opaque. A stripped-down, working rewrite is available on this repository. Try installing it!
+2. However, the code was still a bit opaque. A stripped-down, working rewrite is available on this repository. Try [installing](./install.m2) it!
 
 # What are (Khovanskii bases / SAGBI bases / Canonical Subalgebra Bases)?
 

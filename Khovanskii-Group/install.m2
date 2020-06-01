@@ -9,3 +9,5 @@ installPackage(
     RerunExamples => true
     )
 check "SubalgebraBases"
+help SubalgebraBases
+viewHelp SubalgebraBases -- help in browser

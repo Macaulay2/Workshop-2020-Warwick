@@ -1,5 +1,11 @@
 -- undocumented methods and symbols (for each, consider... does it really need to be exported? should it be documented?)
-undocumented {Subring}
+undocumented {
+    "grabLowestDegree",
+    "insertPending",
+    "SagbiDone"
+    -- and so on...
+    }
+
 doc ///
    Key
      SubalgebraBases
@@ -16,7 +22,7 @@ doc ///
 doc ///
    Key
      subalgebraBasis
-     (subalgebraBasis,Matrix)
+     (subalgebraBasis,Subring)
      [subalgebraBasis,Limit]
      [subalgebraBasis,PrintLevel]
      [subalgebraBasis,Strategy]

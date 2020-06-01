@@ -6,12 +6,10 @@ export {
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
     "ProjectionBase",
-    "Generators",
     "SyzygyIdeal",
     "Pending",
     "Substitution",
     "SagbiDegrees",
-    "AmbientRing",
     "TensorRing",
     "SubalgComputations",
     "InclusionBase",
@@ -26,6 +24,7 @@ subalgebraBasis = method(Options => {
     Strategy => null,
     Limit => 100,
     PrintLevel => 0})
+-- caches computation results inside of R
 subalgebraBasis Subring := o -> R -> (
 -- Declaration of variables
     -- baseRing is the ring of the input matrix
@@ -109,19 +108,14 @@ subalgebraBasis Subring := o -> R -> (
         else (
             if sum toList apply(subalgComp.Pending, i -> #i) === 0 and rawStatus1 raw sagbiGB == 6 and currDegree > maxGensDeg then (
                 R.cache.SagbiDone = true;
-                << "SAGBI basis is FINITE!" << endl;
+                if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;
             	)
             );
             currDegree = currDegree + 1;
     	);
     R.cache.SagbiGens
 )
-    
-
--- Main function for computing a subalgebraBasis.
-    -- Input is a matrix of generators for the algebra.
-    -- The default strategy is the engine-level strategy.
-
+-- old way: intermediate results aren't cached
 subalgebraBasis Matrix := o -> gensMatrix -> (
     R := subring gensMatrix;
     subalgebraBasis(R,o)

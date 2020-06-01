@@ -51,7 +51,7 @@ lowestDegree = (R, maxDegree) -> (
     -- R is of Type Subring
     -- newGens is a matrix of generators to be added
 
-appendToBasis := (R, newGens) -> (
+appendToBasis = (R, newGens) -> (
     -- unpack immutable fields
     ambR := ambient R;
     -- this gets modified
@@ -60,7 +60,7 @@ appendToBasis := (R, newGens) -> (
     -- Add the new generators to the subalgebra generators
     R.cache.SagbiGens = R.cache.SagbiGens | newGens;
     R.cache.SagbiDegrees = R.cache.SagbiDegrees | flatten degrees source newGens;
-    << numcols newGens << " generators added" << endl;
+--    << numcols newGens << " generators added" << endl;
     
     -- Find the number of generators of the ambient ring and the current list of subalgebra generators
     nBaseGens := numgens ambR;
@@ -225,8 +225,3 @@ grabLowestDegree = (R, maxDegree) -> (
     	);
     currentLowest
 )
-
--- Declaration of default options
-    -- Strategy decides which algorithm to call for subduction
-    -- Limit is a variable that bounds the number of computations (e.g., max degree, …)
-    -- PrintLevel is a variable that determines output, larger values have more printing.

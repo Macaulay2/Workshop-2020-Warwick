@@ -20,21 +20,24 @@ A work in progress. If you have other ideas, include them in your response to th
 
 ## New to M2
 
-1. Write and export additional functions (such as NOBodies and NOBody volume) to compute interesting aspects of SAGBI/Khovanskii bodies. This should tie into other packages. 
+1. Write and export additional functions (eg. an exported interface to subduction, or NOBodies and NOBody volume) to compute interesting aspects of SAGBI/Khovanskii bodies. This should tie into other packages where appropriate (Tropical, 
 
 2. Add / clean up the documentation, add (additional) tests, and prepare the package for future publication. 
 
-3. C
+3. (Related to 2) Develop documented examples that give an introduction at the level of [this introductory chapter](./Subalgebra-Basics/StuCh11.pdf).
 
 ## Some experience with M2
 
-1. At the Cleveland M2 workshop, we rewrote and commented the old code. There are two functions which we didn't comment. Figure out what these functions are trying to do and make sure that they are sane. Then, rewrite them to be simpler. Some experience with M2: At the Cleveland M2 workshop, we rewrote and commented the old code for the engine-based computations. Most of the top level code repeats what was in the engine-based computations (but there are some differences). Attempt to merge the two functions. 
+1. At the Cleveland M2 workshop, we rewrote and commented the old code. There are two functions related to auto-reduction that remain somewhat mysterious. Figure out what these functions are trying to do and make sure that they are sane. Then, rewrite them to be simpler. 
+
+2. Our working template derives from the [engine-based code](https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SubalgebraBases/sagbieng.m2). Most of the [top level code](https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SubalgebraBases/sagbitop.m2) is duplicated, but there are some differences. Try to incorporate
+
+3. (Related to 1 and 2). Performance-tuning. Develop different strategies for intensive computations---for instance, when computing binomial syzygies, the package "FourTiTwo" gives a potential optimization.
 
 ## Expert at M2
 
-1. Create a SubAlgebra type. Originally, we had created a SubRing type as a type of hashtable, but it really should be a type of ring. It may also be better to focus on SubAlgebras instead of SubRings (but both types could be written concurrently). SubAlgebra would represent a finitely generated subalgebra. It would store its base ring R, its ambient ring S, and its generators G. The subalgebra can be represented as a map from R^|G| -> S. Elements could be given by points in R^G. Equality can be checked in S. A SAGBI basis could be used for membership (although there is a pure Groebner/elimination approach too). A good plan should be created here as this could be useful to many other projects. 
+1. Sort out what the basic data types should be. On this repository, the current datatype is called "Subring". The intended usage is for k-subalgebras of polynomial rings over a field k. Compared to the old package (which had no dedicated datatype), we now stash various results of the computation inside of subrings. The interface is still primitive. Currently, Subring inherits from HashTable. Down the road, it may make sense to inherit from Ring --- however, there are some subtleties. Ideally, this type will support *intrinsic computations* (those requiring a subalgebra basis) and *extrinsic* computations (those that use Groebner bases for some presentation of the subring.)
 
-2. Create a valuation type. There are many design choices that should be considered here. Should there be a single valuation type or should all common valuation constructions have their own types? A single valuation type would not pollute the namespace, but just becomes a container to run arbitrary code (for arbitrary valuations). Some code has been started in this direction, but much more work (and a design) remains. This should also tie in with the TropicalGeometry package.
+2. (Related to 1, for extension to [Khovanskii bases](https://arxiv.org/pdf/1610.00298.pdf) -- Create a valuation type. There are many design choices that should be considered here. Should there be a single valuation type or should all common valuation constructions have their own types? A single valuation type would not pollute the namespace, but just becomes a container to run arbitrary code (for arbitrary valuations). Some code has been started in this direction, but much more work (and a design) remains. This should also tie in with the TropicalGeometry package.
 
-3. Implement additional algorithms (eg. intrinsic Groebner, 
-
+3. Implement additional algorithms (eg. intrinsic Groebner, toric syzygies as described [here](./Subalgebra-Basics/StuCh11).

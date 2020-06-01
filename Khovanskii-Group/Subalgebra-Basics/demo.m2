@@ -24,3 +24,13 @@ kf = matrix{flatten apply(S32, S1 -> (
 A = subring kf
 sbA = subalgebraBasis A
 peek A.cache
+
+-- no finite subalg basis
+restart
+R=QQ[x,y,MonomialOrder=>Lex]
+(options R).MonomialOrder
+needsPackage "SubalgebraBases"
+methods subring
+A = subring {x+y,x*y,x*y^2}
+elapsedTime sB = subalgebraBasis(A, Limit=>30);
+elapsedTime sB = subalgebraBasis(A, Limit=>30); -- this should take less time

@@ -1,29 +1,12 @@
 beginDocumentation()
 
-     doc ///
-     Key
-       EigenSolver
-     Headline
-     Description
-       Text
-       Example
-     Caveat
-     SeeAlso
-     ///
-
-     doc ///
-     Key
-     Headline
-     Usage
-     Inputs
-     Outputs
-     Consequences
-     Description
-       Text
-       Example
-       Code
-       Pre
-     Caveat
-     SeeAlso
-     ///
-
+doc ///
+Key
+  EigenSolver
+Headline
+  polynomial system solver relying on eigen-computations
+Description
+  Text
+Caveat
+SeeAlso
+///

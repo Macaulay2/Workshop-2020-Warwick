@@ -260,6 +260,16 @@ TEST ///
     assert(subspace(i,2,T) == 0))
 ///
 
+TEST ///
+  -- TEST 6: testing isGloballyGenerated
+  X = toricProjectiveSpace 2;
+  T = toricTangentBundle X;
+  assert isGloballyGenerated T
+  Om1 = toricReflexiveSheaf(-X_0);
+  assert not isGloballyGenerated Om1
+  assert not isGloballyGenerated(T ++ Om1)
+///
+
 ------------------------------------------------------------------------------
 end---------------------------------------------------------------------------
 ------------------------------------------------------------------------------

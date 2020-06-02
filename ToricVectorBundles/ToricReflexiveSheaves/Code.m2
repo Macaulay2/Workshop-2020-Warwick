@@ -482,7 +482,7 @@ isLocallyFree ToricReflexiveSheaf := Boolean => E -> (
     )
 
 associatedCharacters = method();
-associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol groundSet) (E -> (
+associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol associatedCharacters) (E -> (
     	X := variety E;
     	if E == 0 then return apply(max X, sigma -> {});
     	for sigma in max X list (

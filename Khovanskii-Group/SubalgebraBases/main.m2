@@ -2,6 +2,7 @@ debug Core -- gets rid of "raw" error during installation. probably a better way
 
 export {
     "subalgebraBasis",
+    "subduction",
     "sagbi" => "subalgebraBasis", 
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
@@ -18,12 +19,24 @@ export {
     "SagbiDone"
     }
 
+
+
+-- A wrapper around rawSubduction.
+-- This exists so that it can be documented.
+subduction = method(TypicalValue => Matrix)
+subduction(ZZ, Matrix, RingMap, GroebnerBasis) := (numparts, M, F, C) -> (
+    rawSubduction(numparts, raw M, raw F, raw C)
+    );
+
+
+
 -- Main function for computing a subalgebraBasis.
 -- For now, subduction is performed in the engine (in older version, Strategy toggles between engine and top-level implementation)
 subalgebraBasis = method(Options => {
     Strategy => null,
     Limit => 100,
     PrintLevel => 0})
+
 -- caches computation results inside of R
 subalgebraBasis Subring := o -> R -> (
 -- Declaration of variables
@@ -87,12 +100,14 @@ subalgebraBasis Subring := o -> R -> (
 
     nLoops = currDegree;
     local subducted;
+    
     ambR := ambient R;
     -- While the number of loops is within the limit and the isDone flag is false, continue to process
     while nLoops <= o.Limit and not R.cache.SagbiDone do (
         nLoops = nLoops + 1;
     
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
+       
         sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
         syzygyPairs = subalgComp.Substitution(submatrixByDegrees(mingens ideal selectInSubring(1, gens sagbiGB), currDegree));
         if subalgComp.Pending#currDegree != {} then (
@@ -100,7 +115,14 @@ subalgebraBasis Subring := o -> R -> (
             subalgComp.Pending#currDegree = {};
         );
         
-        subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,rawSubduction(rawMonoidNumberOfBlocks raw monoid ambR, raw syzygyPairs, raw subalgComp.Substitution, raw sagbiGB)));
+	numparts := rawMonoidNumberOfBlocks raw monoid ambR;
+    	M := syzygyPairs;
+    	F := subalgComp.Substitution;
+    	C := sagbiGB; 
+	
+    	subd := subduction(numparts, M, F, C);
+    	
+    	subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,subd));
         newElems = compress subducted;
         if numcols newElems > 0 then (
             insertPending(R, newElems, o.Limit);

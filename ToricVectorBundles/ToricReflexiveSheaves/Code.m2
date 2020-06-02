@@ -534,6 +534,89 @@ isGloballyGenerated ToricReflexiveSheaf := Boolean => E -> (
 	)
     );  
 
+separatesJets = method()
+separatesJets ToricReflexiveSheaf := ZZ => E -> (
+ testing := false;
+ if testing then << "METHOD: separatesJets" << endl;
+-- exclude trivial case
+ if E == 0 then return 0;
+-- setup groundSet, parliament of polytopes, character
+ X := variety E;
+ n := dim X;
+ maxConeE := apply(max X, s -> (rays X)_s);
+ gsE := groundSet E;
+ parE := hashTable pack(2, mingle(gsE, apply(components cover E, D -> polytope toricDivisor D) ));
+ onefaces := applyValues(parE, p -> facesAsPolyhedra(n-1,p));
+-- note: change of sign!
+ assCharE := hashTable pack(2, mingle(maxConeE, apply(associatedCharacters E, l->apply(l, u -> -transpose matrix {u})) ));
+-- exclude another trivial case
+ if min apply(values parE, dim) < 0 then (
+  if testing then << "There are empty polytopes, so not even 0-jets are separated." << endl;
+  return -1;
+ );
+-- working hypothesis: separates all jets (expectation will be lowered during computation)
+ lJets := infinity;
+-- if one of the polytopes is not full dimensional, lower expectation immediately
+ if min apply(values parE, dim) < n then (
+  if testing then << "There are polytopes which are not of full dimension, so at most separates 0-jets." << endl;
+  lJets = 0;
+ );
+-- this list keeps track whether we hit all the polytopes
+ indexedPolytopes := {};
+ for sigma in maxConeE do ( 
+  if testing then << "Test on the maximal cone:" << endl << sigma << endl;
+  admPolys := new MutableHashTable from parE;
+  for u in assCharE#sigma do (
+   if testing then << "for the component u of the character:" << endl << u << endl;
+   uVertexOfPolys := hashTable select(pairs admPolys, p -> isFace(convexHull u, p_1));
+   if #uVertexOfPolys == 0 then (
+    if testing then << "is not vertex of an available polytope." << endl;
+    return -1;
+   )
+   else (
+    if testing then << "is vertex of polytopes: " << endl << applyValues(uVertexOfPolys, vertices) << endl;
+   );
+   maxLengthRealisedAt := 0;
+   if lJets > 0 then (
+    uMaxEdgeLength := -infinity;
+    for p in pairs uVertexOfPolys do (
+     edgesContainU := select(onefaces#(p_0), f -> contains(f, u));
+     if testing then << "Edges of polytope containing u: " << endl << apply(edgesContainU, vertices) << endl;
+     coneAtU := dualCone coneFromVData fold(apply(edgesContainU, q -> vertices(q + convexHull (-u) )), (k,l) -> k|l);
+     isSameCone := coneAtU == coneFromVData transpose matrix sigma;
+     if testing then << "The dual cone at this vertex is:" << endl << rays coneAtU << endl
+                     << "this is the same as the maximal cone: " << isSameCone << endl;
+     localEdgeLength := if isSameCone then (
+      edgesVert := apply(edgesContainU,vertices);
+      edgesLengths := apply(edgesVert, e -> gcd flatten entries (e_1 - e_0)); 
+      if testing then << "The edges have (lattice) lengths: " << edgesLengths << endl;
+      min edgesLengths
+     )
+     else
+      0;
+     if localEdgeLength > uMaxEdgeLength then (
+      uMaxEdgeLength = localEdgeLength;
+      maxLengthRealisedAt = p;
+     )
+    );
+    if testing then << "Maximal edge length for u is " << uMaxEdgeLength << " realised at: " << endl << vertices maxLengthRealisedAt_1 << endl;
+    lJets = min(lJets, uMaxEdgeLength);
+   )
+   -- case lJets == 0;
+   else (
+    maxLengthRealisedAt = first pairs uVertexOfPolys;
+   );
+   remove(admPolys, maxLengthRealisedAt_0);
+   indexedPolytopes = append(indexedPolytopes, maxLengthRealisedAt_0);
+  );
+ );
+ if set indexedPolytopes === set keys parE then
+  lift(lJets,ZZ)
+ else
+  -1
+)
+
+
 cover ToricReflexiveSheaf := ToricReflexiveSheaf => (cacheValue symbol cover) (E -> (
     	X := variety E;
     	n := # rays X;

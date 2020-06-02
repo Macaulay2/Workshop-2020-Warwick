@@ -529,7 +529,7 @@ assert(J===I)
 *-     
 --------------------------------------
 --------------------------------------
-end
+end--
 --------------------------------------
 --------------------------------------
 
@@ -549,14 +549,17 @@ doc ///
     SeeAlso
 ///
 
-
+restart
 uninstallPackage "GraphicalModelsMLE"
 restart
 --installPackage("Graphs", UserMode=>true)
 installPackage ("GraphicalModelsMLE", RemakeAllDocumentation => true, UserMode=>true)
-viewHelp GraphicalModelsMLE
 installPackage("GraphicalModelsMLE",UserMode=>true,DebuggingMode => true)
+installPackage("GraphicalModelsMLE",UserMode=>true,DebuggingMode => true, FileName =>"/Users/lgp/Software/Macaulay2/Workshop-2020-Warwick/AlgebraicStatistics/GraphicalModelsMLE.m2")
+check GraphicalModelsMLE
 
+viewHelp "GraphicalModelsMLE"
+help GraphicalModelsMLE
 
 ----------------------
 -- Parameterization -- ????????????????????????????????????????????????????????????????????????

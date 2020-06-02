@@ -21,33 +21,46 @@ homogenize(F,x0) -- can't homogenize if multi-graded!!!
 *-
 
 --------------------------------------
--- Solving two points in a P1xP1
+-- Solving points in a P1xP1
 --------------------------------------
-J = ideal hF
-satind={4,4}
-basis(satind,R)
-basis(satind,R^(-(J_*/degree)))
-psi=map(R^{{0,0}}, R^(-(J_*/degree)), gens J)
-elimMat=matrix basis(satind,psi)
-K = syz transpose elimMat -- basis of coker of linear map
-hilbertFunction(satind,R/J)
+restart
+loadPackage "NumericalAlgebraicGeometry"
+R = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+-- this example below requires generalized eigenvalues
+-- hF = {x1^2*y0^2+y1^2*x0^2-x0^2*y0^2, y0^2*x1^3-x0^3*y1^2} -- defines ... A^1 x A^1
+-- J = ideal hF
+J=ideal(random({2,2},R),random({3,2},R))
 
-!!!!!!!!!!!!!1
+--solve with NAG for comparison
+S=CC[x1,y1]
+rho=map(S,R,{1,x1,1,y1})
+JS=rho(J)
+NAGsol=solveSystem {JS_0,JS_1}
+netList NAGsol
+use R
 
--- solve in the yi's
-D0=K^{0,1} -- indexed by the basis 1,y_1
-D1=K^{1,2} -- indexed by the basis y_1,y_1^2 
-eigenvalues (sub(inverse(D0)*D1,RR)) -- ,y_0=1, y_1 values
+-- start the method based on eigencomputations
+--matrix reverse for i to 7 list for j to 7 list hilbertFunction({j,i},J)
+satind={4,3} -- estimation
+psi=map(R^{{0,0}}, R^(-(J_*/degree)), gens J);
+elimMat=matrix basis(satind,psi);
+-- mb=transpose basis(satind,R) --basis used to index the rows of elimMat
+-- K = syz transpose elimMat -- "exact" basis of coker of linear map
+-- For a better stability, compute the numerical kernel
+elimMatTr=transpose sub(elimMat,RR);
+nc=rank source elimMatTr; numrk=numericalRank elimMatTr
+(S,U,Vt)=SVD(elimMatTr);
+K=transpose Vt^{numrk..nc-1}; -- numerical kernel
+numroots=rank source K -- expected number of roots
 
--- solve in the xi's
-D0=K^{0,5} -- indexed by the basis 1,x_1
-D1=K^{5,10} -- indexed by the basis x_1,x_1^2
-eigenvalues (sub(inverse(D0)*D1,RR)) -- ,x_0=1, x_1 values
+D0=K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
+--sub(mb^{0..numroots-1},{x0=>1,y0=>1})
+D1=K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,... 
+-- sub(mb^{satind_1+1..satind_1+numroots},{x0=>1,y0=>1})
+-- SVD D0
+(EVal,EVec)=eigenvectors (inverse(D0)*D1);
+EVect=D0*EVec;
+listSol=apply(#EVal, i -> {EVal_i,EVect_(1,i)/EVect_(0,i)}) -- roots (x_1,y_1) assuming x0=y0=1
 
--- solve both at the same time to avoid a matching step
-D0=K^{0,1} -- indexed by the basis 1,y_1
-D1=K^{5,6} -- indexed by the basis x_1,x_1*y_1
-(EVal,EVec)=eigenvectors (sub(inverse(D0)*D1,RR))
-{EVal_0 , EVec_(1,0)/EVec_(0,0) }
-{EVal_1 , EVec_(1,1)/EVec_(0,1) }
-
+netList listSol
+netList NAGsol

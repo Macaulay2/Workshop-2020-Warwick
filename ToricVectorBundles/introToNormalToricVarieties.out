@@ -1,0 +1,237 @@
+Macaulay2, version 1.15
+--loading configuration for package "Topcom" from file /Users/ggsmith/Library/Application Support/Macaulay2/init-Topcom.m2
+with packages: ConwayPolynomials, Elimination, IntegralClosure, InverseSystems,
+               LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone,
+               Truncations
+
+i1 : printWidth = 45;
+
+i2 : -*
+     ---------------------------------------------
+     A TORIC VARIETY is an integral scheme such 
+     that an algebraic torus forms a Zariski open 
+     subscheme and the natural action of this 
+     torus on itself extends to the entire scheme.
+     ---------------------------------------------
+     Michel Demazure (1970) provided the formal 
+     definition while studying the Cremona group.
+     ---------------------------------------------
+     Miles Reid coined the phrase "toric variety" 
+     in his translation of Vladimir Danilov's 
+     influential 1978 survey.
+     ---------------------------------------------
+     Toric varieties have been / are an important 
+     testing ground in the development of
+       (*)  resolution of singularities,
+       (*)  birational geometry,
+       (*)  polyhedral geometry, and
+       (*)  mirror symmetry.
+     ---------------------------------------------
+     Because toric varieties are parametrized by 
+     monomials, they almost invariably arise in 
+     applications such as
+       (*)  integer programming
+       (*)  geometric modeling
+       (*)  coding theory
+       (*)  algebraic statistics
+     ---------------------------------------------
+     Normal toric varieties correspond to strongly 
+     convex rational polyhedral fans. This makes 
+     the theory of normal toric varieties very 
+     explicit and computable.
+     ---------------------------------------------
+     *-
+     needsPackage "NormalToricVarieties";
+
+i3 : -- The projective plane is a toric variety
+     P = toricProjectiveSpace 2
+
+o3 = P
+
+o3 : NormalToricVariety
+
+i4 : dim P
+
+o4 = 2
+
+i5 : rays P  -- primitive lattice points on rays
+
+o5 = {{-1, -1}, {1, 0}, {0, 1}}
+
+o5 : List
+
+i6 : max P   -- maximal cones in fan
+
+o6 = {{0, 1}, {0, 2}, {1, 2}}
+
+o6 : List
+
+i7 : ring P  -- Cox ring
+
+o7 = QQ[x , x , x ]
+         0   1   2
+
+o7 : PolynomialRing
+
+i8 : ---------------------------------------------
+     -- Toric varieties include more exotic spaces
+     X = normalToricVariety(
+         {{1,0,0},{0,1,0},{0,0,1},{0,-1,2},{0,0,-1},{-1,1,-1},{-1,0,-1},{-1,-1,0}},
+         {{0,1,2},{0,2,3},{0,3,4},{0,4,5},{0,1,5},{1,2,7},{2,3,7},{3,4,7},{4,5,6},{4,6,7},{5,6,7},{1,5,7}});
+
+i9 : # rays X
+
+o9 = 8
+
+i10 : isComplete X            -- compact
+
+o10 = true
+
+i11 : isProjective X          -- but not projective
+
+o11 = false
+
+i12 : isSmooth X
+
+o12 = true
+
+i13 : ---------------------------------------------
+      -- Every normal toric variety has a 
+      -- resolution of singularities given by 
+      -- another normal toric variety.
+      Y = weightedProjectiveSpace {1,2,3,4};
+
+i14 : (dim Y, isSmooth Y, isSimplicial Y)
+
+o14 = (3, false, true)
+
+o14 : Sequence
+
+i15 : Z = makeSmooth Y;     -- creates a resolution
+
+i16 : isSmooth Z
+
+o16 = true
+
+i17 : # (set rays Z - set rays Y)
+
+o17 = 5
+
+i18 : phi = map(Y, Z, 1)   -- birational surjection
+
+o18 = | 1 0 0 |
+      | 0 1 0 |
+      | 0 0 1 |
+
+o18 : ToricMap Y <--- Z
+
+i19 : ---------------------------------------------
+      -- We can work with torus-invariant divisors. 
+      Y_0   -- irreducible divisor given by 0th ray
+
+o19 = Y
+       0
+
+o19 : ToricDivisor on Y
+
+i20 : isEffective Y_0
+
+o20 = true
+
+i21 : isCartier Y_0
+
+o21 = false
+
+i22 : isQQCartier Y_0
+
+o22 = true
+
+i23 : isCartier (60*Y_0)
+
+o23 = true
+
+i24 : isAmple (60*Y_0)
+
+o24 = true
+
+i25 : pullback(phi, 60*Y_0)
+
+o25 = 60*Z  + 30*Z  + 20*Z  + 45*Z  + 40*Z  + 15*Z
+          0       4       5       6       7       8
+
+o25 : ToricDivisor on Z
+
+i26 : ---------------------------------------------
+      -- We can compute the cohomology of sheaves
+      P2 = P ** P   -- product of projective planes
+
+o26 = P2
+
+o26 : NormalToricVariety
+
+i27 : dim P2
+
+o27 = 4
+
+i28 : OO_P2
+
+o28 = OO
+        P2
+
+o28 : SheafOfRings
+
+i29 : HH^0(P2, OO_P2)
+
+        1
+o29 = QQ
+
+o29 : QQ-module, free
+
+i30 : OO_P2(-3,0)
+
+          1
+o30 = OO    (-3, 0)
+        P2
+
+o30 : coherent sheaf on P2
+
+i31 : HH^2(P2, OO_P2(-3,0))
+
+        1
+o31 = QQ
+
+o31 : QQ-module, free
+
+i32 : HH^2(P2, OO_P2(0,-3))
+
+        1
+o32 = QQ
+
+o32 : QQ-module, free
+
+i33 : HH^4(P2, OO_P2(-3,-3))
+
+        1
+o33 = QQ
+
+o33 : QQ-module, free
+
+i34 : prune exteriorPower(4, cotangentSheaf P2) 
+
+          1
+o34 = OO    (-3, -3)
+        P2
+
+o34 : coherent sheaf on P2
+
+i35 : OO toricDivisor P2
+
+          1
+o35 = OO    (-3, -3)
+        P2
+
+o35 : coherent sheaf on P2
+
+i36 : exit
+
+Process M2 finished

@@ -341,6 +341,39 @@ ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E, F) -> (
     )
 *-
 
+ToricReflexiveSheaf.tensor = args -> (
+    sheaves :=  select(args, E -> rank E =!= 0);
+    numSheaves := #sheaves;
+    ambients := apply(sheaves, E -> ambient E);
+    if numSheaves === 0 then return args#0;
+    X := variety sheaves#0;
+    if not all(sheaves, G -> variety G === X) then
+        error "expected all sheaves to be over the same variety";
+    fiberDims := apply(sheaves,
+	               G -> rank source basis ((ambient G)#1, (ambient G)#0));
+    -- construct a new ambient ring
+    R := tensor(apply(ambients, i -> i#0));
+
+    startIndices := apply(numSheaves, k -> sum(k, j -> fiberDims#j));
+    maps := apply(numSheaves,
+	          i -> map(R, ambients#i#0, apply(toList ((startIndices#i)..(startIndices#i + fiberDims#i-1)),
+			  j -> R_j)));
+
+    W := apply(# rays X, i -> (
+	basisPairs := apply(numSheaves, j -> apply( pairs sheaves#j#i, p -> (maps_j(p_0), p_1)));
+	makeTensors := (l1, l2) ->
+	    flatten apply (l2, p -> apply(l1, q -> (p_0*q_0, p_1+q_1)));
+	fold(makeTensors, basisPairs_0, basisPairs_{1..numSheaves-1})
+	)
+    );
+    E := toricReflexiveSheaf(W, X);
+    E.cache.components = toList sheaves;
+    E
+    )
+
+ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E,F) -> tensor(E,F)
+tensor ToricReflexiveSheaf := E -> tensor(1 : E)
+
 ToricReflexiveSheaf ** ToricDivisor := ToricReflexiveSheaf => (E,D) -> (
     c := entries vector D;
     X := variety D;

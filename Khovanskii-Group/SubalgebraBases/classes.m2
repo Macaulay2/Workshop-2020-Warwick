@@ -1,6 +1,7 @@
 export {
     "Subring",
-    "subring"
+    "subring",
+    "liftedPresentation"
     }
     
 
@@ -30,22 +31,26 @@ subring List := L -> subring matrix{L}
 gens Subring := o -> A -> A#"Generators"
 numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
--- computes an ideal of relations
-presentation (Matrix, Subring) := (G, A) -> (
-    if not A.cache.?presentation then (
+
+liftedPresentation = method()
+liftedPresentation Subring := A -> (    
+    if not A.cache#?"LiftedPresentation" then (
     	B := ambient A;
+	G := gens A;
     	k := coefficientRing B;
 	(nB, nA) := (numgens B, numgens A);
 	-- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-    	Cmonoid := monoid [Variables => nB + nA,
-	                   MonomialOrder => (options B).MonomialOrder];
-    	C := k Cmonoid;
+	e := symbol e;	       
+    	C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
 	B2C := map(C,B,(vars C)_{0..nB-1});
-    	I := ideal(B2C G - (vars C)_{nB..numgens C-1});
-    	A.cache.presentation = selectInSubring(1, gens gb I);
+    	A.cache#"LiftedPresentation" = ideal(B2C G - (vars C)_{nB..numgens C-1});
 	);
-    A.cache.presentation
+    A.cache"LiftedPresentation"
     )
+
+-- computes an ideal of relations
+presentation Subring := A -> selectInSubring(1, liftedPresentation A)
+
 -- quotient ring given by a presentation
 ring Subring := A -> (
     I := ideal presentation A;
@@ -54,8 +59,21 @@ ring Subring := A -> (
     )
 options Subring := A -> A.cache#"Options"
 -- these need to be implemented
-RingElement % Subring := (f, A) -> f
-RingElement // Subring := (f, A) -> f
+
+-- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"  
+RingElement % Subring := (f, A) -> (
+    ret := f;
+    assert(ring ret == ambient A);
+    ret
+    )
+
+-- output: for A=k[g1,..,gk], p(e1,...,ek) st f = p(g1,..,gk) + r
+RingElement // Subring := (f, A) -> (
+    I := presentation A;
+    f % I
+    )
+
+-- probably needs to change!
 member (RingElement, Subring) := (f, A) -> (
     r := f%A;
     R := ambient A;

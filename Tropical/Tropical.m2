@@ -1688,8 +1688,8 @@ assert((multiplicities T)==({1}))
 
 --fan
 TEST///
-T:=new TropicalCycle
-F:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
+T=new TropicalCycle
+F=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
 T#"Multiplicities" ={1,1,1};
 T#"Fan" = F;
 assert((fan T)==(F))
@@ -1926,11 +1926,26 @@ assert(isSimplicial(T)==(false))
 
 
 
-
-
-
-
-
-
-
 end
+
+restart
+uninstallPackage "Tropical"
+
+installPackage "Tropical"
+check "Tropical"
+
+---playing with some commands
+
+F = fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
+(tropicalCycle(F,{1,1,1}))#"Fan"== F 
+(tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1}
+T = tropicalCycle(F,{1,1,1})    
+r = rays T
+r == matrix{{0,0,0},{1,-1,0},{0,-1,1}}
+isBalanced T
+Q= QQ[x_0..x_3]
+TP = tropicalPrevariety({x_0-x_1, x_1-x_2+x_3, x_2-x_3})
+L={x_0-x_1, x_1-x_2+x_3, x_2-x_3}
+rays TP
+TV = tropicalVariety(ideal(L)) --this is empty...is this right? Gives error, should it be zero instead?
+rays TV 

@@ -24,12 +24,13 @@ newPackage(
 	Configuration => {
 		"path" => "",
 		"fig2devpath" => "",
-		"keepfiles" => true,
+--		"keepfiles" => true,
 		"cachePolyhedralOutput" => true,
 		"tropicalMax" => false,
 		"polymakeCommand" =>""
 	},
-        PackageExports => {"gfanInterface","EliminationMatrices","Binomials"},
+    --Might need PackageImports here - should Polyhedra be here instead??
+        PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra"},
 	DebuggingMode => true,
 --	AuxiliaryFiles => true,
 	AuxiliaryFiles => false,
@@ -58,8 +59,11 @@ export {
   }
 
 
+
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-if polymakeCommand !="" then polymakeOkay=true else polymakeOkay=false;
+polymakeOkay = (polymakeCommand !="");
+
+--ToDo: Probably delete this once the package is debugged.
 if polymakeOkay then << "-- polymake is installed\n" else << "-- polymake not present\n";
 
 
@@ -191,15 +195,20 @@ minmaxSwitch (TropicalCycle) := T ->(
 isBalanced = method(TypicalValue => Boolean)
 
 isBalanced (TropicalCycle):= T->(
---in polymake, the lineality span (1,...,1) is default.
---we embed the fans in a higher dimensional fan in case our lineality span does not contain (1,...,1)
+--in polymake, the lineality span (1,...,1) is default.  we embed the
+--fans in a higher dimensional fan in case our lineality span does not
+--contain (1,...,1)
+
+--Bug here - this is not recognizing correctly if the user has Polymake installed.
+--ToDo: Write a non-polymake version, and also work out how to check.
 	C := tropicalCycle(embedFan fan T, multiplicities T);
 -- parse object into a polymake script, run polymake and get result back from the same file (which got overwritten by polymake)
 	filename := temporaryFileName();
 --<<filename<<endl;
---<<convertToPolymake(C)<<endl;
-	filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) << endl << "print is_balanced($c);" << endl;
-filename<<close;
+--<<convertToPolymake(C)<<endl; 
+       filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) <<
+	endl << "print is_balanced($c);" << endl;
+	filename<<close;
 --	filename << "use strict;" << endl << "my $filename = '" << filename << "';" << endl << "open(my $fh, '>', $filename);" << endl;
 --	filename << "print $fh is_balanced($c);" << endl << "close $fh;" << endl << close;
 	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";

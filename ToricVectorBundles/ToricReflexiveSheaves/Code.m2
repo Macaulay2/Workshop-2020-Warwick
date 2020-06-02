@@ -44,7 +44,8 @@ describe ToricReflexiveSheaf := E -> (
       	    for p in P do (
       		flag = {flag#0 | {p#1}, flag#1 | {p#0}});
       	    if i === 0 then klyachkoData = flag
-      	    else klyachkoData = klyachkoData | flag);
+      	    else klyachkoData = klyachkoData | flag
+	    );
     	net Table klyachkoData
 	)
     )
@@ -205,7 +206,7 @@ toricReflexiveSheaf (List, NormalToricVariety) := ToricReflexiveSheaf => (L, X) 
 -- constructor for the zero sheaf
 toricReflexiveSheaf NormalToricVariety := ToricReflexiveSheaf => X -> (
     n := # rays X;
-    (R, d) := (QQ[],{1});
+    (R, d) := (QQ[], {1});
     new ToricReflexiveSheaf from hashTable (
       	apply(n, i -> i => hashTable {}) | {
       	    symbol ambient => (R, d),
@@ -253,8 +254,8 @@ toricTangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
     n := # rays X;
     W := for i from 0 to n-1 list (
     	f := (vars R * transpose matrix {raysX#i})_(0,0);
-    	basisSet := {(f,1)};
-    	for g in select(gens R, h -> h // f == 0) do basisSet = basisSet|{(g,0)};
+    	basisSet := {(f, 1)};
+    	for g in select(gens R, h -> h // f == 0) do basisSet = basisSet | {(g, 0)};
     	basisSet
 	);
     toricReflexiveSheaf(W, X)
@@ -308,15 +309,13 @@ trim ToricReflexiveSheaf := ToricReflexiveSheaf => opts -> E -> (
     )
 
 ToricReflexiveSheaf.directSum = args -> (
-    sheaves := args;
-    sheaves = select(sheaves, E -> rank E =!= 0);
+    sheaves := select(args, E -> rank E =!= 0);
     m := #sheaves;
     if m === 0 then return args#0;
     X := variety sheaves#0;  
-    if not all(sheaves, G -> variety G === X) then 
+    if not all(sheaves, E -> variety E === X) then 
     	error "expected all sheaves to be over the same variety";
-    -- TODO: handle ambient degree other that {1}
-    p := apply(toList sheaves, G -> numgens (ambient G)#0);
+    p := apply(toList sheaves, E -> numgens (ambient E)#0);
     s := apply(m, k -> sum(k, j -> p#j));
     e := symbol e;
     R := QQ(monoid[e_0..e_(sum(p)-1)]);
@@ -355,29 +354,28 @@ exteriorPower (ZZ, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts -> (p, E'
     E := trim E';
     X := variety E;
     r := rank E;
-    (R,d) := ambient E;
-    if p < 0 or p > r then toricReflexiveSheaf(R, p*d, X)
-    else if p === 0 then toricReflexiveSheaf(0 * X_0)
-    else if p === 1 then E'
-    else (  
-      	KK := coefficientRing (ambient E)#0;
-      	e := symbol e;
-      	newR := KK(monoid[e_1..e_r, SkewCommutative => true]);
-      	t := symbol t;
-      	degRing := KK(monoid[t]);
-      	n := # rays X;
-      	W := {};
-      	for i to n-1 do (
-	    psi := sub( 
-	  	(coefficients(matrix{keys E#i}, Monomials => vars R))#1, degRing);
-	    psi = exteriorPower(p, map(degRing^(-values E#i), degRing^r, psi));
-      	    weights := degrees target psi;
-	    psi = basis(p, newR) * sub(psi,KK);
-      	    W = W | { 
-	  	for k to binomial(r,p) -1 list ( psi_(0,k), weights#k#0)} );
-    	toricReflexiveSheaf(W,X) 
-	) 
-    )
+    (R, d) := ambient E;
+    if p < 0 or p > r then return toricReflexiveSheaf X;
+    if p === 0 then return toricReflexiveSheaf (0 * X_0);
+    if p === 1 then return E';
+    KK := coefficientRing (ambient E)#0;
+    e := symbol e;
+    newR := KK(monoid[e_1..e_r, SkewCommutative => true]);
+    t := symbol t;
+    degRing := KK(monoid[t]);
+    n := # rays X;
+    W := {};
+    for i to n-1 do (
+	psi := sub( 
+	    (coefficients(matrix{keys E#i}, Monomials => vars R))#1, degRing);
+	psi = exteriorPower(p, map(degRing^(-values E#i), degRing^r, psi));
+	weights := degrees target psi;
+	psi = basis(p, newR) * sub(psi, KK);
+	W = W | { 
+	    for k to binomial(r,p) -1 list ( psi_(0,k), weights#k#0)} );
+    toricReflexiveSheaf(W, X) 
+    ) 
+
 determinant ToricReflexiveSheaf := ToricReflexiveSheaf => opts -> E -> 
     exteriorPower(rank E, E)
 
@@ -387,7 +385,7 @@ symmetricPower (ZZ, ToricReflexiveSheaf) := ToricReflexiveSheaf => (p, E') -> (
     X := variety E;
     r := rank E;
     (R,d) := ambient E;
-    if p < 0 then return toricReflexiveSheaf(R, p*d, X);
+    if p < 0 then return toricReflexiveSheaf X;
     if p === 0 then return toricReflexiveSheaf(0 * X_0);
     if p === 1 then return E';
     if rank E === 0 then return toricReflexiveSheaf(R, p*d, X);
@@ -618,6 +616,7 @@ separatesJets ToricReflexiveSheaf := ZZ => E -> (
 
 
 cover ToricReflexiveSheaf := ToricReflexiveSheaf => (cacheValue symbol cover) (E -> (
+	if E == 0 then return E;
     	X := variety E;
     	n := # rays X;
     	(RE, dE) := ambient E;    
@@ -787,7 +786,7 @@ kernel ToricReflexiveSheafMap := ToricReflexiveSheaf => opts -> (
     	(R, d) := ambient E;
     	I := ideal( basis(d, R) * gens ker matrix f );
     	X := variety E;    
-    	if I == 0 then return toricReflexiveSheaf(R, d, X);
+    	if I == 0 then return toricReflexiveSheaf X;
     	n := # rays X;
     	W := for i from 0 to n-1 list (
       	    basisSet := {};

@@ -1,9 +1,22 @@
--- this should become a header file for the package
+newPackage(
+    "EigenSolver",
+    Version => "0.1", 
+    Date => "June 2020",
+    Authors => {{Name => "", 
+	    Email => "", 
+	    HomePage => ""}},
+    Headline => "polynomial system solver relying on eigen-computations",
+    DebuggingMode => false
+    )
+    
+export {}
 
+needs "tomas-eigensolving.m2"
+needs "laurent-eigensolving.m2"    
+needs "documentation.m2"
 
 end--
 
-needs "tomas-eigensolving.m2"
 
 -- Problem 2.11 in https://math.berkeley.edu/~bernd/cbms.pdf
 n = 3

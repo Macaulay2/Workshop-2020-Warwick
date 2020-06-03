@@ -133,6 +133,7 @@ Valuation = new Type of HashTable
 -- what should a valuation need to know?
 source Valuation := v -> v#source
 target Valuation := v -> v#target
+net Valuation := v -> "valuation: " | toString target v | " <-- " | toString source v
 
 MonomialValuation = new Type of Valuation
 monomialValuation = method()

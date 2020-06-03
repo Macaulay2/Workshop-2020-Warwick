@@ -197,6 +197,10 @@ minmaxSwitch (TropicalCycle) := T ->(
 isBalancedCurves = T ->(
     -- find first integer lattice points on each vector (get list of points)
     -- check whether sum * multiplicity is 0
+	-- assuming already have lattice points V = {...}
+	m := multiplicities T;
+	r := rays T;
+	(first unique sum(#r, i->(m_i * r_i))) == 0
 );    
 
 isBalanced = method(TypicalValue => Boolean)

@@ -47,7 +47,8 @@ export {
     "subspacePoset",  -- is this necessary
     "toricTangentBundle",
     "toricCotangentBundle",
-    "separatesJets"
+    "separatesJets",
+    "restrictToCurve"
   }
 ------------------------------------------------------------------------------
 -- CODE

@@ -62,6 +62,6 @@ D1=K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,...
 (EVal,EVec)=eigenvectors (inverse(D0)*D1); EVect=D0*EVec;
 listSol=apply(#EVal, i -> {EVal_i,EVect_(1,i)/EVect_(0,i)}) -- roots (x_1,y_1) assuming x0=y0=1
 
--- Comparison
+-- Comparison of the roots computed by both methods
 netList listSol
 netList NAGsol

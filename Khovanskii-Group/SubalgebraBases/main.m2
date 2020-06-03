@@ -116,6 +116,7 @@ subalgebraBasis Subring := o -> R -> (
     	);
     R.cache.SagbiGens
 )
+
 -- old way: intermediate results aren't cached
 subalgebraBasis Matrix := o -> gensMatrix -> (
     R := subring gensMatrix;

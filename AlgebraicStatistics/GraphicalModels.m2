@@ -16,7 +16,10 @@ newPackage(
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
           {Name=> "Seth Sullivant", 
 	   Email=> "smsulli2@ncsu.edu",
-	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"}
+	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"},
+          {Name=> "Tim Seynnaeve", 
+	   Email=> "tim.seynnaeve@mis.mpg.de",
+	   HomePage=>"https://www.mis.mpg.de/combag/members/tim-seynnaeve.html"}
           --{Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
 	  -- Email=> "",
 	  -- HomePage=>""}      

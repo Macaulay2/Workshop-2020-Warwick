@@ -104,3 +104,34 @@ doc ///
    Caveat
    SeeAlso
 ///
+
+
+--There is something wrong with the doc, not displaying the usage/inputs/outputs 
+doc ///
+   Key
+     "%"
+    (symbol %, RingElement, Subring) 
+   Headline
+     normal form of an ambient ring element modulo a subring
+   Usage
+     r = f % A
+   Inputs
+     f:RingElement
+       an alement of the ambient ring of $A$
+     A:Subring
+   Outputs
+     r:RingElement
+       The normal form of f modulo $A$
+   Description
+     Text
+       The result $r$ is zero if and only if $f$ belongs to $A$.
+     Example
+       R = QQ[x1, x2, x3]
+       A = subring {x1+x2+x3, x1*x2+x1*x3+x2*x3, x1*x2*x3, (x1-x2)*(x1-x3)*(x2-x3)} --invariants of A_3
+       f = x1 + x2 + 2*x3
+       f % A
+       g = x1^2*x2 + x2^2*x3 + x3^2*x1
+       g % A
+   Caveat
+   SeeAlso
+///

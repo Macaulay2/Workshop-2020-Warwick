@@ -57,7 +57,7 @@ liftedPresentation Subring := A -> (
 	(nB, nA) := (numgens B, numgens A);
 	-- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
         -- C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)]; 
-	C := k[gens B | gens P, MonomialOrder => {Eliminate nA}];
+	C := k[gens B | gens P, MonomialOrder => {Eliminate nB}];
 	B2C := map(C,B,(vars C)_{0..nB-1});
     	A.cache#"LiftedPresentation" = ideal(B2C G - (vars C)_{nB..numgens C-1});
 	);
@@ -85,12 +85,12 @@ options Subring := A -> A.cache#"Options"
 
 -- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"  
 RingElement % Subring := (f, A) -> (
-    B := ambient A;
-    ret := sub(f, B);
-    assert(ring ret === B);
-    L := liftedPresentation A;
-    C := ring L;
-    sub(ret, C) % L
+    pA := presentationRing A;
+    tagVars := take(gens pA, numgens A);
+    tagSubs := flatten entries sub(gens A, ring liftedPresentation A);
+    subTable := apply(tagVars, tagSubs, (ei, fi) -> ei => fi);
+    nonRemainder := sub(sub(sub(f // A, pA), subTable), ambient A);
+    f - nonRemainder
     )
 
 -- output: for A=k[g1,..,gk], p(e1,...,ek) st f = p(g1,..,gk) + r

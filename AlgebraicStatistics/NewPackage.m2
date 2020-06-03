@@ -2,9 +2,9 @@ newPackage(
         "Me",
         Version => "0.1", 
         Date => "",
-        Authors => {{Name => "", 
-                  Email => "", 
-                  HomePage => ""}},
+        Authors => {{Name => "Tim Seynnaeve", 
+                  Email => "tim.seynnaeve@mis.mpg.de", 
+                  HomePage => "https://www.mis.mpg.de/combag/members/tim-seynnaeve.html"}},
         Headline => "",
         DebuggingMode => false
         )

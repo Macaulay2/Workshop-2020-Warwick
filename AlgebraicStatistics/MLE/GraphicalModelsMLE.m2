@@ -23,8 +23,8 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrix"
        	} 
      
+needsPackage("GraphicalModels")     
 needsPackage("Graphs")     
-needsPackage("GraphicalModels")
 needsPackage("Bertini")
 
 
@@ -350,7 +350,7 @@ doc ///
 	    needsPackage("Graphs");
 	    needsPackage("GraphicalModels");
 	    needsPackage("GraphicalModelsMLE");
-	    G = mixedGraph(digraph {{1,{2}},{1,{3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsFromCovarianceMatrix(R,U)
@@ -434,7 +434,7 @@ doc ///
         Example
 	    needsPackage("Graphs");
 	    needsPackage("GraphicalModels");
-	    G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsFromCovarianceMatrix(R,U)
@@ -464,7 +464,7 @@ doc ///
 	    needsPackage("Graphs");
 	    needsPackage("GraphicalModels");
 	    needsPackage("GraphicalModelsMLE");
-	    G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsCovariance1(G,U)
 ///
@@ -508,7 +508,7 @@ assert(Y===B)
 TEST ///
 needsPackage("Graphs");
 needsPackage("GraphicalModels");
-G = mixedGraph(digraph {{1,{2}}, {1,{3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 J=scoreEquationsFromCovarianceMatrix(R,U);
@@ -520,7 +520,7 @@ assert(J===I)
 TEST ///
 needsPackage("Graphs");
 needsPackage("GraphicalModels");
-G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 J=scoreEquationsCovariance1(G,U);
 I=ideal(16*s_(4,4)-29,32*s_(3,4)+21,64*s_(3,3)-27,4336*s_(2,4)+5,8672*s_(2,3)-25,16*s_(2,2)-5,8672*s_(1,4)+35,17344*s_(1,3)-175,32*s_(1,2)+13,64*s_(1,1)-115);

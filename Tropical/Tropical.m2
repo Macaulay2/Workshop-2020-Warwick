@@ -40,7 +40,7 @@ newPackage(
 
 
 
-export {
+export{
   "TropicalCycle",
   "tropicalCycle",
   "isBalanced",
@@ -192,15 +192,17 @@ minmaxSwitch (TropicalCycle) := T ->(
 
 
 --Decide if a one-dimensional tropical cycle is balanced.
+--Decide if a one-dimensional tropical cycle is balanced. 
+--input: TropicalCycle T, which we assume is 1-dimensional
 isBalancedCurves = T ->(
-    
-    
+    -- find first integer lattice points on each vector (get list of points)
+    -- check whether sum * multiplicity is 0
 );    
 
 isBalanced = method(TypicalValue => Boolean)
 
 isBalanced (TropicalCycle):= T->(
-    if polymakeOk then (
+--    if polymakeOk then (
 --in polymake, the lineality span (1,...,1) is default.  we embed the
 --fans in a higher dimensional fan in case our lineality span does not
 --contain (1,...,1)
@@ -229,10 +231,10 @@ isBalanced (TropicalCycle):= T->(
 	else if (substring(-1,result)=="1") then return true
 	else if (substring(0,result)=="") then return false
 	else return "Polymake throws an error";
-    )
-    else (
+--    )
+--    else (
 	--Put our code here
-    );
+--    );
 );	
 	
 	

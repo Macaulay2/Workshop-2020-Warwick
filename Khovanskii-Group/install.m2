@@ -28,9 +28,10 @@ A = subring {
     }
 d=1
 f = x1^(d+1)*x2^d+x2^(d+1)*x3^d+x3^(d+1)*x1^d
-f%A
-f//A
+sub(f//A, presentationRing A)
 presentation A
+f%A
+
 
 
 

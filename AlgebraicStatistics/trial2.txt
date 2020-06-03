@@ -1,4 +1,0 @@
-Second attempt, file from scratch
-
-
-I think we are good to go and start working on the package - Harshit

@@ -7,7 +7,7 @@ newPackage(
      Authors => {
 	  {Name => "Luis Garcia-Puente",
 	   Email => "lgarcia@shsu.edu",
-	   HomePage => "http://www.shsu.edu/~ldg005"},
+	   HomePage => "http://www.shsu.edu/ldg005"},
           {Name=> "Sonja Petrovic", 
 	   Email=> "sonja@psu.edu",
 	   HomePage=>"http://www.personal.psu.edu/sxp61"}, 
@@ -16,10 +16,7 @@ newPackage(
 	   HomePage => "http://www.math.cornell.edu/~mike/"},
           {Name=> "Seth Sullivant", 
 	   Email=> "smsulli2@ncsu.edu",
-	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"},
-          {Name=> "Tim Seynnaeve", 
-	   Email=> "tim.seynnaeve@mis.mpg.de",
-	   HomePage=>"https://www.mis.mpg.de/combag/members/tim-seynnaeve.html"}
+	   HomePage=>"http://www4.ncsu.edu/~smsulli2/"}
           --{Name=> "Contributing authors and collaborators: Alexander Diaz, Shaowei Lin, David Murrugarra", 
 	  -- Email=> "",
 	  -- HomePage=>""}      
@@ -63,6 +60,973 @@ export {"bidirectedEdgesMatrix",
        "pairMarkov", 
        "trekIdeal", 
        "trekSeparation",
+       "SimpleTreks",
+       "undirectedEdgesMatrix",
+       "VariableName",
+       "sVariableName",
+       "kVariableName",
+       "lVariableName",
+       "pVariableName"
+       	} 
+
+markovRingData = local markovRingData
+markovVariables = local markovVariables
+gaussianRingData = local gaussianRingData
+gaussianVariables = local gaussianVariables
+numberOfEliminationVariables = local numberOfEliminationVariables  
+
+
+
+--**************************--
+--  INTERNAL ROUTINES       --
+--**************************--
+
+--*************************************--
+--  Functions used by Markov methods   --
+--*************************************--
+
+
+--------------------------------------------
+-- bayesBall
+-- A is a set in 1..n (n = #G)
+-- C is a set in 1..n (the "blocking set")
+-- G is a DAG
+-- Returns the subset B of 1..n which is independent of A given C.
+-- The algorithm is the Bayes Ball algorithm, as implemented by Luis Garcia-Puente, 
+-- after the paper of Ross D. Shachter.
+--------------------------------------------
+
+bayesBall = (A,C,G) -> (
+     V := vertices G; -- it was: sort vertices G;
+     visited := new MutableHashTable from apply(V, k-> k=>false);
+     blocked :=  new MutableHashTable from apply(V, k-> k=>false);
+     up :=  new MutableHashTable from apply(V, k-> k=>false);
+     down := new MutableHashTable from apply(V, k-> k=>false);
+     top :=  new MutableHashTable from apply(V, k-> k=>false);
+     bottom := new MutableHashTable from apply(V, k-> k=>false);
+     vqueue := new MutableList from toList A; -- toList A;
+     -- Now initialize vqueue, set blocked
+     scan(vqueue, a -> up#a = true);
+     scan(toList C, c -> blocked#c = true);
+     local pa;
+     local ch;
+     while #vqueue > 0 do (
+	  v := vqueue#-1;
+	  vqueue = drop(vqueue,-1);
+	  visited#v = true;
+	  if not blocked#v and up#v
+	  then (
+	       if not top#v then (
+		    top#v = true;
+		    pa = toList parents(G,v);
+		    scan(pa, i -> up#i = true);
+		    vqueue = join(vqueue,pa);
+		    );
+	       if not bottom#v then (
+		    bottom#v = true;
+		    ch = toList children(G,v);
+		    scan(ch, i -> down#i = true);
+		    vqueue = join(vqueue,ch);
+		    );
+	       );
+	  if down#v
+	  then (
+	       if blocked#v and not top#v then (
+		    top#v = true;
+		    pa = toList parents(G,v);
+		    scan(pa, i -> up#i = true);
+		    vqueue = join(vqueue,pa);
+		    );
+	       if not blocked#v and not bottom#v then (
+		    bottom#v = true;
+		    ch = toList children(G,v);
+		    scan(ch, i -> down#i = true);
+		    vqueue = join(vqueue,ch);
+		    );
+	       );
+	  );
+     set toList select(V, i -> not blocked#i and not bottom#i)     
+     )     
+
+
+
+
+--*************************************--
+--  Functions (local) used throughout  --
+--*************************************--
+
+
+---------------------------------------------------------------
+-- cartesian
+-- cartesian({d_1,...,d_n}) returns the cartesian product 
+-- of {0,...,d_1-1} x ... x {0,...,d_n-1}
+---------------------------------------------------------------
+
+cartesian := (L) -> (
+     if #L == 1 then 
+	return toList apply (L#0, e -> 1:e);
+     L0 := L#0;
+     Lrest := drop (L,1);
+     C := cartesian Lrest;
+     flatten apply (L0, s -> apply (C, c -> prepend (s,c))))
+
+
+
+--------------------------------------------
+-- position of an element x in a list h
+--------------------------------------------
+
+pos := (h, x) -> position(h, i->i===x)
+
+
+
+--------------------------------------------------------------------------
+-- possibleValues ((d_1,...,d_n),A) returns the cartesian product 
+-- of all d_i's such that the vertex i is a member of the list A
+-- it assumes that the list A is a list of integers.
+--------------------------------------------------------------------------
+possibleValues := (d,A) ->
+     cartesian (toList apply(0..#d-1, i -> 
+	       if member(i,A) 
+	       then toList(1..d#i) 
+	       else {0}))
+     
+     
+     
+-------------------------------------------------------
+-- prob((d_1,...,d_n),(s_1,dots,s_n))
+-- Note: this function assumes that R is a markovRing
+-------------------------------------------------------
+
+prob := (R,s) -> (
+     d := R.markovRingData;
+     p := i -> R.markovVariables#i;
+     L := cartesian toList apply (#d, i -> 
+	   if s#i === 0 
+	   then toList(1..d#i) 
+	   else {s#i});
+     sum apply (L, v -> p v))
+
+
+
+-------------------------------------------------------------------------------
+-- takes a list A, and a sublist B of A, and converts 
+-- the membership sequence of 0's and 1's of elements of B in A to binary
+-------------------------------------------------------------------------------
+
+setToBinary := (A,B) -> sum(toList apply(0..#A-1, i->2^i*(if (set B)#?(A#i) then 1 else 0)))
+
+
+
+-------------------------------------------------------
+-- returns all subsets of B which contain A:
+-------------------------------------------------------
+
+subsetsBetween := (A,B) -> apply(subsets ((set B) - A), i->toList (i+set A))
+
+
+
+
+--***********************************************************************************--
+--  Functions used within Markov relation routines to remove redundant CI statements --
+--***********************************************************************************--
+
+
+--------------------------------------------------------------------------------------
+-- Removing redundant statements:                              
+-- called from local, global, and pairwise Markov methods.     
+--
+-- A conditional independence statement is a list {A,B,C}
+-- where A,B,C are (disjoint) subsets of labels for nodes in the graph.
+-- It should be interpreted as: A independent of B given C.
+-- A dependency list is a list of dependencies.
+-- 
+-- We have several simple routines to remove the most obvious redundant elements, 
+-- but a more serious attempt to remove dependencies could be made.
+--------------------------------------------------------------------------------------
+
+equivStmts = (S,T) -> S#2 === T#2 and set{S#0,S#1} === set{T#0,T#1} 
+     -- If S and T represent exactly the same dependency, return true.
+
+setit = (d) -> {set{d#0,d#1},d#2} 
+     -- More serious removal of redundancies.  
+
+under = (d) -> (
+           d01 := toList d_0;
+           d0 := toList d01_0;
+           d1 := toList d01_1;
+           d2 := toList d_1;
+           e0 := subsets d0;
+           e1 := subsets d1;
+           z1 := flatten apply(e0, x -> apply(e1, y -> (
+      		    {set{d01_0 - set x, d01_1 - set y}, set x + set y +  d_1})));-- see caveat for removeRedundants
+           z2 := flatten apply(e0, x -> apply(e1, y -> (
+      		    {set{d01_0 - set x, d01_1 - set y},  d_1})));-- see caveat for removeRedundants
+           z := join(z1,z2);
+           z = select(z, z0 -> not member(set{}, z0_0));
+           set z
+           )
+
+sortdeps = Ds -> (
+     -- input: ds
+     -- first make list where each element is {-a*b, set{A,B}, set C}
+     -- sort the list
+     -- remove the first element
+     i := 0;
+     ds := apply(Ds, d -> (x := toList d#0; i=i+1; { - #x#0 * #x#1, i, d#0, d#1}));
+     ds = sort ds;
+     apply(ds, d -> {d#2, d#3})
+     )
+
+normalizeStmt = (D) -> (
+     -- D has the form: {set{set{A},set{B}},set{C}}
+     -- output is {A,B,C}, where A,B,C are sorted in increasing order
+     --  and A#0 < B#0
+     D0 := sort apply(toList(D#0), x -> sort toList x);
+     D1 := toList(D#1);
+     {D0#0, D0#1, D1}
+     )
+
+minimize = (Ds) -> (
+     -- each element of Ds should be a list {A,B,C}
+     answer := {};
+     -- step 1: first make the first two elements of each set a set
+     Ds = Ds/setit;
+     while #Ds > 0 do (
+	  Ds = sortdeps Ds;
+	  f := Ds_0;
+	  funder := under f;
+	  answer = append(answer, f);
+	  Ds = set Ds - funder;
+	  Ds = toList Ds;
+	  );
+     apply(answer, normalizeStmt))
+
+--------------------------------------------------------------------------------------
+-- removeRedundants: the general function
+-- Ds is a list of triples of sets {A,B,C}
+-- test1: returns true if D1 can be removed
+-- Return a sublist of Ds which removes any that test1 declares not necessary.
+-- 
+--  **CAVEAT**
+--  This works just fine when used internally, e.g. from localMarkov. 
+--  However, if we export it and try to use it, there is a problem: we seem to be 
+--  attempting to add a List to a Set in the two marked lines of the function "under".
+--------------------------------------------------------------------------------------
+
+removeRedundants = (Ds) -> (
+     test1 := (D1,D2) -> (D1_2 === D2_2 and 
+                          ((isSubset(D1_0, D2_0) and isSubset(D1_1, D2_1))
+	               or (isSubset(D1_1, D2_0) and isSubset(D1_0, D2_1))));
+     Ds = apply(Ds, d -> {set{d#0,d#1}, d#2});
+     Ds = unique Ds;      -- first remove non-unique elements, if any.
+     Ds = apply(Ds, d -> append(toList(d#0), d#1));
+     c := toList select(0..#Ds-1, i -> (
+	       a := Ds_i;
+	       D0 := drop(Ds,{i,i});
+	       all(D0, b -> not test1(a,b))));
+     minimize(Ds_c))
+
+
+
+--**************************--
+--  METHODS 	      	   	  --
+--**************************--
+
+--****************************************************************************************--
+--  Methods for creating conditional independence statements from graphs and digraphs	  --
+--****************************************************************************************--
+
+----------------------------------------------------
+-- pairMarkov
+-- pairMarkov Graph does the following:
+-- given a graph G, returns a list of triples {A,B,C}
+-- where A,B,C are disjoint sets of the form:
+-- for all non-edges {i,j}:  {i,j, all other vertices} 
+-- pairMarkov Digraph does the following:
+-- given a digraph G, returns a list of triples {A,B,C}
+-- where A,B,C are disjoint sets, and for every vertex v
+-- and non-descendent w of v,
+-- {v, w, nondescendents(G,v) - w}
+----------------------------------------------------
+
+pairMarkov = method()
+pairMarkov Graph := List => (G) -> (
+     removeRedundants flatten apply(vertices G, v -> ( -- removed sort
+     	  apply(toList nonneighbors(G,v), non-> (
+		    {set {v}, set {non}, set vertices G - set {v} - set {non}}
+		    )
+	       )
+	  )
+     )
+)
+
+pairMarkov Digraph := List => (G) -> (
+     if isCyclic G then error("digraph must be acyclic");
+     removeRedundants flatten apply(vertices G, v -> (  -- removed sort
+    	       ND := nondescendents(G,v);
+     	       W := ND - parents(G,v);
+     	       apply(toList W, w -> {set {v}, set{w}, ND - set{w}}))))
+    
+
+----------------------------------------------------
+-- localMarkov Graph
+-- localMarkov Digraph
+-- Given a graph G, return a list of triples {A,B,C}
+-- of the form {v, nonneighbors of v, all other vertices }
+-- Given a digraph G, return a list of triples {A,B,C}
+-- of the form {v, nondescendents - parents, parents}
+----------------------------------------------------
+
+localMarkov = method()
+localMarkov Graph := List =>  (G) -> (
+     removeRedundants apply(vertices G, v -> (  -- removed sort
+	   {set {v},  nonneighbors(G,v), set vertices G - set {v} - nonneighbors(G,v)}
+		    )
+	       )
+	  )		
+     	 
+localMarkov Digraph := List =>  (G) -> (
+     if isCyclic G then error("digraph must be acyclic");
+     result := {};
+     scan(vertices G, v -> (  -- removed sort
+	       ND := nondescendents(G,v);
+	       P := parents(G,v);
+	       if #(ND - P) > 0 then
+	         result = append(result,{set{v}, ND - P, P})));
+     removeRedundants result)
+
+
+------------------------------------------------------------------------------
+-- globalMarkov Graph
+-- globalMarkov Digraph
+-- Given a graph G, return a list of triples {A,B,C}
+-- of the form {A,B,C} if C separates A and B in the graph.
+-- Given a graph G, return a complete list of triples {A,B,C}
+-- so that A and B are d-separated by C (in the graph G).
+-- If G is large, this should maybe be rewritten so that
+-- one huge list of subsets is not made all at once
+------------------------------------------------------------------------------
+
+globalMarkov = method()
+globalMarkov Graph := List => (G) ->(
+     AX := subsets vertices G;
+     AX = drop(AX,1); -- drop the empty set
+     AX = drop(AX,-1); -- drop the entire set
+     -- product should apply * to entire list. note that  * of sets is intersection.
+     statements := for A in AX list (
+	  B:=product apply(A, v-> nonneighbors(G,v) ); --this is the list of all B's 
+	  if #B === 0 then continue; -- need both A and B to be nonempty
+     	  C := (vertices G) - set A - B ;
+     	  {set A,  B, set C}
+	  );
+    removeRedundants  statements
+    ) 
+ 
+globalMarkov Digraph := List => (G) -> (
+     V := vertices G;  -- removed sort
+     result := {};
+     AX := subsets V;
+     AX = drop(AX,1); -- drop the empty set
+     AX = drop(AX,-1); -- drop the entire set
+     scan(AX, A -> (
+	       A = set A;
+	       Acomplement := toList(set V - A);
+	       CX := subsets Acomplement;
+	       CX = drop(CX,-1); -- we don't want C to be the entire complement
+	       scan(CX, C -> (
+			 C = set C;
+			 B := bayesBall(A,C,G);
+			 if #B > 0 then (
+			      B1 := {A,B,C};
+			      if all(result, B2 -> not equivStmts(B1,B2))
+			      then 
+			          result = append(result, {A,B,C});
+	       )))));
+     removeRedundants result
+     )
+
+
+
+--*************************************************************************
+--  Methods for creating polynomial rings that carry information about   --
+--  random variables and/or underlying graph, digraph or mixed graph     --
+--*************************************************************************
+
+------------------------------------------------------------------------------------------------
+-- markovRing Sequence
+-- Outputs a polynomial ring whose indeterminates are joint probabilities of discrete 
+-- random variables with a given number of states. 
+-- d should be a sequence of integers di >= 1
+--
+-- NOTE: there is a mutable hash table of all Markov rings created, so as to not re-create rings!
+-- the hashtable is indexed by the sequence d, the coefficient ring kk, and the variable name p, 
+-- as this information identifies the Markov ring uniquely. 
+------------------------------------------------------------------------------------------------
+
+toSymbol = (p) -> (
+     if instance(p,Symbol) then p
+     else
+     if instance(p,String) then getSymbol p
+     else
+     error ("expected a string or symbol, but got: ", toString p))
+
+
+markovRingList := new MutableHashTable;
+
+markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> "p"})
+markovRing Sequence := Ring => opts -> d -> (
+     if any(d, di -> not instance(di,ZZ) or di <= 0)
+          then error "markovRing expected positive integers";
+     kk := opts.Coefficients;
+     p := toSymbol opts.VariableName;
+     if not markovRingList#?(d,kk,p) then (
+     	  start := (#d):1;
+	  vlist := start .. d;
+	  R := kk(monoid [p_start .. p_d, MonomialSize=>16]);
+	  R.markovRingData = d;
+	  H := new HashTable from apply(#vlist, i -> vlist#i => R_i);
+	  R.markovVariables = H;
+	  markovRingList#(d,kk,p) = R;
+	  );
+     markovRingList#(d,kk,p))
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+-- gaussianRing ZZ
+-- gaussianRing Graph 
+-- gaussianRing Digraph
+-- gaussianRing MixedGraph
+-- Outputs a polynomial ring whose indeterminates are joint probabilities of Gaussian
+-- random variables corresponding to vertices of a graph (or variables 1..n). 
+-- NOTE: the mutable hash table of all gaussian rings created is indexed by:
+--     (coefficient field, variable name, number of r.v.'s) --in case of ZZ input
+--     (coefficient field, variable name, vertices of the directed graph) --in case of Digraph input
+--     (coefficient field, variable name, whole undirected graph) --in case of Graph input
+--     (coefficient field, variable name s, variable name l, variable name p, vertices of the mixed graph) -- in case of MixedGraph input.
+------------------------------------------------------------------------------------------------------------------------------------
+
+gaussianRingList := new MutableHashTable;
+
+gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
+	  pVariableName=>"p", kVariableName=>"k"})
+gaussianRing ZZ :=  Ring => opts -> (n) -> (
+     -- s_{1,2} is the (1,2) entry in the covariance matrix.
+     -- this assumes r.v.'s are labeled by integers.
+     s := toSymbol opts.sVariableName;
+     kk := opts.Coefficients;
+     if (not gaussianRingList#?(kk,s,n)) then ( 
+	  --(kk,s,n) uniquely identifies gaussianRing in case of ZZ input.
+     w := flatten toList apply(1..n, i -> toList apply(i..n, j -> (i,j)));
+     v := apply (w, ij -> s_ij);
+     R := kk(monoid [v, MonomialSize=>16]);
+     R.gaussianRingData = n; 
+     H := new HashTable from apply(#w, i -> w#i => R_i); 
+     R.gaussianVariables = H;
+     gaussianRingList#((kk,s,n)) = R;); 
+     gaussianRingList#((kk,s,n))
+     )
+
+gaussianRing Graph := Ring => opts -> (g) -> (
+    bb := graph g;
+    vv := sort vertices g;
+    s := toSymbol opts.sVariableName;
+    k := toSymbol opts.kVariableName;
+    kk := opts.Coefficients;
+    if (not gaussianRingList#?(kk,s,k,bb)) then ( 
+	 --(kk,s,k,bb) uniquely identifies gaussianRing in case of Graph input.
+    sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+    kL := join(apply(vv, i->k_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
+    m := #kL; --eliminate the k's 
+    R := kk(monoid [kL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); 
+    H := new MutableHashTable;
+    nextvar := 0;
+    for v in kL do (H#v = R_nextvar; nextvar = nextvar+1);
+    for v in sL do (H#v = R_nextvar; nextvar = nextvar+1);
+    R.gaussianVariables = new HashTable from H;
+    R#numberOfEliminationVariables = m;
+    R.gaussianRingData = {#vv,s,k};
+    R.graph = g;
+    gaussianRingList#((kk,s,k,bb)) = R;); 
+    gaussianRingList#((kk,s,k,bb))
+    )
+
+gaussianRing Digraph :=  Ring => opts -> (G) -> (
+     s := toSymbol opts.sVariableName;
+     kk := opts.Coefficients;
+     vv := sort vertices G; 
+     if (not gaussianRingList#?(kk,s,vv)) then ( 
+	  --(kk,s,vv) uniquely identifies gaussianRing in case of Digraph input.
+     w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
+     v := apply (w, ij -> s_ij);
+     R := kk(monoid [v, MonomialSize=>16]);
+     R.gaussianRingData = #vv;
+     H := new HashTable from apply(#w, i -> w#i => R_i); 
+     R.gaussianVariables = H;
+     R.digraph = G;
+     gaussianRingList#((kk,s,vv)) = R;); 
+     gaussianRingList#((kk,s,vv))
+     )
+
+
+gaussianRing MixedGraph := Ring => opts -> (g) -> (
+     G := graph collateVertices g;
+     dd := graph G#Digraph;
+     bb := graph G#Bigraph;
+     uu := G#Graph;
+     if #(edges uu) > 0 then error "mixedgraph must have no undirected part ";
+     vv := sort vertices g;
+     s := toSymbol opts.sVariableName;
+     l := toSymbol opts.lVariableName;
+     p := toSymbol opts.pVariableName;
+     kk := opts.Coefficients;          
+     if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
+	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
+     sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+     lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
+     pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
+     m := #lL+#pL;
+     R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
+     -- create gaussianVariables hash table: (symbol s)_(i,j) => ring var with the same name, same for l, p.
+     H := new MutableHashTable;
+     nextvar := 0;
+     for v in lL do (H#v = R_nextvar; nextvar = nextvar+1);
+     for v in pL do (H#v = R_nextvar; nextvar = nextvar+1);
+     for v in sL do (H#v = R_nextvar; nextvar = nextvar+1);
+     R.gaussianVariables = new HashTable from H;
+     R#numberOfEliminationVariables = m;
+     R.gaussianRingData = {#vv,s,l,p};
+     R.mixedGraph = g;
+     gaussianRingList#((kk,s,l,p,vv)) = R;); 
+     gaussianRingList#((kk,s,l,p,vv))
+     )
+
+
+
+
+--************************************************************************
+--  Methods for creating matrices relevant for the graphical models     --
+-- (covariance matrix, matrices whose minors vanish on the model)       --
+--************************************************************************
+
+------------------------------------------------------------------
+-- undirectedEdgesMatrix Ring 
+------------------------------------------------------------------
+
+undirectedEdgesMatrix = method()
+undirectedEdgesMatrix Ring := Matrix =>  R -> (
+     if not (R.?graph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a Graph";
+     g := R.graph;
+     bb:= graph g;
+     vv := sort vertices g;
+     n := R.gaussianRingData#0; --number of vertices
+     k := R.gaussianRingData#2; 
+     H := R.gaussianVariables;
+     PM := mutableMatrix(R,n,n);
+     scan(vv,i->PM_(pos(vv,i),pos(vv,i))=H#(k_(i,i)));
+     scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(k_(i,j)) else H#(k_(j,i))));
+     matrix PM) 
+
+
+
+------------------------------------------------------------------
+-- directedEdgesMatrix Ring 
+------------------------------------------------------------------
+
+directedEdgesMatrix = method()
+directedEdgesMatrix Ring := Matrix => R -> (
+     if not (R.?mixedGraph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a MixedGraph";     
+     g := R.mixedGraph;
+     G := graph collateVertices g;
+     dd := graph G#Digraph;
+     vv := sort vertices g;
+     n := R.gaussianRingData#0;
+     l := R.gaussianRingData#2;
+     H := R.gaussianVariables;
+     LM := mutableMatrix(R,n,n);
+     scan(vv,i->scan(toList dd#i, j->LM_(pos(vv,i),pos(vv,j))=H#(l_(i,j))));
+     matrix LM) 
+
+
+------------------------------------------------------------------
+-- bidirectedEdgesMatrix Ring
+------------------------------------------------------------------
+
+bidirectedEdgesMatrix = method()
+bidirectedEdgesMatrix Ring := Matrix => R -> (
+     if not (R.?mixedGraph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a MixedGraph";     
+     g := R.mixedGraph;     
+     G := graph collateVertices g;
+     bb := graph G#Bigraph;
+     vv := sort vertices g;
+     n := R.gaussianRingData#0;
+     p := R.gaussianRingData#3;
+     H := R.gaussianVariables;
+     PM := mutableMatrix(R,n,n);
+     scan(vv,i->PM_(pos(vv,i),pos(vv,i))=H#(p_(i,i)));
+     scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(p_(i,j)) else H#(p_(j,i))));
+     matrix PM) 
+ 
+ 
+ 
+------------------------------------------------------------------
+-- markovMatrices(Ring,List,List) 
+-- markovMatrices(Ring,List)
+------------------------------------------------------------------
+
+markovMatrices = method()
+markovMatrices(Ring,List,List) := (R,Stmts,VarNames) -> (
+     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
+     if not R.?markovRingData then error "expected a ring created with markovRing";
+     d := R.markovRingData;
+     if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
+     flatten apply(Stmts, stmt -> (
+	       Avals := possibleValues(d, apply( stmt#0, i ->  pos( VarNames,i)) );
+	       Bvals := possibleValues(d, apply( stmt#1, i ->  pos( VarNames,i)) );
+	       Cvals := possibleValues(d, apply( stmt#2, i ->  pos( VarNames,i)) );
+     	       apply(Cvals, c -> (
+                  matrix apply(Avals, 
+		       a -> apply(Bvals, b -> (
+				 e := toSequence(toList a + toList b + toList c);
+		      		 prob(R,e))))))))
+    )
+
+markovMatrices(Ring,List) := (R,Stmts) -> (
+     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
+     if not R.?markovRingData then error "expected a ring created with markovRing";
+     d := R.markovRingData;
+     if not isSubset ( set unique flatten flatten Stmts,  set( 1..#d) )  then error "variables names in statements do not match list of random variable names";
+     VarNames := toList (1..#d);
+     flatten apply(Stmts, stmt -> (
+	       Avals := possibleValues(d, apply( stmt#0, i ->  pos( VarNames,i)) );
+	       Bvals := possibleValues(d, apply( stmt#1, i ->  pos( VarNames,i)) );
+	       Cvals := possibleValues(d, apply( stmt#2, i ->  pos( VarNames,i)) );
+     	       apply(Cvals, c -> (
+                  matrix apply(Avals, 
+		       a -> apply(Bvals, b -> (
+				 e := toSequence(toList a + toList b + toList c);
+		      		 prob(R,e))))))))
+    )
+
+
+
+------------------------------------------------------------------
+-- covarianceMatrix(Ring)
+------------------------------------------------------------------
+
+covarianceMatrix = method()
+covarianceMatrix(Ring) := Matrix => (R) -> (
+       if not R.?gaussianRingData then error "expected a ring created with gaussianRing";    
+       if R.?graph then (  
+     	    g:=R.graph;
+	    vv := sort vertices g;
+     	    n := R.gaussianRingData#0;
+     	    s := R.gaussianRingData#1;
+            H := R.gaussianVariables;
+     	    SM := mutableMatrix(R,n,n);
+     	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(s_(i,j)) else H#(s_(j,i))));
+     	    matrix SM	    
+	    ) 
+       else if R.?mixedGraph then (  
+     	    g = R.mixedGraph;
+	    vv = sort vertices g;
+     	    n = R.gaussianRingData#0;
+     	    s = R.gaussianRingData#1;
+            H = R.gaussianVariables;
+     	    SM = mutableMatrix(R,n,n);
+     	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(s_(i,j)) else H#(s_(j,i))));
+     	    matrix SM	    
+	    ) 
+       else (
+	    n =R.gaussianRingData; 
+	    genericSymmetricMatrix(R,n)
+	    )
+  )
+
+
+
+------------------------------------------------------------------
+-- gaussianMatrices(Ring,List)
+------------------------------------------------------------------
+
+gaussianMatrices = method()
+gaussianMatrices(Ring,List) := List =>  (R,Stmts) -> (
+        if not (R.?gaussianRingData) then error "expected a ring created with gaussianRing";
+        if R.?graph then (
+	   g := R.graph;
+           vv := sort vertices g;
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
+           SM := covarianceMatrix(R);
+           apply(Stmts, s -> 
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
+          )
+        else if R.?digraph then (
+	   g= R.digraph;
+           vv = sort vertices g;
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
+           SM = covarianceMatrix(R);
+           apply(Stmts, s ->  
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ) 
+          )
+        else (
+           vv = toList (1..R.gaussianRingData);
+	   if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match list of random variable names";
+	   SM = covarianceMatrix(R);
+           apply(Stmts, s->  
+	       submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )
+	  )
+     
+     )
+
+
+--******************************************************************--
+--  Methods for creating ideals that vanish for a graphical model   --
+--******************************************************************--
+
+------------------------------------------------------------------
+-- conditionalIndependenceIdeal (Ring,List)
+-- conditionalIndependenceIdeal (Ring,List,List)
+------------------------------------------------------------------
+ 
+conditionalIndependenceIdeal=method()
+conditionalIndependenceIdeal (Ring,List) := Ideal => (R,Stmts) ->(
+     if not (R.?gaussianRingData or R.?markovRingData) then error "expected a ring created with gaussianRing or markovRing";
+     if #Stmts === 0 then (ideal(0_R))
+     else ( 
+     	  if R.?gaussianRingData then (      
+               if R.?graph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.graph))  then error "variables names in statements do not match variable names in the Gaussian ring";
+	   	    g := R.graph;
+           	    vv := sort vertices g;
+           	    SM := covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
+               else if R.?digraph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.digraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
+	   	    g= R.digraph;
+           	    vv = sort vertices g;
+           	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
+	       else if R.?mixedGraph then (
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vertices(R.mixedGraph))  then error "variables names in statements do not match variable names in the Gaussian ring";
+	   	    g= R.mixedGraph;
+           	    vv = sort vertices g;
+           	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) )) 
+          	    )
+               else (
+	   	    vv = toList (1..R.gaussianRingData);
+     		    if not isSubset ( set unique flatten flatten Stmts,  set vv)  then error "variables names in statements do not match variable names in the Gaussian ring";
+	   	    SM = covarianceMatrix(R);
+           	    sum apply(Stmts, s -> minors(#s#2+1, 
+	       		      submatrix(SM, apply(s#0,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) , 
+		    		   apply(s#1,x->pos(vv,x)) | apply(s#2,x->pos(vv,x)) ) ))
+	  	    )
+               )
+     	  else (
+               if not isSubset ( set unique flatten flatten Stmts,  set toList (1..#R.markovRingData))  then error "variables names in statements do not match variable names in the markov ring.";
+	       M := markovMatrices(R,Stmts);
+	       sum apply(M, m -> minors(2,m)) 
+	       )
+     	  )	   
+)     
+
+conditionalIndependenceIdeal (Ring,List,List) := Ideal => (R,Stmts,VarNames) ->(
+     if not R.?markovRingData then error "expected a ring created with markovRing";
+     if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
+     if #Stmts === 0 then ideal(0_R)
+     else (	  	
+     	  M := markovMatrices(R,Stmts,VarNames);
+     	  sum apply(M, m -> minors(2,m)) 
+     	  )
+     )	   
+
+
+
+------------------------------------------------------------------
+-- gaussianParametrization (Ring)
+------------------------------------------------------------------
+
+gaussianParametrization = method(Options=>{SimpleTreks=>false})
+gaussianParametrization Ring := Matrix => opts -> R -> (
+     if not R.?gaussianRingData then error "expected a ring created with gaussianRing";     
+     if not R.?mixedGraph then error "must be a gaussianRing created with a mixed graph";
+     g := R.mixedGraph;
+     S := covarianceMatrix R;    
+     W := bidirectedEdgesMatrix R;     
+     L := directedEdgesMatrix R;
+     Li := inverse(1-matrix(L));
+     M := transpose(Li)*matrix(W)*Li;
+     if opts.SimpleTreks then (
+       n := R.gaussianRingData#0;
+       P := matrix {apply(n,i->W_(i,i)-M_(i,i)+1)};
+       Q := apply(n,i->W_(i,i)=>P_(0,i));
+       scan(n,i->P=sub(P,Q));
+       sub(M,apply(n,i->W_(i,i)=>P_(0,i))))
+     else
+       M)
+
+
+
+------------------------------------------------------------------
+-- gaussianVanishingIdeal Ring
+-- Note: this method currently works on really small examples,
+-- because it computes the vanishing ideal as an elimination ideal.
+-- More clever ways to compute it would be of interest.
+------------------------------------------------------------------
+
+gaussianVanishingIdeal=method()
+gaussianVanishingIdeal Ring := Ideal => R -> (
+    if not (R.?gaussianRingData) then error "expected a ring created with gaussianRing";
+    if R.?graph then (    
+       K:= undirectedEdgesMatrix R;
+       adjK := sub(det(K)*inverse(sub(K,frac R)), R);
+       Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
+       ideal selectInSubring(1, gens gb Itemp))
+    else if R.?digraph then (
+       G := R.digraph;
+       vv := sort vertices G;
+       n := #vv;
+       v := (topSort G)#map;
+       v = hashTable apply(keys v, i->v#i=>i);
+       v = apply(n,i->v#(i+1));
+       P := toList apply(v, i -> toList parents(G,i));
+       nx := # gens R;
+       ny := max(P/(p->#p));
+       x := local x;
+       y := local y;
+       S := (coefficientRing R)[x_0 .. x_(nx-1),y_0 .. y_(ny-1)];
+       newvars := apply(ny, i -> y_i);
+       L := keys R.gaussianVariables;
+       s := hashTable apply(nx,i->L#i=>x_i);
+       sp := (i,j) -> if pos(vv,i) > pos(vv,j) then s#(j,i) else s#(i,j);
+       I := trim ideal(0_S);
+       for i from 1 to n-1 do (
+     	   J := ideal apply(i, j -> sp(v#j,v#i) - sum apply(#P#i, k ->y_k * sp(v#j,P#i#k)));
+     	   I = eliminate(newvars, I + J););
+       F := map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0));
+       F(I))
+     else if R.?mixedGraph then (
+       G = R.mixedGraph;
+       if (#edges(G#graph#Graph) > 0) then error "This function is currently only implemented for mixed graphs without undirected part"; 
+       if (isCyclic G#graph#Digraph == true) then error "Directed part of mixed graph must be acyclic";
+       S = covarianceMatrix R;    
+       W := bidirectedEdgesMatrix R;     
+       L = directedEdgesMatrix R;
+       Li := inverse(1-matrix(L));
+       M := transpose(Li)*matrix(W)*Li;
+       tempideal := ideal(S-M);
+       m:= (R#numberOfEliminationVariables)-1;
+       elimvarlist := flatten entries (vars(R))_{0..m};
+       I = trim ideal(0_R);
+       I = eliminate(elimvarlist,tempideal)
+     )
+ else error " gaussianVanishingIdeal expected a ring created with gaussianRing of a Graph or Digraph or MixedGraph"    
+)
+
+------------------------------------------------------------------
+-- discreteVanishingIdeal (Ring,Digraph)
+------------------------------------------------------------------
+
+discreteVanishingIdeal=method()
+discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
+     if not (R.?markovRingData) then error "expected a ring created with markovRing";
+     d := R.markovRingData;
+     n := #d; 
+     if not (#vertices(G) == n) then error "Number of vertices of graph does not match size of ring";
+     H := topSort G;
+     shuffle := apply(sort vertices G, v -> H#map#v);
+     dshuff := toSequence d_(shuffle - toList (n:1));
+     R1 := local R1;
+     R1 = markovRing dshuff;          
+     p := j -> R1.markovVariables#j;
+     I := trim ideal(0_R1);     
+     SortedG := H#newDigraph;
+     a := local a;
+     S := local S;
+     apply(2..n, i -> (
+         familyi := append(toList parents(SortedG,i),i);
+         tempd := toSequence dshuff_(familyi - toList (#familyi: 1));
+	 F := inverseMarginMap(i,R1);
+	 I = F(I);
+         S = markovRing( tempd, VariableName => getSymbol "a");	
+	 a = j1 -> S.markovVariables#j1;
+	 T := R1**S;
+	 newI := sub(I, T);
+	 di := toSequence flatten toList append( dshuff_(toList(0..(i-1))), toList ((n-i):1));
+	 indexset :=  (n:1)..di;
+	 newI = newI + ideal apply(indexset, j ->  (
+		  ajindex := toSequence j_(familyi - toList (#familyi: 1));
+		  sub(p j,T) - (sum apply(apply(dshuff_(i-1), k -> replace(i-1, k+1, j)), 
+			    l-> sub(p l,T)))*sub(a ajindex,T)) );
+	 indexset = (#tempd:1)..tempd;
+	 newI = newI + ideal apply(indexset, j -> 1 - sum(apply(apply(dshuff_(i-1), k-> replace(#tempd-1,k+1,j)), 
+			    l -> sub(a l, T))));
+         J := eliminate(flatten entries sub(vars S, T), newI);
+	 I = sub(J,R1)        
+	 )     
+      );
+      inverseshuff := toList apply(1..n, i -> pos(shuffle,i));
+      q := j -> R.markovVariables#j;
+      F1 := map(R,R1, toList apply((n:1)..dshuff, j ->  q (toSequence j_inverseshuff)));
+      F1(I)   
+)
+ 
+------------------------------------------------------------------
+-- trekSeparation MixedGraph
+-- NOTE: currently, trekSeparation only works with directed and 
+-- bidirected edges. We don't work with MixedGraphs in full
+-- generality (undirected, directed, bidirected). See gaussianRing.
+------------------------------------------------------------------
+
+trekSeparation = method()
+trekSeparation MixedGraph := List => (g) -> (
+    G := graph collateVertices g;
+    dd := graph G#Digraph;
+    bb := graph G#Bigraph; 
+    vv := sort vertices g;
+    -- Construct canonical double DAG cdG associated to mixed graph G:
+    cdGgraph := hashTable join(
+        apply(vv, i -> (1, i) => set join(
+                apply(toList parents(G#Digraph,i),j->(1,j)),
+                {(2,i)},
+                apply(toList bb#i,j->(2,j)))),
+        apply(vv,i-> (2,i) => set apply(toList dd#i,j->(2,j))));
+    aVertices := apply(vv, i->(1,i));
+    bVertices := apply(vv, i->(2,i));
+    allVertices := aVertices|bVertices;
+    statements := {};
+    cdC := new MutableHashTable from apply(allVertices,i->{i,cdGgraph#i});
+    for CA in (subsets aVertices) do (
+      for CB in (subsets bVertices) do (
+	CAbin := setToBinary(aVertices,CA);
+	CBbin := setToBinary(bVertices,CB);
+	if CAbin <= CBbin then (
+          C := CA|CB;
+	  scan(allVertices,i->cdC#i=cdGgraph#i);
+          scan(C, i->scan(allVertices, j->(
+	    cdC#i=cdC#i-{j};
+	    cdC#j=cdC#j-{i};)));
+	  Alist := delete({},subsetsBetween(CA,aVertices));
+          while #Alist > 0 do (
+	    minA := first Alist;
+	    pC := reachable(digraph cdC,set minA);
+	    A := toList ((pC*(set aVertices)) + set CA);
+	    Alist = Alist - (set subsetsBetween(minA,A));
+	    B := toList ((set bVertices) - pC);
+	    -- remove redundant statements:
+	    if #CA+#CB < min{#A,#B} then (
 	    if not ((CAbin==CBbin) and (setToBinary(aVertices,A) > setToBinary(bVertices,B))) then (
 	      nS := {apply(A,i->i#1),apply(B,i->i#1),apply(CA,i->i#1),apply(CB,i->i#1)};
 	      appendnS := true;

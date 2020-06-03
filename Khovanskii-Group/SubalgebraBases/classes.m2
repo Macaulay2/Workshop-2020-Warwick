@@ -52,12 +52,14 @@ liftedPresentation = method()
 liftedPresentation = method()
 liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     B := ambient A;
+    P := presentationRing A;
     G := gens A;
     k := coefficientRing B;
     (nB, nA) := (numgens B, numgens A);
     -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
     e := symbol e;
-    C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
+    -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
+    C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)];
     B2C := map(C,B,(vars C)_{0..nB-1});
     ideal(B2C G - (vars C)_{nB..numgens C-1})
     ))
@@ -91,17 +93,6 @@ presentation Subring := A -> (
     P := presentationRing A;
     sub(presentationGens, P)
     )
-
-TEST ///
-R = QQ[x1, x2, x3];
-S = QQ[e1, e2, e3, y];
-f = map(R, S, {x1 + x2 + x3, x1*x2 + x1*x3 + x2*x3, x1*x2*x3,
-(x1 - x2)*(x1 - x3)*(x2 - x3)});
-A = subring matrix f;
-T = ring liftedPresentation A;
-assert (presentation A == matrix {{T_3^2*T_4^2-4*T_3^3*T_5-4*T_4^3+18*T_3*T_4*T_5-27*T_5^2-T_6^2}})
-///
-
 
 -- quotient ring given by a presentation
 ring Subring := A -> (

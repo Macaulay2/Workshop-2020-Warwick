@@ -23,9 +23,9 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrix"
        	} 
      
-needsPackage "Graphs"     
-needsPackage "GraphicalModels"
-needsPackage "Bertini"
+needsPackage("Graphs")     
+needsPackage("GraphicalModels")
+needsPackage("Bertini")
 
 
 
@@ -350,7 +350,7 @@ doc ///
 	    needsPackage("Graphs");
 	    needsPackage("GraphicalModels");
 	    needsPackage("GraphicalModelsMLE");
-	    G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+	    G = mixedGraph(digraph {{1,{2}},{1,{3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsFromCovarianceMatrix(R,U)
@@ -508,7 +508,7 @@ assert(Y===B)
 TEST ///
 needsPackage("Graphs");
 needsPackage("GraphicalModels");
-G = mixedGraph(digraph {{1,{2,3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
+G = mixedGraph(digraph {{1,{2}}, {1,{3}},{2,{3}},{3,{4}}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 J=scoreEquationsFromCovarianceMatrix(R,U);
@@ -589,7 +589,7 @@ help GraphicalModelsMLE
 
 end;
 restart
-installPackage "GraphicalModelsMLE"
+installPackage("GraphicalModelsMLE")
 check "GraphicalModelsMLE"
 
 

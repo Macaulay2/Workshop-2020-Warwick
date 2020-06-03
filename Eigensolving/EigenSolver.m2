@@ -23,14 +23,14 @@ zeroDimSolve = method(Options => {
     Strategy => "Stickelberger"})
 zeroDimSolve Ideal := List => opts -> I -> (
     if opts.Strategy == "Stickelberger" then return eigSolve1(I, opts)
-    else if opts.Strategy == "syzygy" then return null
+    else if opts.Strategy == "syzygy" then return eigSolve2(I, opts)
     else error "Unknown strategy";
 )
 
-reduceCoeffs = (A, I, m) -> transpose sub(last coefficients(A % I, Monomials => m), ultimate(coefficientRing, ring I))
+reduceCoeffs = (A, I, m) -> transpose sub(last coefficients(A % I, Monomials => m), coefficientRing ring I)
 
 eigSolve1 = method(Options => options zeroDimSolve) -- based on Tomas' function SolvePolyEqByEigV
-eigSolve1 Ideal := Matrix => opts -> I -> (
+eigSolve1 Ideal := List => opts -> I -> (
     R := ring I;
     B := if opts.Basis != null then opts.Basis else sub(basis(R/I), R);
     f := if opts.Multiplier != 0 then opts.Multiplier else random(1, R);
@@ -38,6 +38,25 @@ eigSolve1 Ideal := Matrix => opts -> I -> (
     (E, V) := eigenvectors M;
     V = V*inverse diagonalMatrix V^{0};
     entries transpose(reduceCoeffs(vars R, I, B)*V)
+)
+
+eigSolve2 = method(Options => options zeroDimSolve) -- based on Laurent's code
+eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2
+    R := ring J;
+    deg := degrees J;
+    satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};
+    psi := map(R^{{0,0}}, R^(-(J_*/degree)), gens J);
+    elimMat := matrix basis(satind,psi);
+    elimMatTr := transpose sub(elimMat,CC);
+    nc := rank source elimMatTr; 
+    numrk := numericalRank elimMatTr;
+    K := numericalKernel(elimMatTr,getDefault(Tolerance));
+    numroots := rank source K; -- expected number of roots
+    D0 := K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
+    D1 := K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,... 
+    (EVal,EVec) := eigenvectors (inverse(D0)*D1); 
+    EVect := D0*EVec;
+    apply(#EVal, i -> point{{EVal_i,EVect_(1,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1
 )
 
 -- needs "tomas-eigensolving.m2" -- errors when loading
@@ -62,6 +81,13 @@ assert(#realPts == 6)
     -- realPts = realPoints(s/(v -> point matrix{v}));
     -- all(realPts, p -> clean(1e-8, evaluate(G, p)) == 0)
 -- )) -- seems around 6% fails
+///
+
+TEST ///
+R = FF[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+J = ideal(random({2,5},R),random({2,5},R))
+listSol = zeroDimSolve(J, Strategy => "syzygy")
+#listSol
 ///
 
 end--

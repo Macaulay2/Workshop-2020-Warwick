@@ -24,19 +24,20 @@ homogenize(F,x0) -- can't homogenize if multi-graded!!!
 -- Solving points in a P1xP1
 --------------------------------------
 restart
+FF = QQ
 loadPackage "NumericalAlgebraicGeometry"
-R = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+R = FF[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
 -- this example below requires generalized eigenvalues
 -- hF = {x1^2*y0^2+y1^2*x0^2-x0^2*y0^2, y0^2*x1^3-x0^3*y1^2} -- defines ... A^1 x A^1
 -- J = ideal hF
-J=ideal(random({2,30},R),random({2,30},R));
+J=ideal(random({2,5},R),random({2,5},R));
 
 --solve with NAG for comparison
-S=CC[x1,y1]
+S=FF[x1,y1]
 rho=map(S,R,{1,x1,1,y1})
 JS=rho(J)
 NAGsol=solveSystem {JS_0,JS_1}
-netList NAGsol
+#NAGsol
 use R
 
 -- start the method based on eigencomputations
@@ -49,9 +50,9 @@ elimMat=matrix basis(satind,psi);
 -- mb=transpose basis(satind,R) --basis used to index the rows of elimMat
 -- K = syz transpose elimMat -- "exact" basis of coker of linear map
 -- For a better stability, compute the numerical kernel
-elimMatTr=transpose sub(elimMat,RR);
+elimMatTr=transpose sub(elimMat,CC);
 nc=rank source elimMatTr; numrk=numericalRank elimMatTr
-(S,U,Vt)=SVD(elimMatTr); K=transpose Vt^{numrk..nc-1}; -- numerical kernel
+K = numericalKernel(elimMatTr,getDefault(Tolerance))
 numroots=rank source K -- expected number of roots
 
 D0=K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
@@ -60,8 +61,14 @@ D1=K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,...
 -- sub(mb^{satind_1+1..satind_1+numroots},{x0=>1,y0=>1})
 -- SVD D0
 (EVal,EVec)=eigenvectors (inverse(D0)*D1); EVect=D0*EVec;
-listSol=apply(#EVal, i -> {EVal_i,EVect_(1,i)/EVect_(0,i)}) -- roots (x_1,y_1) assuming x0=y0=1
+listSol=apply(#EVal, i -> point{{EVal_i,EVect_(1,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1
 
 -- Comparison of the roots computed by both methods
-netList listSol
-netList NAGsol
+areEqual(sortSolutions listSol,sortSolutions NAGsol)
+
+(s->norm evaluate(polySystem JS, s))\listSol
+sort\\(s->norm evaluate(polySystem JS, s))\NAGsol
+needsPackage "EigenSolver"
+errorDepth = 2
+zSol = zeroDimSolve JS
+areEqual(sortSolutions zSol,sortSolutions NAGsol)

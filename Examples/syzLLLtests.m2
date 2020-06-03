@@ -5,17 +5,15 @@
 -- (a,b)
 
 
-restart
+--restart
 --installPackage"RandomObjects"
-uninstallPackage"RandomObjects"
-installPackage"RandomObjects"
+--uninstallPackage"RandomObjects"
+--installPackage"RandomObjects"
 
-uninstallPackage"RandomSpaceCurves"
-installPackage"RandomSpaceCurves"
+--uninstallPackage"RandomSpaceCurves"
+--installPackage"RandomSpaceCurves"
 
-
-
-help loadPackage
+--help loadPackage
 
 restart
 RQQ = QQ[x_0..x_3]
@@ -39,7 +37,7 @@ selectDegree (Matrix,List) := (M,d) -> (
 matrixLLLoneDegree = method()
 
 matrixLLLoneDegree (Matrix) := M -> (
-    -- compute nunber of different degrees
+    -- compute number of different degrees
     numDegs := #unique degrees source M;
     -- TEST: does the source of M have only one degree?
     if numDegs != 1 then error "Matrix has multiple degrees";
@@ -91,8 +89,9 @@ assert (
 height (Matrix) := M -> lift(max flatten entries last coefficients M,ZZ)
 
 -- one example
+-*
 tally apply(10,i->(
-    h := 3;
+    h := 4;
     print "";
     time betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h));
     time betti (syzM = syzLLL1 M);
@@ -100,6 +99,7 @@ tally apply(10,i->(
     --apply(degs,d->height matrixLLLoneDegree selectDegree(syzM,d))
     apply(rank source syzM,i->height (syzM_{i}))  
     ))
+*-
 -- the height of the result seems to be about h^4
 -- but some abnormally big coefficients appear (
 -- 
@@ -117,14 +117,57 @@ tally apply(10,i->(
 -- these might come from non optimally chosen
 -- bases for higher degree syzygies.
 
+end;
+
 -- Strategy II
+restart;
+load "syzLLLtests.m2"
+loadPackage "FastLinAlg"
+loadPackage("PruneComplex",Reload=>true)
 
-betti syzM
-super 
+RZZ = ZZ[x_0..x_3]
+RQQ = QQ[x_0..x_3]
 
-basis(1,ker M)
-mons1 = super basis(1,RZZ)
+h = 2
+betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h));
+betti (syzM = syz M);
+LLLdeg2 = matrixLLL(syzM * basis(2,source syzM));
+LLLdeg3 = matrixLLL(syzM * basis(3,source syzM));
+betti (N = LLLdeg2|LLLdeg3)
+betti (syzN = syz N)
 
+-- we want to minimize LLLdeg3
+
+-- using pruneComplex
+C = chainComplex({N,syzN})
+betti pruneDiff(C,1)
+C' = pruneComplex (C)
+betti (C'.dd_2)
+max flatten entries last coefficients (N)
+max flatten entries last coefficients (C'.dd_1)
+assert (M * C'.dd_1 == 0)
+-- we get a smaller matrix 
+-- and the height of the coefficients does not change
+
+-- using FastLinAlg -> getSubmatrixOfRank
+betti (constantSyz = sub(syzN_{0..31}^{6..43},RQQ))
+rkConstantSyz = rank constantSyz;
+subList = getSubmatrixOfRank(rkConstantSyz, constantSyz) 
+rowsDeleted = apply(subList#0, i-> i + 6)
+betti (improvedN = submatrix'(N,,rowsDeleted))
+N' = improvedN * random(source improvedN, RZZ^{6:-2,1:-3},Height=>2);
+betti (I = ideal matrixLLL syz N')
+IQQ = sub(I,RQQ);
+singIQQ = ideal singularLocus IQQ;
+hI = height gens I;
+result =  (
+    hI,
+    log(hI)/log(h),
+    codim singIQQ
+    )
+
+
+-- experiment without minimizing: 
 
 h = 2
 time tally apply(20,i->(
@@ -202,8 +245,14 @@ time tally apply(20,i->(
 -- (72317, 16.142, 4) => 1
 -- (828586, 19.6603, 4) => 1
 -- {} => 10
-height gens I
 
-time betti 
-time codim singIQQ
+
+restart;
+RZZ = ZZ[x_0..x_3]
+h = 2
+betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h))
+betti (syzM = syz M)
+betti (M1 = syzM * basis(2,source syzM))
+betti (M2 = syzM * basis(3,source syzM))
+betti (syz (M1|M2))
 

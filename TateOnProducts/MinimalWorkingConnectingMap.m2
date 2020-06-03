@@ -32,13 +32,15 @@ N = netList {betti T3, betti T2, betti T1}
 phi = ExactSequence.dd_2
 psi = ExactSequence.dd_1
 
---Obtain the morphisms in our exact sequence
+phi = ExactSequence.dd_2
+psi = ExactSequence.dd_1
+inclusion = inducedMap (target psi, C)
+psi = psi // inclusion
 
-inclusion = inducedMap (target psi, target inducedMap (C, truncate(5,C)))
+--Obtain the morphisms in our exact sequence. Note that the differential ExactSequence.dd_1 is not quite right, 
+-- it ends up inside the free hull of I, not inside I itself. So you need to lift along the inclusion.
 
--- We need the inclusion of C into the free module it embeds into
-
-d1 = psi * inducedMap (B, truncate (5,B)) // inclusion // inducedMap (C, truncate(5,C))
+d1 = psi * inducedMap (B, truncate (5,B)) // inducedMap (C, truncate(5,C))
 d2 = phi * inducedMap (A, truncate (5,A)) // inducedMap (B, truncate(5,B))
 
 -- These give two maps from free modules of the correct dimensions, with constant coefficients

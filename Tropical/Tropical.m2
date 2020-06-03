@@ -192,16 +192,21 @@ minmaxSwitch (TropicalCycle) := T ->(
 
 
 --Decide if a one-dimensional tropical cycle is balanced.
---Decide if a one-dimensional tropical cycle is balanced. 
 --input: TropicalCycle T, which we assume is 1-dimensional
 isBalancedCurves = T ->(
     -- find first integer lattice points on each vector (get list of points)
     -- check whether sum * multiplicity is 0
 	-- assuming already have lattice points V = {...}
 	m := multiplicities T;
-	r := rays T;
+	r := entries transpose rays T;
 	(first unique sum(#r, i->(m_i * r_i))) == 0
 );    
+
+--computes the star of the polyhedron P in the polyhedral complex Sigma
+star = (Sigma, P) -> (
+	
+	)
+
 
 isBalanced = method(TypicalValue => Boolean)
 
@@ -237,6 +242,13 @@ isBalanced (TropicalCycle):= T->(
 	else return "Polymake throws an error";
 --    )
 --    else (
+	if dim T == 1 then return (isBalancedCurves T) else (
+	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
+	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
+	--use isBalancedCurves to check if balanced for all F
+	
+		)
+	
 	--Put our code here
 --    );
 );	
@@ -1952,7 +1964,19 @@ assert(isSimplicial(T)==(false))
 --convertToPolymake
 -----------------------
 
-
+-*
+-----------------------
+--isBalancedCurves
+-----------------------
+TEST///
+R = QQ[x, y];
+I = ideal (x+y+1);
+T = tropicalVariety(I);
+assert (isBalancedCurves T == true)
+U = tropicalCycle(fan T, {1, 2, 3});
+assert (isBalancedCurves U == false)
+///
+*-
 
 end
 

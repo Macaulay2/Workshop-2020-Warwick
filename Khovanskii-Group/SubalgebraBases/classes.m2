@@ -3,7 +3,7 @@ export {
     "subring",
     "liftedPresentation"
     }
-    
+
 
 -- Organization
 -- 1) Subring type (and associated methods)
@@ -33,23 +33,41 @@ numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
 
 liftedPresentation = method()
-liftedPresentation Subring := A -> (    
+-- lifted presentation using the cacheValue function
+liftedPresentation = method()
+liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
+    B := ambient A;
+    G := gens A;
+    k := coefficientRing B;
+    (nB, nA) := (numgens B, numgens A);
+    -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
+    e := symbol e;
+    C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
+    B2C := map(C,B,(vars C)_{0..nB-1});
+    ideal(B2C G - (vars C)_{nB..numgens C-1})
+    ))
+
+-- leaving the old liftedPresentation for comparison
+-- delete after cacheValue discussion (20200603)
+-*
+liftedPresentation Subring := A -> (
     if not A.cache#?"LiftedPresentation" then (
     	B := ambient A;
 	G := gens A;
     	k := coefficientRing B;
 	(nB, nA) := (numgens B, numgens A);
 	-- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-	e := symbol e;	       
+	e := symbol e;
     	C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
 	B2C := map(C,B,(vars C)_{0..nB-1});
     	A.cache#"LiftedPresentation" = ideal(B2C G - (vars C)_{nB..numgens C-1});
 	);
     A.cache"LiftedPresentation"
     )
+ *-
 
 -- computes an ideal of relations
-presentation Subring := A -> selectInSubring(1, liftedPresentation A)
+presentation Subring := A -> selectInSubring(1, gens gb liftedPresentation A)
 
 -- quotient ring given by a presentation
 ring Subring := A -> (
@@ -60,7 +78,7 @@ ring Subring := A -> (
 options Subring := A -> A.cache#"Options"
 -- these need to be implemented
 
--- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"  
+-- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"
 RingElement % Subring := (f, A) -> (
     ret := f;
     assert(ring ret == ambient A);

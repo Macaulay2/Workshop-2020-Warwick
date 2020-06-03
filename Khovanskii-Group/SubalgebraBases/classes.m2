@@ -127,5 +127,35 @@ member (RingElement, Subring) := (f, A) -> (
     r == 0_R
     )
 
+-- 2) experimental valuation type
+
+Valuation = new Type of HashTable
+-- what should a valuation need to know?
+source Valuation := v -> v#source
+target Valuation := v -> v#target
+
+MonomialValuation = new Type of Valuation
+monomialValuation = method()
+monomialValuation Ring := R -> new MonomialValuation from {
+    source => R,
+    target => ZZ^(numgens R),
+    "evaluate" => (f -> matrix exponents leadTerm f)
+    }
+leadTerm (MonomialValuation, RingElement) := (v, f) -> (
+    assert(ring f === source v);
+    leadTerm f
+    )
+MonomialValuation RingElement := (v, f) -> matrix exponents leadTerm(v, f)
+
+-*
+R=QQ[x,y]
+f = x+y^2
+v = monomialValuation R
+source v
+target v
+v f
+leadTerm(v,f) < y
+*-
+
 end--
 

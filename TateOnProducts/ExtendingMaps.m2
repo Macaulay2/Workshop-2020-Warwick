@@ -29,15 +29,12 @@ N = netList {betti T3, betti T2, betti T1}
 
 phi = ExactSequence.dd_2
 psi = ExactSequence.dd_1
---inclusion = inducedMap (target psi, image psi)
-truncatedmap = inducedMap (C, truncate(relevantindex+1,C))
 inclusion = inducedMap (target psi, C)
 psi = psi // inclusion
 
 -- This creates a collection of maps in the exact sequence, though the only relevant ones to use are phi and psi. The  issue is that the free resolution is not quite the same as the exact sequence we want.
 
-d1 = psi * inducedMap (B, truncate (relevantindex+1,B)) // truncatedmap
---inducedMap (C, truncate(relevantindex+1,C))
+d1 = psi * inducedMap (B, truncate (relevantindex+1,B)) // inducedMap (C, truncate(relevantindex+1,C))
 d2 = phi * inducedMap (A, truncate (relevantindex+1,A)) // inducedMap (B, truncate(relevantindex+1,B))
 
 -- We find the induced map on truncations, which in large degree is the induced map on global sections.

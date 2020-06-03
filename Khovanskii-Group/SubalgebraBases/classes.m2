@@ -32,7 +32,7 @@ subring List := L -> subring matrix{L}
 gens Subring := o -> A -> A#"Generators"
 numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
-
+net Subring := A -> "subring of " | toString(ambient A)
 
 presentationRing = method()
 presentationRing Subring := A -> (

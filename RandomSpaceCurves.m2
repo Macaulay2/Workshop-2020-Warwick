@@ -375,7 +375,7 @@ randomHartshorneRaoModuleDiameter1 = (HRao,R)->(
 constructHartshorneRaoModule=method(Options=>{Certify=>false})
 
 constructHartshorneRaoModule(ZZ,List,PolynomialRing):=opt->(e,HRao,R)->(
-     if dim R != 4 then error "expected a polynomial ring in 4 variables";
+     if numgens R != 4 then error "expected a polynomial ring in 4 variables";
      if degrees R !={{1}, {1}, {1}, {1}} then error "polynomial ring is not standard graded";
      if #HRao > 3 then error "no method implemented for Hartshorne Rao modue of diameter >3";
      M := null;

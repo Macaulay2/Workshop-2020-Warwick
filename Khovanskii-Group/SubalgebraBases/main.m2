@@ -15,6 +15,7 @@ export {
     "SubalgComputations",
     "InclusionBase",
     "ProjectionInclusion",
+    "sagbiGB",
     "SagbiGens",
     "SagbiDone"
     }
@@ -65,6 +66,7 @@ subalgebraBasis Subring := o -> R -> (
     R.cache.SagbiDegrees = {};
     subalgComp.TensorRing = null;  -- RS
     subalgComp.SyzygyIdeal = null; -- J
+    subalgComp.sagbiGB = null;
 
     subalgComp.ProjectionInclusion = null; -- RStoS
     subalgComp.ProjectionBase = null;      -- RStoR
@@ -74,7 +76,6 @@ subalgebraBasis Subring := o -> R -> (
     currDegree := null;     -- d
     nLoops := null;         -- nloops
     R.cache.SagbiDone = false;
-    sagbiGB := null;
     syzygyPairs := null;
     newElems := null;
 
@@ -108,17 +109,17 @@ subalgebraBasis Subring := o -> R -> (
     
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
        
-        sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
-        syzygyPairs = subalgComp.Substitution(submatrixByDegrees(mingens ideal selectInSubring(1, gens sagbiGB), currDegree));
+        subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
+        syzygyPairs = subalgComp.Substitution(submatrixByDegrees(mingens ideal selectInSubring(1, gens subalgComp.sagbiGB), currDegree));
         if subalgComp.Pending#currDegree != {} then (
             syzygyPairs = syzygyPairs | subalgComp.InclusionBase(matrix{subalgComp.Pending#currDegree});
             subalgComp.Pending#currDegree = {};
         );
         
-	numparts := rawMonoidNumberOfBlocks raw monoid ambR;
+	    numparts := rawMonoidNumberOfBlocks raw monoid ambR;
     	M := syzygyPairs;
     	F := subalgComp.Substitution;
-    	C := sagbiGB; 
+    	C := subalgComp.sagbiGB;
 	
     	subd := subduction(numparts, M, F, C);
     	
@@ -129,7 +130,7 @@ subalgebraBasis Subring := o -> R -> (
             currDegree = grabLowestDegree(R, o.Limit);
         )
         else (
-            if sum toList apply(subalgComp.Pending, i -> #i) === 0 and rawStatus1 raw sagbiGB == 6 and currDegree > maxGensDeg then (
+            if sum toList apply(subalgComp.Pending, i -> #i) === 0 and rawStatus1 raw subalgComp.sagbiGB == 6 and currDegree > maxGensDeg then (
                 R.cache.SagbiDone = true;
                 if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;
             	)

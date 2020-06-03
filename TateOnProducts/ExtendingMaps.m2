@@ -44,12 +44,12 @@ d2 = phi * inducedMap (A, truncate (relevantindex+1,A)) // inducedMap (B, trunca
 
 str = map (kk, R)
 
-transfer1 = (str ** d1) ** E
-transfer2 = (str ** d2) ** E
+transfer1 = (str ** d1) ** E^{relevantindex+1}
+transfer2 = (str ** d2) ** E^{relevantindex+1}
 
 -- We need to coerce an integer matrix over R to one over E. This is a hugely silly way of doing that
 
-e1 = extend (T1[-relevantindex], T2[-relevantindex], map (T1_-relevantindex, T2_-relevantindex, transfer1))
-e2 = extend (T2[-relevantindex], T3[-relevantindex], map (T2_-relevantindex, T3_-relevantindex, transfer2))
+e1 = extend (T1[-relevantindex], T2[-relevantindex], transfer1)
+e2 = extend (T2[-relevantindex], T3[-relevantindex], transfer2)
 
 --Now we extend the morphisms on global sections to one on the whole chain complex.

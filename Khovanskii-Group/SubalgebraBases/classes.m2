@@ -124,3 +124,15 @@ member (RingElement, Subring) := (f, A) -> (
     R := ambient A;
     r == 0_R
     )
+
+end--
+
+TEST ///
+R = QQ[x1, x2, x3];
+S = QQ[e1, e2, e3, y];
+f = map(R, S, {x1 + x2 + x3, x1*x2 + x1*x3 + x2*x3, x1*x2*x3,
+(x1 - x2)*(x1 - x3)*(x2 - x3)});
+A = subring matrix f;
+T = ring liftedPresentation A;
+assert (presentation A == matrix {{T_3^2*T_4^2-4*T_3^3*T_5-4*T_4^3+18*T_3*T_4*T_5-27*T_5^2-T_6^2}})
+///

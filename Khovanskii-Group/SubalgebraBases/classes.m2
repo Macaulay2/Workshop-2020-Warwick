@@ -47,7 +47,6 @@ presentationRing Subring := A -> (
     )
 
 
-liftedPresentation = method()
 -- lifted presentation using the cacheValue function
 liftedPresentation = method()
 liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (

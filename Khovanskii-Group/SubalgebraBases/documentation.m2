@@ -109,7 +109,6 @@ doc ///
 --There is something wrong with the doc, not displaying the usage/inputs/outputs 
 doc ///
    Key
-     "%"
     (symbol %, RingElement, Subring) 
    Headline
      normal form of an ambient ring element modulo a subring

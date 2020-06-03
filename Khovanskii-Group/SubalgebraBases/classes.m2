@@ -47,7 +47,6 @@ presentationRing Subring := A -> (
     )
 
 
-liftedPresentation = method()
 -- lifted presentation using the cacheValue function
 liftedPresentation = method()
 liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
@@ -110,6 +109,7 @@ RingElement % Subring := (f, A) -> (
     tagSubs := flatten entries sub(gens A, ring liftedPresentation A);
     subTable := apply(tagVars, tagSubs, (ei, fi) -> ei => fi);
     nonRemainder := sub(sub(sub(f // A, pA), subTable), ambient A);
+    use ring f;
     f - nonRemainder
     )
 

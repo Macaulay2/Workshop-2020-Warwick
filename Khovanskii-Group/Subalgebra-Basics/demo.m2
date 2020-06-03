@@ -27,6 +27,7 @@ peek A.cache
 
 -- no finite subalg basis
 restart
+x=symbol x
 R=QQ[x,y,MonomialOrder=>Lex]
 (options R).MonomialOrder
 needsPackage "SubalgebraBases"
@@ -63,6 +64,8 @@ netList flatten entries leadTerm(1,ker phi) -- lead terms of Plucker relations (
 R=QQ[t_1,t_2]
 kA=matrix{{t_1^2,t_1*t_2,t_2^2}}
 M = matrix{{t_1^2,t_1*t_2}}
+-- return the monomial order stashed inside of a ring
+getMO = R -> (options R).MonomialOrder
 S=QQ[gens R|{x_0,x_1,x_2},MonomialOrder => (getMO R) | {Eliminate 2}]
 phi = map(R,S,vars R | kA)
 kAS = S / ker phi
@@ -73,6 +76,8 @@ phi lift(l,S)
 -- example 11.22
 R=QQ[t_1,t_2,t_3]
 kA=matrix{{t_1*t_2*t_3,t_1^2*t_2,t_1*t_2^2,t_1^2*t_3,t_2^2*t_3,t_2*t_3^2}}
+-- return the monomial order stashed inside of a ring
+getMO = R -> (options R).MonomialOrder
 S=QQ[gens R|toList(x_0..x_(numcols kA-1)),MonomialOrder => (getMO R) | {Eliminate numgens R}]
 phi = map(R,S,vars R | kA)
 IA=ideal selectInSubring(1,gens ker phi)

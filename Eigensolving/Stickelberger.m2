@@ -79,14 +79,19 @@ needsPackage "EigenSolver"
 R = QQ[x,y]
 I = ideal (x^2-1,y^3-1)
 stickelbergerSolve I
+apply(oo, i -> norm evaluate(polySystem I, point{i}))
 
+
+-- P2 example
 B = QQ[x0,x1,x2]
 I = ideal(random(3,B), random(3,B))
 R = QQ[x1,x2]
 spe = map(R,B,matrix{{1,x1,x2}})
 J = spe I
-
-
+stickelbergerSolve J
+apply(oo, i -> norm evaluate(polySystem J, point{i}))
+zeroDimSolve J
+apply(oo, i -> norm evaluate(polySystem J, point{i}))
 
 -- takes too long time
 n = 3

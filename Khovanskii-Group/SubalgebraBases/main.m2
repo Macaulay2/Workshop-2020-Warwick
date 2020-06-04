@@ -38,10 +38,6 @@ subalgebraBasis = method(Options => {
     Limit => 100,
     PrintLevel => 0})
 
-subalgebraBasis List := o -> L -> (
-    subalgebraBasis(o, subring L)
-    );
-
 -- caches computation results inside of R
 subalgebraBasis Subring := o -> R -> (
 -- Declaration of variables
@@ -153,3 +149,7 @@ subalgebraBasis Matrix := o -> gensMatrix -> (
     R := subring gensMatrix;
     subalgebraBasis(R,o)
 )
+
+subalgebraBasis List := o -> L -> (
+subalgebraBasis(o, subring L)
+);

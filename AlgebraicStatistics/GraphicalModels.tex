@@ -1,0 +1,101 @@
+\documentclass[10pt]{beamer}
+
+\usetheme[progressbar=frametitle]{metropolis}
+\usepackage{appendixnumberbeamer}
+
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamertemplate{title graphic}{
+\vbox to 0pt {
+\vspace*{22em}
+\inserttitlegraphic
+}
+\nointerlineskip
+}
+
+\title{Graphical models}
+
+\date{M2 Workshop 2020, Warwick}
+\author{Algebraic statistics project}
+
+
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Graphical models}
+
+A \textbf{graphical model} is a statistical model associated to a graph, where the
+nodes of the graph represent random variables and the edges of the graph encode relationships between the random variables. 
+
+\medskip
+
+Graphical models are used
+in many applications because of their ability to model complex
+interactions between several random variables, by specifying interactions using only local information about connectivity between the vertices in a graph.
+
+
+\medskip
+GraphicalModels package: compute conditional independence statements and vanishing ideals for Gaussian and discrete graphical models.
+
+\emph{Example on how to introduce a graph and create gaussian ring.}
+\end{frame}
+
+\section{Multi-trek ideals}
+
+\section{Maximum likelihood estimation}
+
+\begin{frame}{Maximum likelihood estimation}
+
+$\mathcal{P}_{\Theta}=\lbrace P_{\theta}:\theta\in\rbrace$ statistical model with parameter space $\Theta\subset\mathbb{R}^d$
+
+$X^{1},X^{2},\dots,X^{n}\sim P_\theta$ independent random vector identically distributed according to some unknown probability distribution $P_\theta\in\mathcal{P}_\theta$.
+
+Goal: find $\theta$ that best describes the data.
+
+
+The \textbf{maximum likelihood estimator} of $\theta$ is the random variable
+$$\hat{\theta}=argmax_{\theta\in\Theta}\log\prod_{i=1}^n p_\theta(X^{(i)})$$
+
+The \textbf{maximum likelihood estimate} is $\theta$ for the data $x^{(1)},\dots,x^{(n)}$ is the realization of $\hat{\theta}$ obtained by the substitution $X^{(1)}=x^{(1)},\dots,X^{(n)}=x^{(n)}$.
+
+\end{frame}
+
+\begin{frame}{GraphicalModelsMLE}
+What do we want it to do?
+
+Compute maximum likelihood estimations for discrete and Gaussian graphical models. 
+
+What have we done?
+
+Revisit a package started in a previous workshop and add...numerical tools to solve optimization problems? MLE for undirected graphs?
+
+\end{frame}
+
+\begin{frame}{Example}
+
+Example from Lecture notes on Algebraic Statistics (Drton, Sturmfels, Sullivant)
+
+$$\Theta_2=\lbrace\Sigma\in PD_4: (\Sigma^{-1})_{13}=(\Sigma^{-1})_{24}=0\rbrace$$
+
+$\Theta=R^m\times\Theta_2$ undirected Gaussian graphical model
+
+
+associated to the cyclic graph with vertex 1,2,3,4 and edges 12, 23, 34, 14 (picture instead of definition?)
+
+Goal: Maximize likelihood equations.
+
+\emph{Compute example using new eigensolver from the numerical group.} 
+\end{frame}
+
+\end{document}

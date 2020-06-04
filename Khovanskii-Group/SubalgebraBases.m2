@@ -2,18 +2,18 @@
 newPackage(
 	"SubalgebraBases",
 	AuxiliaryFiles => true,
-    	Version => "0.1", 
+    	Version => "0.1",
     	Date => "November 24, 2006",
-    	Authors => {{Name => "Mike Stillman", 
-		  Email => "mike@math.cornell.edu", 
+    	Authors => {{Name => "Mike Stillman",
+		  Email => "mike@math.cornell.edu",
 		  HomePage => "http://www.math.cornell.edu/~mike/"}},
     	Headline => "Canonical subalgebra bases (aka SAGBI/Khovanskii bases)",
 	AuxiliaryFiles => true, -- set to true if package comes with auxiliary files
---  	DebuggingMode => false,		
+--  	DebuggingMode => false,
   	DebuggingMode => true		 -- set to true only during development
     	)
 
-export {}
+export {"evaluate"}
 exportMutable {}
 
 -*

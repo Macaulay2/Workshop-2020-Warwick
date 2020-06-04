@@ -30,3 +30,13 @@ assert(s==s2)
 --Comparison 
 elapsedTime solveSystem J_*
 elapsedTime sparseMonodromySolve(polySystem J_*)
+
+
+--Example 2.1.13 OWL
+needsPackage "GraphicalModelsMLE"
+needsPackage "GraphicalModels"
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+R=gaussianRing(G)
+U={random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4)}
+scoreEquationsFromCovarianceMatrix(R,U)
+-- expects R to be created from a MixedGraph!!!

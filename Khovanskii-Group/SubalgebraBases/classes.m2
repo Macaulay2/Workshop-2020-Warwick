@@ -56,8 +56,8 @@ liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     (nB, nA) := (numgens B, numgens A);
     -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
     e := symbol e;
-    -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
-    C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)];
+    -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMonomialOrder B, Eliminate nB)];
+    C := k[gens B | gens P, MonomialOrder => append(getMonomialOrder B, Eliminate nB)];
     B2C := map(C,B,(vars C)_{0..nB-1});
     ideal(B2C G - (vars C)_{nB..numgens C-1})
     ))

@@ -39,6 +39,8 @@ stickelbergerSolve Ideal := I -> (
     J := ideal gens gb I;
     gbList := flatten entries gens J;
     eList := apply(gens R, i -> eigenSpaceList multMat(J, i)); 
+    
+    -- constructing all possible combinations of eigenvalues
     outList = {};
     tmpList = {{}};
     for x in eList do (
@@ -56,6 +58,8 @@ stickelbergerSolve Ideal := I -> (
     	);
     eigList := delete( ,apply(outList, i -> 
 	    if length i == length eList then i else null));
+    
+    -- checking each combination of eigenspaces intersect 
     matrixList := apply(eigList, i -> 
 	apply(i, j -> transpose last j));
     delete( ,apply(length matrixList, i -> if checkIntersect matrixList#i then (

@@ -654,7 +654,8 @@ separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E
   -1
 ))
 
-isVeryAmple ToricReflexiveSheaf := Boolean => E -> separatesJets E > 0
+isVeryAmple ToricReflexiveSheaf := Boolean => E -> 
+ separatesJets E > 0
 
 restrictToCurve = method()
 restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) -> (
@@ -672,7 +673,7 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
  );
  assChar := associatedCharacters E;
  twists := for u0 in assChar#(sigmas_0) list (
-  a := 0;
+  local a;
   for u1 in assChar#(sigmas_1) do (
    diff := transpose matrix {u0-u1};
    as := unique select(apply(entries(diff|normal), i -> if i_1==0 then (if not i_0==0 then infinity) else i_0/i_1), x -> instance(x,Number) or instance(x,InfiniteNumber));
@@ -694,15 +695,11 @@ restrictToInvCurves ToricReflexiveSheaf := List => (cacheValue symbol restrictTo
  apply( cones(n-1,F), tau -> restrictToCurve(tau,E))
 ))
 
-isNef ToricReflexiveSheaf := Boolean => E -> (
- restrictions := restrictToInvCurves E;
- all(restrictions, r -> all( components r, L -> sum degree toricDivisor L >= 0))
-)
+isNef ToricReflexiveSheaf := Boolean => E -> 
+ all(restrictToInvCurves E, r -> all( components r, L -> (degree toricDivisor L)_0 >= 0))
 
-isAmple ToricReflexiveSheaf := Boolean => E -> (
- restrictions := restrictToInvCurves E;
- all(restrictions, r -> all( components r, L -> sum degree toricDivisor L > 0))
-)
+isAmple ToricReflexiveSheaf := Boolean => E -> 
+ all(restrictToInvCurves E, r -> all( components r, L -> (degree toricDivisor L)_0 > 0))
 
 
 

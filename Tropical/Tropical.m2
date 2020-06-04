@@ -208,10 +208,35 @@ isBalancedCurves = T ->(
 	(first unique sum(#r, i->(m_i * r_i))) == 0
 );    
 
---computes the star of the polyhedron P in the polyhedral complex Sigma
+--computes the star of the codimension-one polyhedron P in the tropical cycle Sigma
 star = (Sigma, P) -> (
-	
-	)
+    	--Create the linear space parallel to P
+	--and quotient by it
+	--Version for cones
+	d:=dim P;
+	V:= gens  kernel transpose rays(P);
+	B:=inverse(rays(P) | V);
+    	--version for polyhedral complex
+--    	adjacentCells=select(maxPolyhedra(fan Sigma),sigma->(contains(sigma,P)));
+    	--version for fans, as currently implemented
+	maxConesSigma:=facesAsCones(0, fan Sigma);
+	adjacentCellsPos:=positions(maxConesSigma,sigma->(contains(sigma,P)));
+	adjacentCells:=apply(adjacentCellsPos,i->(maxConesSigma_i));
+	raysStar:=apply(adjacentCells,sigma->(
+    		--Create vector pointing from P into sigma
+		--version for Polyhedral complexes
+--    		w:=interiorPoint(sigma)-interiorPoint(P);
+    	        --version for fans
+		w:=sum(rank source rays sigma, i->(rays sigma)_{i}) - 
+		     sum(rank source rays P, i->(rays sigma)_{i});
+		--Project it onto ker(P)
+		w=entries(B*w);
+		w=posHull matrix apply(#w-d,i->(w_(i+d)))
+	));
+    	multsSigma:=multiplicities Sigma;	
+	multStar:=apply(adjacentCellsPos,i->(multsSigma_i));
+	return(tropicalCycle(fan raysStar,multStar));
+);       
 
 
 isBalanced = method(TypicalValue => Boolean)
@@ -251,10 +276,11 @@ isBalanced (TropicalCycle):= T->(
 	--use isBalancedCurves to check if balanced for all F
 	d:=dim T;
 	balanced:=true;
-	F:= faces(d-1,T);
+	F:= faces(1,T);
 	i:=0;
 	while balanced and i<#F do (
-	    balanced = isBalancedCurves(star(T,F_i));
+--change next line when PolyhedralComplex change is made	    
+	    balanced = isBalancedCurves(star(fan T,F_i));
 	    i=i+1;
 	);
     	return balanced;

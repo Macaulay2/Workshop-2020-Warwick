@@ -60,7 +60,8 @@ export{
   "IsHomogeneous",
   "Symmetry",
   "visualizeHypersurface",
-  "Valuation"
+  "Valuation",
+  "isBalancedCurves"
   }
 
 

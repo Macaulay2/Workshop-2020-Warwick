@@ -11,9 +11,9 @@ needsPackage "Tropical"
 R = QQ[x, y];
 I = ideal (x+y+1);
 T = tropicalVariety(I);
-assert (isBalancedCurves T == true)                                                     
+isBalancedCurves T == true
 
-U = tropicalCycle(fan T, {1, 2, 3});                                                    
-assert (isBalancedCurves U == false)                                                    
+U = tropicalCycle(fan T, {1, 2, 3});
+isBalancedCurves U
                                                                       
 								      

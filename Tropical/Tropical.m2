@@ -6,7 +6,7 @@
 
 --TODO: uncomment examples for isBalanced and stableIntersection in next release of M2
 --optArgs := new OptionTable from if (version#"VERSION" > "1.10") then {OptionalComponentsPresent => polymakeOkay} else {}
-
+--Yelena's test
 newPackage(
     	"Tropical",
 	Version => "1.0",

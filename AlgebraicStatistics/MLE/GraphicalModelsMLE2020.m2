@@ -61,7 +61,7 @@ S=X*transpose(X)
 I=ideal{jacobian ideal{determinant(K2)}-determinant(K2)*jacobian(ideal{trace(K2*S)})}
 J=saturate(I,ideal{determinant(K2)})
 dim J, degree J
-options solveSystem
+--options solveSystem
 s=solveSystem J_*
 solveSystem(J_*,Precision=>infinity)
 sparseMonodromySolve(polySystem J_*)

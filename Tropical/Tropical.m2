@@ -227,15 +227,12 @@ isBalanced (TropicalCycle):= T->(
 	C := tropicalCycle(embedFan fan T, multiplicities T);
 -- parse object into a polymake script, run polymake and get result back from the same file (which got overwritten by polymake)
 	filename := temporaryFileName();
---<<filename<<endl;
---<<convertToPolymake(C)<<endl; 
        filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) <<
 	endl << "print is_balanced($c);" << endl;
 	filename<<close;
 --	filename << "use strict;" << endl << "my $filename = '" << filename << "';" << endl << "open(my $fh, '>', $filename);" << endl;
 --	filename << "print $fh is_balanced($c);" << endl << "close $fh;" << endl << close;
 	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
---<<runstring<<endl;
 	run runstring;
 	removeFile (filename|".err");
 	result := get (filename|".out");
@@ -252,10 +249,16 @@ isBalanced (TropicalCycle):= T->(
 	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
 	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
 	--use isBalancedCurves to check if balanced for all F
-	
-		)
-	
-	--Put our code here
+	d:=dim T;
+	balanced:=true;
+	F:= faces(d-1,T);
+	i:=0;
+	while balanced and i<#F do (
+	    balanced = isBalancedCurves(star(T,F_i));
+	    i=i+1;
+	);
+    	return balanced;
+       );
     );
 );	
 	

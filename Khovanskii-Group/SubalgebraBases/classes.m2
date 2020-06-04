@@ -36,15 +36,23 @@ net Subring := A -> "subring of " | toString(ambient A)
 
 presentationRing = method()
 presentationRing Subring := A -> (
+    B := ambient A;
+    k := coefficientRing B;   
+    e := symbol e; 
+    nA := numgens A;
+    presentationRing(A, k[apply(nA, i-> e_i)])
+    )
+
+presentationRing (Subring, Ring) := (A, newPresRing) -> (
     if not A.cache#?"PresentationRing" then (
-	B := ambient A;
-	k := coefficientRing B;
-	e := symbol e;
 	nA := numgens A;
-	A.cache#"PresentationRing" = k[apply(nA, i-> e_i)];
+	assert(nA == numgens newPresRing);
+	A.cache#"PresentationRing" = newPresRing;
 	);
     A.cache#"PresentationRing"
     )
+
+
 
 -- computes the presentation of the subring in the presentation ring
 liftedPresentation = method()
@@ -55,7 +63,7 @@ liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     k := coefficientRing B;
     (nB, nA) := (numgens B, numgens A);
     -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-    e := symbol e;
+    -- e := symbol e;
     -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
     C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)];
     B2C := map(C,B,(vars C)_{0..nB-1});
@@ -73,6 +81,7 @@ presentation Subring := A -> (
     sub(presentationGens, P)
     )
 
+
 -- quotient ring given by a presentation
 ring Subring := A -> (
     I := ideal presentation A;
@@ -83,6 +92,7 @@ options Subring := A -> A.cache#"Options"
 -- these need to be implemented
 
 -- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"
+-- todo: check if there is a finite sagbi basis and use that if available
 RingElement % Subring := (f, A) -> (
     pA := presentationRing A;
     tagVars := take(gens pA, numgens A);

@@ -1,6 +1,7 @@
 --Code for the presentation of the tropical group at the Warwick workshop
 --4 June 2020
 
+needsPackage "Tropical"
 
 
 

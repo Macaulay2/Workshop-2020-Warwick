@@ -42,17 +42,26 @@ presentationRing Subring := A -> (
     k := coefficientRing B;   
     e := symbol e; 
     nA := numgens A;
-    if A.cache#?"AmbientWeight" then (
-    	return presentationRing(A, k[apply(nA, i-> e_i), MonomialOrder => {Weights => A.cache#"AmbientWeight"}])
-    	);
     return presentationRing(A, k[apply(nA, i -> e_i)]);
     )
 
 presentationRing (Subring, Ring) := (A, newPresRing) -> (
     if not A.cache#?"PresentationRing" then (
+	B := ambient A;
 	nA := numgens A;
 	assert(nA == numgens newPresRing);
-	A.cache#"PresentationRing" = newPresRing;
+	if A.cache#?"AmbientWeight" then (
+	    D := A.cache#"AmbientWeight";
+	    weightRing := newRing(B, MonomialOrder => { Weights => D});
+	    inducedWeights := for p in flatten entries gens A list (
+	    	p' := sub(p, weightRing);
+	    	E := (exponents leadTerm p')#0;
+	    	sum apply(E, D, (i,j) -> i*j)
+	    	);
+	    A.cache#"PresentationRing" = newRing(newPresRing, MonomialOrder => {Weights => inducedWeights});
+	    ) else (
+	    A.cache#"PresentationRing" = newPresRing;
+	    );
 	);
     A.cache#"PresentationRing"
     )
@@ -154,7 +163,11 @@ setWeight = method()
 setWeight (Subring, List) := (A, W) -> (
     B := ambient A;
     assert(numgens B == length W);
-    A.cache#"AmbientWeight" = W;
+    if not A.cache#?"AmbientWeight" then (
+	A.cache#"AmbientWeight" = W;
+	) else (
+	print "Weight has already been set"
+	);
     )
 
 getWeight = method()

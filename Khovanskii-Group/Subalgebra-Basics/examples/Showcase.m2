@@ -39,7 +39,7 @@ sB = subalgebraBasis(A, Limit => 10);
 --
 restart
 newDoc = 2020
-needs "SubalgebraBases"
+needsPackage "SubalgebraBases"
 
 R = QQ[x1, x2, x3];
 S = QQ[e1, e2, e3, y];

@@ -649,10 +649,8 @@ separatesJets ToricReflexiveSheaf := ZZ => E -> (
 
 restrictToCurve = method()
 restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) -> (
- testing := false;
  maxCones := max variety E;
  normal := generators kernel matrix (rays variety E)_tau;
- if testing then << "a vector normal to tau:" << endl << normal << endl;
  sigmas := {};
  for i in 0 ..< # maxCones do (
   if isSubset(tau, maxCones#i) then (
@@ -663,18 +661,14 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
     sigmas = append(sigmas,i);
   );
  );
- if testing then << "the adjacent maximal cones sigma1 and sigma2 are:" << endl << apply(sigmas, i->maxCones#i) << endl;
  assChar := associatedCharacters E;
  twists := for u0 in assChar#(sigmas_0) list (
   a := 0;
   for u1 in assChar#(sigmas_1) do (
    diff := transpose matrix {u0-u1};
--- do this in a more usual way (not by hand)
    as := unique select(apply(entries(diff|normal), i -> if i_1==0 then (if not i_0==0 then infinity) else i_0/i_1), x -> instance(x,Number) or instance(x,InfiniteNumber));
    if #as == 1 then (
     a = as_0;
-    if testing then << "the Chern components u1 and u2 lie on a line orthogonal to tau: " << endl << {u0,u1} << endl
-                    << "their difference is " << a << " times the normal." << endl;
     break;
    );
   );

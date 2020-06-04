@@ -56,7 +56,7 @@ assert (
     0 == M * matrixLLLoneDegree selectDegree(syzM,{2})
     )
 
--- apply LLL to a matrix with several degrees
+-- Stategy I: apply LLL to a matrix with several degrees
 matrixLLL = method()
 
 matrixLLL (Matrix) := (M) -> (
@@ -74,19 +74,183 @@ matrixLLL (Matrix) := (M) -> (
     return MLLLhomogeneous
     )
 
+-- Stategy II: apply LLL to basis of columns in several degrees
+matrixLLL2 = method()
+
+matrixLLL2 (Matrix) := (M) -> (
+    R := ring M;
+    degs := unique degrees source M;
+    MLLL := fold((a,b)->(a|b),
+        apply(degs,d-> (Md := matrixLLLoneDegree (M * matrix basis(d,source M));
+	    map(target M, R^{rank source Md: -d}, Md)))
+        );
+    -- TEST: is it really honmogeneous
+    assert isHomogeneous MLLL;
+    return MLLL
+    )
+
 -- apply LLL to a syzygy matrix Degree by Degree
 
 syzLLL1 = method()
 syzLLL1 (Matrix) := M -> matrixLLL syz M
 
+syzLLL2 = method()
+syzLLL2 (Matrix) := M -> matrixLLL2 syz M
+
 -- TEST: does this indeed give syzygies?
 assert (
-    M := random(RZZ^{3:0},RZZ^{9:-1});
+    M = random(RZZ^{3:0},RZZ^{9:-1});
     0 == M * syzLLL1 M
+    )
+
+assert (
+    M = random(RZZ^{3:0},RZZ^{9:-1});
+    0 == M * syzLLL2 M
     )
 
 -- maximum coefficient of a matrix
 height (Matrix) := M -> lift(max flatten entries last coefficients M,ZZ)
+
+end;
+
+-- experiment 1: comparing Stategy I and II
+restart;
+load "syzLLLtests.m2"
+
+time tally apply(20, i->(
+    h := 10;
+    betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h));
+    syzM := syzLLL1 M;
+    (hsyz := height syzM, log(hsyz)/log(h))
+    ))
+
+-*
+height = 2
+-- used 2.43878 seconds
+      Tally{(3, 1.58496) => 1    }
+            (4, 2) => 2
+            (5, 2.32193) => 3
+            (6, 2.58496) => 5
+            (7, 2.80735) => 1
+            (13, 3.70044) => 1
+            (19, 4.24793) => 1
+            (20, 4.32193) => 2
+            (22, 4.45943) => 1
+            (58, 5.85798) => 1
+            (176, 7.45943) => 1
+            (11116, 13.4404) => 1
+
+height = 5
+     -- used 7.64966 seconds
+      Tally{(456, 3.80412) => 1 }                                                              
+            (561, 3.93288) => 1
+            (616, 3.99099) => 1
+            (673, 4.04597) => 1
+            (677, 4.04966) => 2
+            (789, 4.14478) => 1
+            (813, 4.1634) => 1
+            (850, 4.19105) => 1
+            (855, 4.1947) => 1
+            (867, 4.20336) => 1
+            (986, 4.28327) => 1
+            (1148, 4.37779) => 1
+            (1468, 4.53056) => 1
+            (1628, 4.59484) => 1
+            (2666, 4.9013) => 1
+            (2794, 4.93044) => 1
+            (485054689, 12.4266) => 1
+            (23618346658494, 19.1328) => 1
+            (2689533985020386..., 409.788) => 1	  
+	    
+height = 10
+-- used 30.1941 seconds  
+o21 = Tally{(14096, 4.1491) => 1    }                                                         
+            (23048, 4.36263) => 1
+            (23507, 4.3712) => 1
+            (23541, 4.37182) => 1
+            (27502, 4.43936) => 1
+            (28769, 4.45892) => 1
+            (32097, 4.50646) => 1
+            (35919, 4.55532) => 1
+            (41462, 4.61765) => 1
+            (41891, 4.62212) => 1
+            (42149, 4.62479) => 1
+            (44614, 4.64947) => 1
+            (45504, 4.65805) => 1
+            (55490, 4.74421) => 1
+            (286954, 5.45781) => 1
+            (356186, 5.55168) => 1
+            (364816, 5.56207) => 1
+            (380215, 5.58003) => 1
+            (756432, 5.87877) => 1
+            (28824273434..., 129.46) => 1
+*-	    
+
+time tally apply(20, i->(
+    h := 10;
+    betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h));
+    syzM := syzLLL2 M;
+    (hsyz := height syzM, log(hsyz)/log(h))
+    ))
+
+-*
+height = 2
+-- used 1.50505 seconds
+      Tally{(2, 1) => 1       }
+            (3, 1.58496) => 4
+            (4, 2) => 5
+            (5, 2.32193) => 3
+            (6, 2.58496) => 3
+            (7, 2.80735) => 2
+            (8, 3) => 1
+            (10, 3.32193) => 1
+	    
+height = 5
+-- used 10.1318 seconds
+      Tally{(414, 3.74408) => 1 }
+            (549, 3.91944) => 1
+            (655, 4.02913) => 1
+            (667, 4.04041) => 1
+            (675, 4.04782) => 1
+            (761, 4.12233) => 1
+            (783, 4.14004) => 1
+            (802, 4.15493) => 1
+            (862, 4.19976) => 1
+            (963, 4.2686) => 1
+            (974, 4.27566) => 1
+            (983, 4.28138) => 1
+            (1041, 4.317) => 1
+            (1197, 4.40376) => 1
+            (1221, 4.41609) => 1
+            (1230, 4.42065) => 1
+            (1297, 4.45361) => 2
+            (1391, 4.49708) => 1
+            (1474, 4.5331) => 1	  
+
+height = 10
+-- used 25.6716 seconds
+      Tally{(15352, 4.18616) => 1}
+            (21221, 4.32677) => 1
+            (24900, 4.3962) => 1
+            (25273, 4.40266) => 1
+            (31110, 4.4929) => 1
+            (31932, 4.50423) => 1
+            (32216, 4.50807) => 1
+            (36091, 4.5574) => 1
+            (38358, 4.58386) => 1
+            (38534, 4.58584) => 1
+            (38917, 4.59014) => 1
+            (42095, 4.62423) => 1
+            (43328, 4.63677) => 1
+            (43549, 4.63898) => 1
+            (44486, 4.64822) => 1
+            (44962, 4.65285) => 1
+            (55256, 4.74238) => 1
+            (61134, 4.78628) => 1
+            (76772, 4.8852) => 1
+            (82249, 4.91513) => 1	      
+*-	     
+ 
 
 -- one example
 -*
@@ -117,9 +281,7 @@ tally apply(10,i->(
 -- these might come from non optimally chosen
 -- bases for higher degree syzygies.
 
-end;
 
--- Strategy II
 restart;
 load "syzLLLtests.m2"
 loadPackage "FastLinAlg"
@@ -165,6 +327,8 @@ result =  (
     log(hI)/log(h),
     codim singIQQ
     )
+
+
 
 
 -- experiment without minimizing: 

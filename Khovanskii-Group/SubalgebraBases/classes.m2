@@ -2,7 +2,9 @@ export {
     "Subring",
     "subring",
     "liftedPresentation",
-    "presentationRing"
+    "presentationRing",
+    "getWeight",
+    "setWeight"
     }
 
 
@@ -40,7 +42,10 @@ presentationRing Subring := A -> (
     k := coefficientRing B;   
     e := symbol e; 
     nA := numgens A;
-    presentationRing(A, k[apply(nA, i-> e_i)])
+    if A.cache#?"AmbientWeight" then (
+    	return presentationRing(A, k[apply(nA, i-> e_i), MonomialOrder => {Weights => A.cache#"AmbientWeight"}])
+    	);
+    return presentationRing(A, k[apply(nA, i -> e_i)]);
     )
 
 presentationRing (Subring, Ring) := (A, newPresRing) -> (
@@ -141,6 +146,24 @@ leadTerm (MonomialValuation, RingElement) := (v, f) -> (
     assert(ring f === source v);
     leadTerm f
     )
+
+
+-- set a weight on the ambient ring that induces a weight on the presentation ring
+setWeight = method()
+setWeight (Subring, List) := (A, W) -> (
+    B := ambient A;
+    assert(numgens B == length W);
+    A.cache#"AmbientWeight" = W;
+    )
+
+getWeight = method()
+getWeight Subring := A -> (
+    if not A.cache#?"AmbientWeight" then (
+	return "None set"
+	);
+    A.cache#"AmbientWeight"
+    )
+
 
 -*
 R=QQ[x,y]

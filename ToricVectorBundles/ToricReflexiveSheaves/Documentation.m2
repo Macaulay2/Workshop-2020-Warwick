@@ -1173,6 +1173,38 @@ doc ///
 	(cover, ToricReflexiveSheaf)	
 ///
  
+doc /// 
+    Key
+        (separatesJets, ToricReflexiveSheaf)
+        separatesJets
+    Headline
+        computes up to which order a toric vector bundle separates jets
+    Usage
+        separatesJets E
+    Inputs
+        E : ToricReflexiveSheaf
+    Outputs
+        : ZZ
+    Consequences
+        Item
+            The result will be stored as a cacheValue.
+    Description
+        Text
+            Given a toric vector bundle in Klyachko's description on a smooth projective toric variety, {\tt separatesJets} determines up to which order the vector bundle separates jets. Note that a toric vector bundle is globally generated or very ample, if it separates 0-jets or 1-jets, respectively, see [RJS, Theorem 1.2, 6.2 and 6.5]. 
+            If the vector bundle is not even globally generated, then {\tt separatesJets} returns the value -1. 
+        Example
+            P2 = toricProjectiveSpace 2
+            T = toricTangentBundle P2
+            separatesJets T
+            isGloballyGenerated T
+            isVeryAmple T
+    Caveat
+        The algorithm should work reliable for toric vector bundles on smooth projective toric varieties, by the theoretical bases [RJS, Theorem 6.2].
+        For reflexive sheaves on more general toric varieties, the algorithm might break or give a meaningless result.
+    SeeAlso
+        (isGloballyGenerated, ToricReflexiveSheaf)
+        (isVeryAmple, ToricReflexiveSheaf)
+///
 
 doc ///
     Key

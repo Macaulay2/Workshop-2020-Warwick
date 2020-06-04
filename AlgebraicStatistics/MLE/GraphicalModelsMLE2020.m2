@@ -35,8 +35,19 @@ elapsedTime sparseMonodromySolve(polySystem J_*)
 --Example 2.1.13 OWL
 needsPackage "GraphicalModelsMLE"
 needsPackage "GraphicalModels"
+needsPackage "NumericalAlgebraicGeometry"
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 R=gaussianRing(G)
+K=undirectedEdgesMatrix R
+X=random(ZZ^4,ZZ^4)
+S=X*transpose(X)
+I=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*S)})}
+J=saturate(I,ideal{determinant(K)})
+dim J, degree J
+s=solveSystem J_*
+
 U={random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4)}
 scoreEquationsFromCovarianceMatrix(R,U)
 -- expects R to be created from a MixedGraph!!!
+
+

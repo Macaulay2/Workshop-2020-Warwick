@@ -41,16 +41,13 @@ eigSolve1 Ideal := List => opts -> I -> (
 )
 
 eigSolve2 = method(Options => options zeroDimSolve) -- based on Laurent's code
-eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2
+eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes R = P^1 x P^1, J bihomogeneous complete intersection
     R := ring J;
     deg := degrees J;
     satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};
     psi := map(R^{{0,0}}, R^(-(J_*/degree)), gens J);
-    elimMat := matrix basis(satind,psi);
-    elimMatTr := transpose sub(elimMat,CC);
-    nc := rank source elimMatTr; 
-    numrk := numericalRank elimMatTr;
-    K := numericalKernel(elimMatTr,getDefault(Tolerance));
+    elimMat := transpose sub(matrix basis(satind,psi),CC);
+    K := numericalKernel(elimMat,getDefault(Tolerance));
     numroots := rank source K; -- expected number of roots
     D0 := K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
     D1 := K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,... 
@@ -59,7 +56,6 @@ eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2
     apply(#EVal, i -> point{{EVal_i,EVect_(1,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1
 )
 
--- needs "tomas-eigensolving.m2" -- errors when loading
 needs "laurent-eigensolving.m2"
 needs "documentation.m2"
 
@@ -67,7 +63,6 @@ needs "documentation.m2"
 TEST ///
 -- Problem 2.11 in https://math.berkeley.edu/~bernd/cbms.pdf
 n = 3
--- R = QQ[a_1..a_(n-1),b_1..b_(n-1), MonomialOrder => Eliminate (2*n-3)] -- doesn't work with elimination order
 R = QQ[a_1..a_(n-1),b_1..b_(n-1)]
 S = R[x,y]/ideal(x*y-1)
 f = sum(n-1, i -> R_i*x^(i+1) + R_(n-1+i)*y^(i+1)) + x^n + y^n
@@ -75,19 +70,19 @@ I = sub(ideal apply(toList(2..2*n-1), i -> last coefficients(f^i, Monomials => {
 s = zeroDimSolve I
 realPts = realPoints(s/(v -> point matrix{v}))
 assert(#realPts == 6)
--- G = gens sub(I, CC[gens R])
+G = gens sub(I, CC[gens R])
 -- tally apply(50, i -> (
     -- s = zeroDimSolve I;
-    -- realPts = realPoints(s/(v -> point matrix{v}));
+    -- realPts = realPoints(s/(v -> point {v}));
     -- all(realPts, p -> clean(1e-8, evaluate(G, p)) == 0)
--- )) -- seems around 6% fails
+-- ))
 ///
 
-TEST ///
-R = FF[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+TEST /// -- Complete intersection on P^1 x P^1
+R = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
 J = ideal(random({2,5},R),random({2,5},R))
 listSol = zeroDimSolve(J, Strategy => "syzygy")
-#listSol
+assert(#listSol == 20)
 ///
 
 end--

@@ -1,8 +1,78 @@
+-- Computing the Begrman fan
 
--- Bergman fan work
-
-needsPackage "Polyhedra"
 needsPackage "Matroids"
+needsPackage "Polyhedra"
+
+
+
+M = symbol M
+-- BergmaneI returns the indicator vector (as a list) for a subset I of the ground set of a matroid M
+-- We are assumin that the matroid is over the ground set [[n]] = {0,1,2,..,n}
+-- does not include the test whether M is a valid matroid
+BergmaneI = (M, I) -> (
+    E := toList M.groundSet;
+    n := #E;
+    L = {};
+    for i in E do(
+	if member(i,I) then L =  append(L,1) else L = append(L,0);
+	);   
+    L
+    )
+
+
+
+-- BergmanconeC returns the matrix of of generators of the cones corresponding to the chain of flats C
+-- it does not check whether C is a chain of flat or not
+-- This calles and therefore depends on BergmaneI
+-- We will remove redundancies later
+BergmanconeC  = (M, C) -> (
+    E := toList M.groundSet;
+    n := #E ;
+    L := {};
+    for F in C do(
+	L = append(L, BergmaneI(M, F));
+	); 
+   transpose  matrix L
+    )
+
+
+-- BergmanFanI returns the fan
+-- still needs to put some checks
+-- this depends on 
+BergmanFanI = (M) -> (
+    E := toList M.groundSet;
+    n := #E ;
+    r := rank M;
+     L := {};
+    LM := latticeOfFlats M;
+    redLM := dropElements(LM, {{}, E});
+    rset := {toList(1..r-1)};
+    redOrdcplx := maximalChains redLM;
+    for C in redOrdcplx do(
+	L = append(L, coneFromVData BergmanconeC(M,C));
+	);
+    fan L 
+    )
+
+
+U24 = uniformMatroid(2,4)
+F = BergmanFanI U24
+rays F
+maxCones F
+
+
+
+MK4 = matroid completeGraph 4
+F = BergmanFanI MK4
+rays F
+maxCones F
+
+
+
+---- We will see this later
+
+
+
 M = matroid({0,1,2,3},{{0,1},{2,3}}) --you can modify the matroid to play with Bergman
 rank(M)
 viewHelp "Matroids"
@@ -68,65 +138,3 @@ BergmanFan(M)
 BergmanList(M)
 
 
-
-M = symbol M
--- BergmaneI returns the indicator vector (as a list) for a subset I of the ground set of a matroid M
--- We are assumin that the matroid is over the ground set [[n]] = {0,1,2,..,n}
--- does not include the test whether M is a valid matroid
-BergmaneI = (M, I) -> (
-    E := toList M.groundSet;
-    n := #E;
-    L = {};
-    for i in E do(
-	if member(i,I) then L =  append(L,1) else L = append(L,0);
-	);   
-    L
-    )
-
-BergmaneI(M,{1,2})
-
--- BergmanconeC returns the matrix of of generators of the cones corresponding to the chain of flats C
--- it does not check whether C is a chain of flat or not
--- This calles and therefore depends on BergmaneI
--- We will remove redundancies later
-BergmanconeC  = (M, C) -> (
-    E := toList M.groundSet;
-    n := #E ;
-    L := {};
-    for F in C do(
-	L = append(L, BergmaneI(M, F));
-	); 
-   transpose  matrix L
-    )
-
-
--- BergmanFanI returns the fan
--- still needs to put some checks
--- this depends on 
-BergmanFanI = (M) -> (
-    E := toList M.groundSet;
-    n := #E ;
-    r := rank M;
-     L := {};
-    LM := latticeOfFlats M;
-    redLM := dropElements(LM, {{}, E});
-    rset := {toList(1..r-1)};
-    redOrdcplx := maximalChains redLM;
-    for C in redOrdcplx do(
-	L = append(L, coneFromVData BergmanconeC(M,C));
-	);
-    fan L 
-    )
-
-
-U24 = uniformMatroid(2,4)
-F = BergmanFanI U24
-rays F
-maxCones F
-
-
-
-MK4 = matroid completeGraph 5
-F = BergmanFanI MK4 -- this was taking some time on my machine
-rays F
-maxCones F

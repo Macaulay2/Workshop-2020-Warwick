@@ -42,13 +42,13 @@ doc ///
        $1\times r,$ with $r\le $ "Limit" above, whose entries form a partial subalgebra basis
    Description
     Text
-      
+
     Example
       R=QQ[x,t]
       M=matrix{{t*x^3,t*(x^2+1),t*x}}
       N=subalgebraBasis M
     Text
-      
+
     Example
       R=QQ[x,y,MonomialOrder=>Lex]
       M=matrix{{x+y,x*y,x*y^2}}
@@ -58,14 +58,14 @@ doc ///
       (numcols N,numcols N')
     Text
       Some references for Subalgebra bases (aka canonical subalgebra bases, SAGBI bases):
-      
+
       Kapur, D., Madlener, K. (1989). A completion procedure for computing a canonical basis of a $k$-subalgebra.
       Proceedings of {\it Computers and Mathematics 89} (eds. Kaltofen and Watt), MIT, Cambridge, June 1989,
 
       Robbiano, L., Sweedler, M. (1990). Subalgebra bases,
       in W.~Bruns, A.~Simis (eds.): {\it Commutative Algebra},
       Springer Lecture Notes in Mathematics {\bf 1430}, pp.~61--87,
-      
+
       F. Ollivier, Canonical Bases: Relations with Standard bases, finiteness
       conditions and applications to tame automorphisms, in Effective Methods
       in Algebraic Geometry, Castiglioncello 1990, pp. 379-400,
@@ -105,18 +105,16 @@ doc ///
    SeeAlso
 ///
 
-
---There is something wrong with the doc, not displaying the usage/inputs/outputs
 doc ///
    Key
-     (symbol %, RingElement, Subring) 
+     (symbol %, RingElement, Subring)
    Headline
      normal form of an ambient ring element modulo a subring
    Usage
      r = f % A
    Inputs
      f:RingElement
-       an alement of the ambient ring of $A$
+       an element of the ambient ring of $A$
      A:Subring
    Outputs
      r:RingElement
@@ -131,6 +129,8 @@ doc ///
        f % A
        g = x1^2*x2 + x2^2*x3 + x3^2*x1
        g % A
-   Caveat
    SeeAlso
+    Subring
+    subring
 ///
+

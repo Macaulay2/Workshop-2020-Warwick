@@ -566,7 +566,7 @@ isGloballyGenerated ToricReflexiveSheaf := Boolean => E -> (
     );  
 
 separatesJets = method()
-separatesJets ToricReflexiveSheaf := ZZ => E -> (
+separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
  testing := false;
  if testing then << "METHOD: separatesJets" << endl;
 -- exclude trivial case
@@ -645,7 +645,7 @@ separatesJets ToricReflexiveSheaf := ZZ => E -> (
   lift(lJets,ZZ)
  else
   -1
-)
+))
 
 restrictToCurve = method()
 restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) -> (
@@ -679,11 +679,11 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
 )
 
 restrictToInvCurves = method ()
-restrictToInvCurves ToricReflexiveSheaf := List => E -> (
+restrictToInvCurves ToricReflexiveSheaf := List => (cacheValue symbol restrictToInvCurves) (E -> (
  F = fan variety E;
  n := dim variety E; 
  apply( cones(n-1,F), tau -> restrictToCurve(tau,E))
-)
+))
 
 isNef ToricReflexiveSheaf := Boolean => E -> (
  restrictions := restrictToInvCurves E;

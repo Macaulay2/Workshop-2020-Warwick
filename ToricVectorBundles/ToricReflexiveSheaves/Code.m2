@@ -265,8 +265,8 @@ toricTangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
 toricCotangentBundle = method();
 toricCotangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
     d := dim X;
-    e := symbol e;
-    R := QQ(monoid[e_1..e_d]);
+    f := symbol f;
+    R := QQ(monoid[f_1..f_d]);
     raysX := rays X;
     n := # rays X;
     W := for i from 0 to n-1 list (
@@ -358,7 +358,10 @@ tensor (ToricReflexiveSheaf, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts
     fiberDims := apply(sheaves,
 	               G -> rank source basis ((ambient G)#1, (ambient G)#0));
     -- Construct a new ambient ring.
-    R := tensor(apply(ambients, i -> i#0));
+    e := symbol e;
+    f := symbol f;
+    newVars := toList (e_0..e_(fiberDims#0-1)) | toList(f_0..f_(fiberDims#0-1));
+    R := tensor(apply(ambients, i -> i#0), Variables => newVars);
 
     startIndices := apply(numSheaves, k -> sum(k, j -> fiberDims#j));
     maps := apply(numSheaves,
@@ -585,7 +588,7 @@ separatesJets ToricReflexiveSheaf := ZZ => E -> (
  gsE := groundSet E;
  parE := hashTable pack(2, mingle(gsE, apply(components cover E, D -> polytope toricDivisor D) ));
  onefaces := applyValues(parE, p -> facesAsPolyhedra(n-1,p));
--- note: change of sign! WHY? DOES NOT MAKE SENSE
+-- note: change of sign!
  assCharE := hashTable pack(2, mingle(maxConeE, apply(associatedCharacters E, l->apply(l, u -> -transpose matrix {u})) ));
 -- exclude another trivial case
  if min apply(values parE, dim) < 0 then (
@@ -653,62 +656,6 @@ separatesJets ToricReflexiveSheaf := ZZ => E -> (
  else
   -1
 )
-
-restrictToCurve = method()
-restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) -> (
- testing := false;
- maxCones := max variety E;
- normal := generators kernel matrix (rays variety E)_tau;
- if testing then << "a vector normal to tau:" << endl << normal << endl;
- sigmas := {};
- for i in 0 ..< # maxCones do (
-  if isSubset(tau, maxCones#i) then (
-   proj := flatten entries (matrix (rays variety E)_(maxCones#i) * normal);
-   if all(proj, n -> n >= 0) then
-    sigmas = prepend(i,sigmas)
-   else
-    sigmas = append(sigmas,i);
-  );
- );
- if testing then << "the adjacent maximal cones sigma1 and sigma2 are:" << endl << apply(sigmas, i->maxCones#i) << endl;
- assChar := associatedCharacters E;
- twists := for u0 in assChar#(sigmas_0) list (
-  a := 0;
-  for u1 in assChar#(sigmas_1) do (
-   diff := transpose matrix {u0-u1};
--- do this in a more usual way (not by hand)
-   as := unique select(apply(entries(diff|normal), i -> if i_1==0 then (if not i_0==0 then infinity) else i_0/i_1), x -> instance(x,Number) or instance(x,InfiniteNumber));
-   if #as == 1 then (
-    a = as_0;
-    if testing then << "the Chern components u1 and u2 lie on a line orthogonal to tau: " << endl << {u0,u1} << endl
-                    << "their difference is " << a << " times the normal." << endl;
-    break;
-   );
-  );
-  lift(a,ZZ)
- );
- P1 := toricProjectiveSpace 1;
- directSum apply(twists, a -> toricReflexiveSheaf toricDivisor({a,0},P1) )
-)
-
-restrictToInvCurves = method ()
-restrictToInvCurves ToricReflexiveSheaf := List => E -> (
- F = fan variety E;
- n := dim variety E; 
- apply( cones(n-1,F), tau -> restrictToCurve(tau,E))
-)
-
-isNef ToricReflexiveSheaf := Boolean => E -> (
- restrictions := restrictToInvCurves E;
- all(restrictions, r -> all( components r, L -> sum degree toricDivisor L >= 0))
-)
-
-isAmple ToricReflexiveSheaf := Boolean => E -> (
- restrictions := restrictToInvCurves E;
- all(restrictions, r -> all( components r, L -> sum degree toricDivisor L > 0))
-)
-
-
 
 
 cover ToricReflexiveSheaf := ToricReflexiveSheaf => (cacheValue symbol cover) (E -> (

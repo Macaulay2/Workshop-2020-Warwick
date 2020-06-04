@@ -17,7 +17,7 @@ newPackage(
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true
-     PackageExports => {"GraphicalModels","Graphs","Bertini}
+     PackageExports => {"GraphicalModels","Graphs","Bertini"}
      )
 export {"sampleCovarianceMatrix",
     "JacobianMatrixOfRationalFunction",

@@ -21,3 +21,12 @@ assert(J===I)
 needsPackage "NumericalAlgebraicGeometry"
 s= solveSystem J_*
 
+
+--Alternative
+needsPackage "MonodromySolver"
+s2=sparseMonodromySolve(polySystem J_*)
+assert(s==s2)
+
+--Comparison 
+elapsedTime solveSystem J_*
+elapsedTime sparseMonodromySolve(polySystem J_*)

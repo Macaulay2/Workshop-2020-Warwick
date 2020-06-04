@@ -40,7 +40,7 @@ newPackage(
 )
 
 --We would like to have the following command:
---     OptionalComponentsPresent => polymakeOK := run "type polymake
+--     OptionalComponentsPresent => polymakeOkay := run "type polymake
 --     >/dev/null 2>&1" === 0 This would be put above.  However the
 --     problem is that polymake is run in different ways on different
 --     operating systems, so we haven't done it this way.
@@ -66,10 +66,10 @@ export{
 
 
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-polymakeOkay = polymakeCommand != ""
+polymakeOK = polymakeCommand != ""
 
 --ToDo: Probably delete this once the package is debugged.
-if polymakeOkay then << "-- polymake is installed\n" else << "-- polymake not present\n";
+if polymakeOK then << "-- polymake is installed\n" else << "-- polymake not present\n";
 
 
 ------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ star = (Sigma, P) -> (
 isBalanced = method(TypicalValue => Boolean)
 
 isBalanced (TropicalCycle):= T->(
---    if polymakeOk then (
+    if polymakeOK then (
 --in polymake, the lineality span (1,...,1) is default.  we embed the
 --fans in a higher dimensional fan in case our lineality span does not
 --contain (1,...,1)
@@ -245,8 +245,8 @@ isBalanced (TropicalCycle):= T->(
 	else if (substring(-1,result)=="1") then return true
 	else if (substring(0,result)=="") then return false
 	else return "Polymake throws an error";
---    )
---    else (
+    )
+    else (
 	if dim T == 1 then return (isBalancedCurves T) else (
 	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
 	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
@@ -255,7 +255,7 @@ isBalanced (TropicalCycle):= T->(
 		)
 	
 	--Put our code here
---    );
+    );
 );	
 	
 	
@@ -597,7 +597,7 @@ if not all(L, a-> isHomogeneous a) then error "Not implemented for non homogeneo
 
 
 stableIntersection = method(TypicalValue =>
-TropicalCycle, Options => {Strategy=> if polymakeOkay then "atint" else "gfan"})
+TropicalCycle, Options => {Strategy=> if polymakeOK then "atint" else "gfan"})
 
 stableIntersection (TropicalCycle, TropicalCycle) := o -> (T1,T2) -> (
 --TODOS:
@@ -1767,7 +1767,7 @@ assert((cones(1,T))==({{}}))
 -----------------------
 --isBalanced
 -----------------------
-if polymakeOkay then (
+if polymakeOK then (
 
 TEST///
 
@@ -1826,7 +1826,7 @@ assert(maxCones R == {{1, 2}, {0, 2}, {0, 1}})
 ///
 
 
-if polymakeOkay then (
+if polymakeOK then (
 TEST///
 
 F1:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});

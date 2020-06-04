@@ -1187,7 +1187,7 @@ doc ///
         : ZZ
     Consequences
         Item
-            The result will be stored as a cacheValue.
+            The result will be stored as a @TO cacheValue@ of {\tt E}
     Description
         Text
             Given a toric vector bundle on a smooth projective toric variety, {\tt separatesJets} determines up to which order the vector bundle separates jets. Note that a toric vector bundle is globally generated or very ample, if it separates 0-jets or 1-jets, respectively, see [RJS, Theorem 1.2, 6.2 and 6.5]. 
@@ -1227,6 +1227,9 @@ doc ///
             which is a @TO (directSum,ToricReflexiveSheaf)@ of line bundles on $\mathbb P^1$
         b : Boolean
             that is {\tt true} if the bundle is nef or ample
+    Consequences
+        Item
+            In the course of {\tt isNef} and {\tt isAmple}, the restrictions of {\tt E} to all invariant curves are computed. The result is stored in a @TO cacheValue@ of {\tt E}
     Description
     	Text
 	    Given a toric vector bundle on a projective toric variety, {\tt restrictToCurve} computes its restriction to a torus invariant curve, which is isomorphic to a direct sum of line bundles  on $\mathbb P^1$.

@@ -16,7 +16,7 @@ newPackage(
 	   HomePage=>"http://math.berkeley.edu/~erobeva"}
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
-     DebuggingMode => true
+     DebuggingMode => true,
      PackageExports => {"GraphicalModels","Graphs","Bertini"}
      )
 export {"sampleCovarianceMatrix",

@@ -1,3 +1,4 @@
+--      AuxiliaryFiles => true,                                                                           
 --path = prepend ("~/src/M2/Workshop-2018-Leipzig/Tropical/", path)
 --Delete the line above when the "loading the wrong version" has been fixed.
 --polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version 2>&1") >= "3.0" else false;
@@ -32,13 +33,17 @@ newPackage(
     --Might need PackageImports here - should Polyhedra be here instead??
         PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra"},
 	DebuggingMode => true,
---	AuxiliaryFiles => true,
-	AuxiliaryFiles => false,
+	AuxiliaryFiles => true,
+--	AuxiliaryFiles => false,
 	CacheExampleOutput => true
 --	optArgs
 )
 
-
+--We would like to have the following command:
+--     OptionalComponentsPresent => polymakeOK := run "type polymake
+--     >/dev/null 2>&1" === 0 This would be put above.  However the
+--     problem is that polymake is run in different ways on different
+--     operating systems, so we haven't done it this way.
 
 export{
   "TropicalCycle",
@@ -61,7 +66,7 @@ export{
 
 
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-polymakeOkay = (polymakeCommand !="");
+polymakeOkay = polymakeCommand != ""
 
 --ToDo: Probably delete this once the package is debugged.
 if polymakeOkay then << "-- polymake is installed\n" else << "-- polymake not present\n";

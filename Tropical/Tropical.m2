@@ -1,3 +1,4 @@
+--      AuxiliaryFiles => true,                                                                           
 --path = prepend ("~/src/M2/Workshop-2018-Leipzig/Tropical/", path)
 --Delete the line above when the "loading the wrong version" has been fixed.
 --polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version 2>&1") >= "3.0" else false;
@@ -32,13 +33,17 @@ newPackage(
     --Might need PackageImports here - should Polyhedra be here instead??
         PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra"},
 	DebuggingMode => true,
---	AuxiliaryFiles => true,
-	AuxiliaryFiles => false,
+	AuxiliaryFiles => true,
+--	AuxiliaryFiles => false,
 	CacheExampleOutput => true
 --	optArgs
 )
 
-
+--We would like to have the following command:
+--     OptionalComponentsPresent => polymakeOkay := run "type polymake
+--     >/dev/null 2>&1" === 0 This would be put above.  However the
+--     problem is that polymake is run in different ways on different
+--     operating systems, so we haven't done it this way.
 
 export{
   "TropicalCycle",
@@ -61,10 +66,10 @@ export{
 
 
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-polymakeOkay = (polymakeCommand !="");
+polymakeOK = polymakeCommand != ""
 
 --ToDo: Probably delete this once the package is debugged.
-if polymakeOkay then << "-- polymake is installed\n" else << "-- polymake not present\n";
+if polymakeOK then << "-- polymake is installed\n" else << "-- polymake not present\n";
 
 
 ------------------------------------------------------------------------------
@@ -192,21 +197,26 @@ minmaxSwitch (TropicalCycle) := T ->(
 
 
 --Decide if a one-dimensional tropical cycle is balanced.
---Decide if a one-dimensional tropical cycle is balanced. 
 --input: TropicalCycle T, which we assume is 1-dimensional
 isBalancedCurves = T ->(
     -- find first integer lattice points on each vector (get list of points)
     -- check whether sum * multiplicity is 0
 	-- assuming already have lattice points V = {...}
 	m := multiplicities T;
-	r := rays T;
+	r := entries transpose rays T;
 	(first unique sum(#r, i->(m_i * r_i))) == 0
 );    
+
+--computes the star of the polyhedron P in the polyhedral complex Sigma
+star = (Sigma, P) -> (
+	
+	)
+
 
 isBalanced = method(TypicalValue => Boolean)
 
 isBalanced (TropicalCycle):= T->(
---    if polymakeOk then (
+    if polymakeOK then (
 --in polymake, the lineality span (1,...,1) is default.  we embed the
 --fans in a higher dimensional fan in case our lineality span does not
 --contain (1,...,1)
@@ -235,10 +245,17 @@ isBalanced (TropicalCycle):= T->(
 	else if (substring(-1,result)=="1") then return true
 	else if (substring(0,result)=="") then return false
 	else return "Polymake throws an error";
---    )
---    else (
+    )
+    else (
+	if dim T == 1 then return (isBalancedCurves T) else (
+	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
+	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
+	--use isBalancedCurves to check if balanced for all F
+	
+		)
+	
 	--Put our code here
---    );
+    );
 );	
 	
 	
@@ -580,7 +597,7 @@ if not all(L, a-> isHomogeneous a) then error "Not implemented for non homogeneo
 
 
 stableIntersection = method(TypicalValue =>
-TropicalCycle, Options => {Strategy=> if polymakeOkay then "atint" else "gfan"})
+TropicalCycle, Options => {Strategy=> if polymakeOK then "atint" else "gfan"})
 
 stableIntersection (TropicalCycle, TropicalCycle) := o -> (T1,T2) -> (
 --TODOS:
@@ -1750,7 +1767,7 @@ assert((cones(1,T))==({{}}))
 -----------------------
 --isBalanced
 -----------------------
-if polymakeOkay then (
+if polymakeOK then (
 
 TEST///
 
@@ -1809,7 +1826,7 @@ assert(maxCones R == {{1, 2}, {0, 2}, {0, 1}})
 ///
 
 
-if polymakeOkay then (
+if polymakeOK then (
 TEST///
 
 F1:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
@@ -1952,7 +1969,19 @@ assert(isSimplicial(T)==(false))
 --convertToPolymake
 -----------------------
 
-
+-*
+-----------------------
+--isBalancedCurves
+-----------------------
+TEST///
+R = QQ[x, y];
+I = ideal (x+y+1);
+T = tropicalVariety(I);
+assert (isBalancedCurves T == true)
+U = tropicalCycle(fan T, {1, 2, 3});
+assert (isBalancedCurves U == false)
+///
+*-
 
 end
 

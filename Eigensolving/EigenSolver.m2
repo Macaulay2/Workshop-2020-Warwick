@@ -17,11 +17,11 @@ export {
     "Multiplier"
 }
 
-zeroDimSolve = method(Options => { -- Assume I is radical
+zeroDimSolve = method(Options => {
     symbol Basis => null,
     symbol Multiplier => 0,
     Strategy => "Stickelberger"})
-zeroDimSolve Ideal := List => opts -> I -> (
+zeroDimSolve Ideal := List => opts -> I -> ( -- Assume I is radical
     if opts.Strategy == "Stickelberger" then return eigSolve1(I, opts)
     else if opts.Strategy == "elimMatrixP1P1" then return eigSolveP1P1(I, opts)
     else if opts.Strategy == "elimMatrixP2" then return eigSolveP2(I, opts)
@@ -81,29 +81,23 @@ eigSolveP2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2 et 2 (
     deg := degrees JnR;
     satind := (deg_0)_0+(deg_1)_0-1;
     psi := map(nR^1, nR^(-(JnR_*/degree)), gens JnR);
-    
     B := flatten entries basis(satind, nR);
     H := hashTable apply(#B, i -> B#i => i);
-    
     elimMat := matrix basis(satind,psi);
     elimMatTr := transpose sub(elimMat,CC);
     K := numericalKernel(elimMatTr,getDefault(Tolerance));
     numroots := rank source K; -- expected number of roots
-    
     B0 := select(numroots, B, b -> member(nR_1*b // nR_0, B));
     D0 := K^(apply(B0, b -> H#b));
     B1 := apply(B0, b -> (b*nR_1)//nR_0);
     D1 := K^(apply(B1, b -> H#b));
-    
-    -- D0 := K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
-    -- D1 := K^{satind+1..satind+numroots}; -- indexed by the basis x_1*1,x_1*y_1,... 
     (EVal,EVec) := eigenvectors (inverse(D0)*D1); -- NEED GENERALIZED EIGENVALUES (provisionally assume no solutions at infinity, separated by x_1)
     EVect := D0*EVec;
     apply(#EVal, i -> point{{EVal_i,EVect_(2,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1    
 )
 
-needs "laurent-eigensolving.m2"
-needs "documentation.m2"
+-- needs "laurent-eigensolving.m2"
+-- needs "documentation.m2"
 
 
 TEST ///
@@ -142,6 +136,26 @@ J = spe I
 listSol = zeroDimSolve(J, Strategy => "elimMatrixP2")
 sort apply(listSol, p -> norm evaluate(gens J, p))
 assert(#listSol == product(I_*/degree/first))
+///
+
+TEST /// -- Example from Roser and Olga
+needsPackage "GraphicalModels"
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+R=gaussianRing(G)
+K=undirectedEdgesMatrix R
+d=4
+numS=lift(d*(d+1)/2,ZZ);
+lpRvar=apply(numgens(R)-numS,i->(gens(R))_i);
+R2=coefficientRing(R)[lpRvar]
+R2map=apply(numgens(R),i-> if i<= numgens(R)-numS-1 then (gens(R2))_i else 0)
+F=map(R2,R,R2map)
+K2=F(K)
+X=random(ZZ^4,ZZ^4)
+S=X*transpose(X)
+I=ideal{jacobian ideal{determinant(K2)}-determinant(K2)*jacobian(ideal{trace(K2*S)})}
+J=saturate(I,ideal{determinant(K2)})
+sols = zeroDimSolve J
+assert(#sols == 5)
 ///
 
 end--

@@ -41,14 +41,21 @@ eigSolve1 Ideal := List => opts -> I -> (
 )
 
 eigSolve2 = method(Options => options zeroDimSolve) -- based on Laurent's code
-eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2
+eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2 et 2 equations
     R := ring J;
-    deg := degrees J;
+    FF := coefficientRing R;
+    Lvar := vars R; 
+    nR=FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1)];
+    E0:=homogenize(homogenize(sub(J_0,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
+    E1:=homogenize(homogenize(sub(J_1,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
+    JnR := ideal(E0,E1); -- homogenized equations
+    nnR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1),Degrees=>{{1,0},{1,0},{0,1},{0,1}}];
+    JnnR := sub(JnR,nnR); -- homogeneized equations in the bigraded ring
+    deg := degrees JnnR;
     satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};
-    psi := map(R^{{0,0}}, R^(-(J_*/degree)), gens J);
+    psi := map(nnR^{{0,0}}, nnR^(-(JnnR_*/degree)), gens JnnR);
     elimMat := matrix basis(satind,psi);
     elimMatTr := transpose sub(elimMat,CC);
-    nc := rank source elimMatTr; 
     numrk := numericalRank elimMatTr;
     K := numericalKernel(elimMatTr,getDefault(Tolerance));
     numroots := rank source K; -- expected number of roots
@@ -84,8 +91,11 @@ assert(#realPts == 6)
 ///
 
 TEST ///
-R = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
-J = ideal(random({2,5},R),random({2,5},R))
+A = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+I = ideal(random({2,5},A),random({2,5},A))
+R = QQ[x1,y1]
+spe = map(R,A,matrix{{1,x1,1,y1}})
+J=spe I
 listSol = zeroDimSolve(J, Strategy => "syzygy")
 #listSol
 ///

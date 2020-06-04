@@ -1175,8 +1175,8 @@ doc ///
  
 doc /// 
     Key
-        (separatesJets, ToricReflexiveSheaf)
         separatesJets
+        (separatesJets, ToricReflexiveSheaf)
     Headline
         computes up to which order a toric vector bundle separates jets
     Usage
@@ -1190,7 +1190,7 @@ doc ///
             The result will be stored as a cacheValue.
     Description
         Text
-            Given a toric vector bundle in Klyachko's description on a smooth projective toric variety, {\tt separatesJets} determines up to which order the vector bundle separates jets. Note that a toric vector bundle is globally generated or very ample, if it separates 0-jets or 1-jets, respectively, see [RJS, Theorem 1.2, 6.2 and 6.5]. 
+            Given a toric vector bundle on a smooth projective toric variety, {\tt separatesJets} determines up to which order the vector bundle separates jets. Note that a toric vector bundle is globally generated or very ample, if it separates 0-jets or 1-jets, respectively, see [RJS, Theorem 1.2, 6.2 and 6.5]. 
             If the vector bundle is not even globally generated, then {\tt separatesJets} returns the value -1. 
         Example
             P2 = toricProjectiveSpace 2
@@ -1204,6 +1204,43 @@ doc ///
     SeeAlso
         (isGloballyGenerated, ToricReflexiveSheaf)
         (isVeryAmple, ToricReflexiveSheaf)
+///
+
+doc ///
+    Key
+        restrictToCurve
+        (restrictToCurve, List, ToricReflexiveSheaf)
+        (isAmple, ToricReflexiveSheaf)
+        (isNef, ToricReflexiveSheaf)
+    Headline
+        computes the restriction of a toric vector bundle to a torus invariant curve
+    Usage
+        F = restrictToCurve(tau, E)
+        b = isNef E
+        b = isAmple E
+    Inputs
+        tau : List
+            of indices of rays of the underlying fan which correspond to an invariant curve
+        E : ToricReflexiveSheaf
+    Outputs
+        F : ToricReflexiveSheaf
+            which is a @TO (directSum,ToricReflexiveSheaf)@ of line bundles on $\mathbb P^1$
+        b : Boolean
+            that is {\tt true} if the bundle is nef or ample
+    Description
+    	Text
+	    Given a toric vector bundle on a projective toric variety, {\tt restrictToCurve} computes its restriction to a torus invariant curve, which is isomorphic to a direct sum of line bundles  on $\mathbb P^1$.
+            By [HMP, Theorem 2.1], if all these line bundles have non-negative or positive degree for all torus invariant curves on the variety, the original toric vector bundle is nef or ample. Hence, the methods {\tt isNef} and {\tt isAmple} check exactly that.
+        Example
+            P2 = toricProjectiveSpace 2
+            T = toricTangentBundle P2
+            F = restrictToCurve({0},T)
+            apply(components F, toricDivisor)
+            isNef T
+            isAmple T
+    Caveat
+        The algorithm should work reliable for toric vector bundles on projective toric varieties, by the theoretical bases [HMP, Theorem 2.1].
+        For reflexive sheaves on more general toric varieties, the algorithm might break or give a meaningless result.
 ///
 
 doc ///

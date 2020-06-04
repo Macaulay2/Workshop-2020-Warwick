@@ -54,7 +54,7 @@ eigSolve2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2
     numroots := rank source K; -- expected number of roots
     D0 := K^{0..numroots-1}; -- indexed by the basis 1,y_1,..
     D1 := K^{satind_1+1..satind_1+numroots}; -- indexed by the basis x_1*1,x_1*y_1,... 
-    (EVal,EVec) := eigenvectors (inverse(D0)*D1); 
+    (EVal,EVec) := eigenvectors (inverse(D0)*D1); -- NEED GENERALIZED EIGENVALUES
     EVect := D0*EVec;
     apply(#EVal, i -> point{{EVal_i,EVect_(1,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1
 )
@@ -84,7 +84,7 @@ assert(#realPts == 6)
 ///
 
 TEST ///
-R = FF[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+R = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
 J = ideal(random({2,5},R),random({2,5},R))
 listSol = zeroDimSolve(J, Strategy => "syzygy")
 #listSol

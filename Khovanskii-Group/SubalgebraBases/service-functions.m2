@@ -80,7 +80,7 @@ appendToBasis = (R, newGens) -> (
     subalgComp.TensorRing = CoeffField NewVariables;
     
     -- Construct maps between our rings to allow us to move polynomials around
-    -- ProjectionInclusion sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
+    -- "ProjectionInclusion" sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
     -- ProjectionBase sets the variables corresponding to the subalgebra generators equal to 0 and maps into the ambient ring.
     -- InclusionBase is the inclusion map from the base ring to the tensor ring.  The variables are mapped to themselves
     -- Substitution repalces elements of the tensor ring with their formulas in terms of the base ring.

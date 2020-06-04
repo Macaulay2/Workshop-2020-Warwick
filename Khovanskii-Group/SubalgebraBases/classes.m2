@@ -46,8 +46,7 @@ presentationRing Subring := A -> (
     A.cache#"PresentationRing"
     )
 
-
--- lifted presentation using the cacheValue function
+-- computes the presentation of the subring in the presentation ring
 liftedPresentation = method()
 liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     B := ambient A;
@@ -63,25 +62,6 @@ liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     ideal(B2C G - (vars C)_{nB..numgens C-1})
     ))
 
--- leaving the old liftedPresentation for comparison
--- delete after cacheValue discussion (20200603)
--*
-liftedPresentation Subring := A -> (
-    if not A.cache#?"LiftedPresentation" then (
-    	B := ambient A;
-	P := presentationRing A;
-	G := gens A;
-    	k := coefficientRing B;
-	(nB, nA) := (numgens B, numgens A);
-	-- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-        -- C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)];
-	C := k[gens B | gens P, MonomialOrder => {Eliminate nB}];
-	B2C := map(C,B,(vars C)_{0..nB-1});
-    	A.cache#"LiftedPresentation" = ideal(B2C G - (vars C)_{nB..numgens C-1});
-	);
-    A.cache#"LiftedPresentation"
-    )
- *-
 
 -- computes relations of presentation using gb
 presentation Subring := A -> (

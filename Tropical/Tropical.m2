@@ -2013,6 +2013,25 @@ assert (isBalancedCurves U == false)
 ///
 *-
 
+-*
+-----------------------
+--star
+-----------------------
+TEST///
+P1 = convexHull matrix {{2,2,0},{1,-1,0}};
+P2 = convexHull matrix {{2,-2,0},{1,1,0}};
+P3 = convexHull matrix {{-2,-2,0},{1,-1,0}};
+P4 = convexHull matrix {{-2,-2,0},{-1,-1,0}};
+F = polyhedralComplex {P1,P2,P3,P4};
+apply(faces(1, F), f -> (vertices F)_(f#0))
+assert (star (F, ) == TODO)
+
+F = hypercube 3
+apply(faces(1, F), f -> (vertices F)_(f#0))
+assert (star (F, ) == TODO)
+///
+*-
+
 end
 
 restart

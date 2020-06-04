@@ -1,3 +1,4 @@
+
 -- -*- coding: utf-8 -*-
 ------------------------------------------------------------------------------
 -- Copyright 2017-20 Gregory G. Smith
@@ -341,17 +342,22 @@ ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E, F) -> (
     )
 *-
 
-ToricReflexiveSheaf.tensor = args -> (
-    sheaves :=  select(args, E -> rank E =!= 0);
+tensor (ToricReflexiveSheaf, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts ->(E1, E2) -> (
+    -- The logic of this code can compute tensor product of arbitrary
+    -- number of arguments. To interface with M2 tensor, it only allows two
+    -- arguments.
+
+    -- sheaves :=  select(args, E -> rank E =!= 0);
+    sheaves := (E1, E2);
     numSheaves := #sheaves;
     ambients := apply(sheaves, E -> ambient E);
-    if numSheaves === 0 then return args#0;
+    -- if numSheaves === 0 then return args#0;
     X := variety sheaves#0;
     if not all(sheaves, G -> variety G === X) then
         error "expected all sheaves to be over the same variety";
     fiberDims := apply(sheaves,
 	               G -> rank source basis ((ambient G)#1, (ambient G)#0));
-    -- construct a new ambient ring
+    -- Construct a new ambient ring.
     R := tensor(apply(ambients, i -> i#0));
 
     startIndices := apply(numSheaves, k -> sum(k, j -> fiberDims#j));
@@ -359,6 +365,7 @@ ToricReflexiveSheaf.tensor = args -> (
 	          i -> map(R, ambients#i#0, apply(toList ((startIndices#i)..(startIndices#i + fiberDims#i-1)),
 			  j -> R_j)));
 
+    -- Compute tensor products of basis elements and their weights.
     W := apply(# rays X, i -> (
 	basisPairs := apply(numSheaves, j -> apply( pairs sheaves#j#i, p -> (maps_j(p_0), p_1)));
 	makeTensors := (l1, l2) ->
@@ -372,7 +379,7 @@ ToricReflexiveSheaf.tensor = args -> (
     )
 
 ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E,F) -> tensor(E,F)
-tensor ToricReflexiveSheaf := E -> tensor(1 : E)
+
 
 ToricReflexiveSheaf ** ToricDivisor := ToricReflexiveSheaf => (E,D) -> (
     c := entries vector D;

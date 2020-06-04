@@ -56,25 +56,33 @@ assert (
     0 == M * matrixLLLoneDegree selectDegree(syzM,{2})
     )
 
--- Stategy I: apply LLL to a matrix with several degrees
-matrixLLL = method()
 
-matrixLLL (Matrix) := (M) -> (
+matrixLLL = method(Options=>{strategyI=>false})
+
+matrixLLL (Matrix) := Matrix => opt -> (M) -> (
+    R := ring M; 
     degs := unique degrees source M;
-    MLLL := fold((a,b)->(a|b),
+    if opt.strategyI then (
+    -- Stategy I: apply LLL to a matrix with several degrees	
+    MLLLinhomogeneous := fold((a,b)->(a|b),
         apply(degs,d->matrixLLLoneDegree selectDegree(M,d))
         );
     -- copy degrees from M to MLLL
-    -- 
     -- CAVEAT: this will not work if the degrees in M 
     --         are mixed up
-    MLLLhomogeneous := 0*M+MLLL;
+    MLLL := 0*M+MLLLinhomogeneous;)
+    -- Stategy II: apply LLL to basis of columns in several degrees
+    else ( 
+        MLLL = fold((a,b)->(a|b),
+        apply(degs,d-> (Md := matrixLLLoneDegree (M * matrix basis(d,source M));
+	    map(target M, R^{rank source Md: -d}, Md)))
+        ););
     -- TEST: is it really honmogeneous
-    assert isHomogeneous MLLLhomogeneous;
-    return MLLLhomogeneous
+    assert isHomogeneous MLLL;
+    return MLLL
     )
 
--- Stategy II: apply LLL to basis of columns in several degrees
+
 matrixLLL2 = method()
 
 matrixLLL2 (Matrix) := (M) -> (
@@ -91,8 +99,8 @@ matrixLLL2 (Matrix) := (M) -> (
 
 -- apply LLL to a syzygy matrix Degree by Degree
 
-syzLLL1 = method()
-syzLLL1 (Matrix) := M -> matrixLLL syz M
+syzLLL1 = method(Options=>{strategyI=>false})
+syzLLL1 (Matrix) := Matrix => opt -> M -> matrixLLL(syz M, strategyI=>opt.strategyI)
 
 syzLLL2 = method()
 syzLLL2 (Matrix) := M -> matrixLLL2 syz M
@@ -116,6 +124,23 @@ end;
 -- experiment 1: comparing Stategy I and II
 restart;
 load "syzLLLtests.m2"
+
+h = 3
+apply(10, i-> (
+	betti (M = random(RZZ^{3:0},RZZ^{9:-1},Height=>h));
+	print("StrategyI:  "| toString (time height syzLLL1(M, strategyI=>true)));
+	print("StrategyII: "| time height syzLLL1 M);
+	print"";	
+	));
+
+betti res coker M
+betti res coker sub(M,RQQ)
+syzM = syz sub(M,RQQ);
+N = syzM * random( source syzM, RQQ^{6:-2,1:-3});
+I = ideal syz N;
+dim I, degree I, genus I
+betti (resI = res I)
+ann coker transpose resI.dd_3 == ann coker sub(M,RQQ)
 
 time tally apply(20, i->(
     h := 10;

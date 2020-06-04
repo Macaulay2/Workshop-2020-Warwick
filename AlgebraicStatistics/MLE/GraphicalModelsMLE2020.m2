@@ -18,6 +18,7 @@ J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 
+-- NumericalAlgebraicGeometry version 1.11
 needsPackage "NumericalAlgebraicGeometry"
 s= solveSystem J_*
 

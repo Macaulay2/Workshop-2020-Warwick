@@ -6,16 +6,16 @@ export {
     "sagbi" => "subalgebraBasis", 
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
-    "ProjectionBase",
-    "SyzygyIdeal",
-    "Pending",
-    "Substitution",
+    "ProjectionBase", -- no need to export
+    "SyzygyIdeal", -- no need to export
+    "Pending", -- no need to export
+    "Substitution", -- no need to export
     "SagbiDegrees",
-    "TensorRing",
+    "TensorRing", -- no need to export
     "SubalgComputations",
-    "InclusionBase",
-    "ProjectionInclusion",
-    "sagbiGB",
+    "InclusionBase", -- no need to export
+    -- "ProjectionInclusion",
+    "sagbiGB", -- no need to export
     "SagbiGens",
     "SagbiDone"
     }
@@ -24,6 +24,7 @@ export {
 
 -- A wrapper around rawSubduction.
 -- This exists so that it can be documented.
+-- Document and use meaningful names
 subduction = method(TypicalValue => Matrix)
 subduction(ZZ, Matrix, RingMap, GroebnerBasis) := (numparts, M, F, C) -> (
     rawSubduction(numparts, raw M, raw F, raw C)
@@ -68,7 +69,7 @@ subalgebraBasis Subring := o -> R -> (
     subalgComp.SyzygyIdeal = null; -- J
     subalgComp.sagbiGB = null;
 
-    subalgComp.ProjectionInclusion = null; -- RStoS
+    subalgComp#"ProjectionInclusion" = null; -- RStoS
     subalgComp.ProjectionBase = null;      -- RStoR
     subalgComp.InclusionBase = null;       -- RtoRS
     subalgComp.Substitution = null;        -- Gmap
@@ -118,7 +119,8 @@ subalgebraBasis Subring := o -> R -> (
             syzygyPairs = syzygyPairs | subalgComp.InclusionBase(matrix{subalgComp.Pending#currDegree});
             subalgComp.Pending#currDegree = {};
         );
-        
+
+-- Document and use meaningful names
 	numparts := rawMonoidNumberOfBlocks raw monoid ambR;
     	M := syzygyPairs;
     	F := subalgComp.Substitution;
@@ -150,6 +152,7 @@ subalgebraBasis Matrix := o -> gensMatrix -> (
     subalgebraBasis(R,o)
 )
 
+-- Change to match the other code
 subalgebraBasis List := o -> L -> (
 subalgebraBasis(o, subring L)
 );

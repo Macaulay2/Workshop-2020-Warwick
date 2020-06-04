@@ -420,3 +420,6 @@ betti (M1 = syzM * basis(2,source syzM))
 betti (M2 = syzM * basis(3,source syzM))
 betti (syz (M1|M2))
 
+methods random
+code 10
+

@@ -105,16 +105,18 @@ doc ///
    SeeAlso
 ///
 
+
+
 doc ///
    Key
      (symbol %, RingElement, Subring)
    Headline
-     normal form of an ambient ring element modulo a subring
+     remainder modulo a subring
    Usage
      r = f % A
    Inputs
      f:RingElement
-       an element of the ambient ring of $A$
+       an element of the ambient ring of $A$ (endowed with some monomial order.)
      A:Subring
    Outputs
      r:RingElement
@@ -123,8 +125,8 @@ doc ///
      Text
        The result $r$ is zero if and only if $f$ belongs to $A$.
      Example
-       R = QQ[x1, x2, x3]
-       A = subring {x1+x2+x3, x1*x2+x1*x3+x2*x3, x1*x2*x3, (x1-x2)*(x1-x3)*(x2-x3)} --invariants of A_3
+       R = QQ[x1, x2, x3];
+       A = subring {x1+x2+x3, x1*x2+x1*x3+x2*x3, x1*x2*x3, (x1-x2)*(x1-x3)*(x2-x3)} --usual invariants of A_3
        f = x1 + x2 + 2*x3
        f % A
        g = x1^2*x2 + x2^2*x3 + x3^2*x1
@@ -132,5 +134,24 @@ doc ///
    SeeAlso
     Subring
     subring
+///
+
+
+doc ///
+   Key
+     Subring
+   Description
+     Text
+       @ ofClass{Subring} @ is defined by its generators and ambient ring. Other data stored in the cache facillitate operations such as membership testing.
+     Example
+       R = QQ[x];
+       A = subring {x^4+x^3, x^2+x}
+       member(x^3+x^2, A)
+   Caveat
+   SeeAlso
+       subring
+       (gens, Subring)
+       (ambient, Subring)
+       subalgebraBasis
 ///
 

@@ -7,6 +7,7 @@ pathToPackage = "./SubalgebraBases.m2"
 installPackage(
     "SubalgebraBases",
     FileName=>pathToPackage,
+    RemakeAllDocumentation => not instance(newDoc, Symbol),
     RerunExamples => true
     )
 check "SubalgebraBases"
@@ -14,7 +15,10 @@ help SubalgebraBases
 -- viewHelp SubalgebraBases -- help in browser
 
 end--
+
+-- run next two lines to remake documentation: skipping the first keeps the same documentation
 restart
+newDoc = 2020
 needs "install.m2"
 
 R = QQ[x1, x2, x3];

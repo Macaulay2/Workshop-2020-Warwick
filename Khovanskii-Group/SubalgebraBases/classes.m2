@@ -32,7 +32,7 @@ subring List := L -> subring matrix{L}
 gens Subring := o -> A -> A#"Generators"
 numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
-
+net Subring := A -> "subring of " | toString(ambient A)
 
 presentationRing = method()
 presentationRing Subring := A -> (
@@ -113,19 +113,24 @@ Valuation = new Type of HashTable
 -- what should a valuation need to know?
 source Valuation := v -> v#source
 target Valuation := v -> v#target
+net Valuation := v -> "valuation: " | toString target v | " <-- " | toString source v
+Valuation RingElement := (v, f) -> (
+    assert(v#?evaluate and ring f === source v);
+    assert instance(v#evaluate, Function);
+    v#evaluate f
+    )
 
 MonomialValuation = new Type of Valuation
 monomialValuation = method()
 monomialValuation Ring := R -> new MonomialValuation from {
     source => R,
     target => ZZ^(numgens R),
-    "evaluate" => (f -> matrix exponents leadTerm f)
+    evaluate => (f -> matrix exponents leadTerm f)
     }
 leadTerm (MonomialValuation, RingElement) := (v, f) -> (
     assert(ring f === source v);
     leadTerm f
     )
-MonomialValuation RingElement := (v, f) -> matrix exponents leadTerm(v, f)
 
 -*
 R=QQ[x,y]

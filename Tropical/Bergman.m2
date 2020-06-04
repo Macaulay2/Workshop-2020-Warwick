@@ -40,27 +40,28 @@ BergmanList =  (M) -> (
 -- BergmanFan returns a matrix whose columns are the sums of elementary vectors associated to the elements in the maximal chain
 BergmanFan =  (M) -> (
       P := latticeOfFlats(M);
-      C := chains(P,rank(M)-1); -- this might have problems
-      L := {}; 
+      C := chains(P,rank(M)-1); -- this might have problems, once != is changed, can remove -1
+      L := {}; --empty set
       n := #M-1;
-      N := {toList(0..n)}; 
+      N := {toList(0..n)}; --ground set
       for l in C do(
-    	  if l != {{}} then (
-	      if l != N then (
-	    	  L = append(L,l);
+    	  if l != {{}} then ( --if not empty, != changed to belongs to the set instead of being the empthy set
+	      if l != N then ( --if not all ground set
+	    	  L = append(L,l); --list of chains that does not contain empty or ground set
 	    	  );
 	      );
     	  );
-      m:= mutableMatrix(ZZ,#M,#L);
+      m:= mutableMatrix(ZZ,#M,#L); --creates a matrix of zeros of dimension groundset x number of elements in L
+      -- we need one matrix for each element of L (list od lists), #(L#i) the number of elements in the list ith list
       i:=0 ;
-      for l in L do (
+      for l in L do ( --should be changed to in L#i
 	  A := l#0;
 	  for a in A do (
-	      m_(a,i) = 1;
+	      m_(a,i) = 1; -- (a,i)-th entry of matrix m is set to 1
 	      );
 	  i = i+1;
 	  );
-      m
+      m --return a list of matrices, should return the list fan({m1,..}) 
       )
 
 BergmanFan(M)

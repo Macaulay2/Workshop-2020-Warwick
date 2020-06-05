@@ -207,7 +207,7 @@ isBalancedCurves = T ->(
 	m := multiplicities T;
 	r := entries transpose rays T;
 	(first unique sum(#r, i->(m_i * r_i))) == 0
-);    
+)    
 
 --computes the star of the codimension-one polyhedron P in the tropical cycle Sigma
 star = (Sigma, P) -> (

@@ -943,6 +943,7 @@ doc ///
 	       {HREF("https://users.math.yale.edu/~km995/","Kalina Mincheva")},
 	       {HREF("http://www.math.unibe.ch/ueber_uns/personen/vargas_de_leon_alejandro/index_ger.html","Alejandro Vargas de Leon")},
 	       {HREF("http://www.math.harvard.edu/~cmwang/","Charles Wang")},
+	       {HREF("https://math.berkeley.edu/~yelena/", "Yelena Mandelshtam")},
     	     }@
 ///
 

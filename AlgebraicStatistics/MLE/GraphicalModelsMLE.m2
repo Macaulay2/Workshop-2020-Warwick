@@ -34,8 +34,8 @@ export {"sampleCovarianceMatrix",
     "JacobianMatrixOfRationalFunction",
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
-    "PDcheck"
---    "MLEsolver"
+    "PDcheck",
+    "MLEsolver"
        	} 
      
 --**************************--
@@ -82,6 +82,19 @@ genListmatrix = (L,R) ->
 (
     T := {};
     K:=undirectedEdgesMatrix R;
+    --ring mapping begins
+     -- d is equal to the number of vertices in G
+    d := numRows K;
+    -- move to a new ring, lpR, which does not have the s variables
+    numSvars:=lift(d*(d+1)/2,ZZ);
+     --lp ring is the ring without the s variables
+    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
+    KK:=coefficientRing(R);
+    lpR:=KK[lpRvarlist];
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    K=F(K);
+    --ring mapping ends 
     for l in L do
     (
     	T = T|{coordinates(l)};	
@@ -211,12 +224,15 @@ MLEsolver(Ideal,Ring):= (J,R) -> (
     --evaluate matrices on solutions
     M:=genListmatrix(sols,R);
     --consider only PD matrices
+    
     L:=PDcheck M;
     --check there is only one PD matrix
     if #L>1 then error("It is not an undirected graph"); 
     --return MLE: inverse of the PD matrix
     E:=inverse L_0;
     return E;    
+    
+    return M;
 );
 
 

@@ -99,8 +99,7 @@ liftedPresentationRing (List, Matrix) := PolynomialRing => o -> (pVars, M) -> (
     )
 liftedPresentationRing Matrix := PolynomialRing => o -> M -> (
     pVars := (presentationRing M)_*;
-    lpVars := (ring M)_* | pVars;
-    liftedPresentationRing (lpVars, M, MonomialOrder => o.MonomialOrder))
+    liftedPresentationRing (pVars, M, MonomialOrder => o.MonomialOrder))
 
 
 -- computes the presentation of the subring in the presentation ring

@@ -74,3 +74,27 @@ solveSystem(J_*,Software=>BERTINI)
 --| 9 4 0 5 |
 --| 7 4 7 8 |
 
+
+
+
+
+PDcheck = L -> 
+( 
+    mat = {};
+    for l in L do
+    (
+    	flag = 0;
+    	L1 = eigenvalues l;
+    	for t in L1 do 
+    	(	 
+	    if 0 >= t then flag = 1;
+     	);
+        if flag == 0 then mat = mat | {l} ;
+    );
+    if mat == {} then print("none of the matrices are pd");
+    return mat;
+    
+    -- input - list of matrices 
+    -- output - list of positive definite matrices
+);
+

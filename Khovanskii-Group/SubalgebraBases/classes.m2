@@ -2,7 +2,10 @@ export {
     "Subring",
     "subring",
     "liftedPresentation",
-    "presentationRing"
+    "liftedPresentationRing",
+    "presentationRing",
+    "getWeight",
+    "setWeight"
     }
 
 
@@ -36,15 +39,68 @@ net Subring := A -> "subring of " | toString(ambient A)
 
 presentationRing = method()
 presentationRing Subring := A -> (
+    B := ambient A;
+    k := coefficientRing B;
+    e := symbol e;
+    nA := numgens A;
+    return presentationRing(A, k[apply(nA, i -> e_i)]);
+    )
+
+presentationRing (Subring, Ring) := (A, newPresRing) -> (
     if not A.cache#?"PresentationRing" then (
 	B := ambient A;
-	k := coefficientRing B;
-	e := symbol e;
 	nA := numgens A;
-	A.cache#"PresentationRing" = k[apply(nA, i-> e_i)];
+	assert(nA == numgens newPresRing);
+	if A.cache#?"AmbientWeight" then (
+	    D := A.cache#"AmbientWeight";
+	    weightRing := newRing(B, MonomialOrder => { Weights => D});
+	    inducedWeights := for p in flatten entries gens A list (
+	    	p' := sub(p, weightRing);
+	    	E := (exponents leadTerm p')#0;
+	    	sum apply(E, D, (i,j) -> i*j)
+	    	);
+	    A.cache#"PresentationRing" = newRing(newPresRing, MonomialOrder => {Weights => inducedWeights});
+	    ) else (
+	    A.cache#"PresentationRing" = newPresRing;
+	    );
 	);
     A.cache#"PresentationRing"
     )
+
+presentationRing (List, Matrix) := (pVars, M) -> (
+    assert (#pVars === numcols M);
+    newRing (ring M, Variables => pVars)
+    )
+
+presentationRing Matrix := M -> (
+    n := numcols M;
+    pVars := toList vars (0..n-1);
+    presentationRing (pVars, M)
+    )
+
+-*
+    Input:  - matrix with n columns over polynomial ring R
+            - a list of n new variables
+            - optional: a prescribed term order
+    Output: a polynomial ring with with variables coming from R and the list
+    *-
+
+liftedPresentationRing = method (
+    TypicalValue => PolynomialRing,
+    Options => {MonomialOrder => null})
+liftedPresentationRing (List, Matrix) := PolynomialRing => o -> (pVars, M) -> (
+    assert (#pVars === numcols M);
+    X := (ring M)_*;
+    newVars := X | pVars;
+    liftedPR := if o.MonomialOrder === null then
+    newRing (ring M, Variables => newVars) else
+    newRing (ring M, Variables => newVars, MonomialOrder => o.MonomialOrder);
+    liftedPR
+    )
+liftedPresentationRing Matrix := PolynomialRing => o -> M -> (
+    pVars := (presentationRing M)_*;
+    liftedPresentationRing (pVars, M, MonomialOrder => o.MonomialOrder))
+
 
 -- computes the presentation of the subring in the presentation ring
 liftedPresentation = method()
@@ -55,9 +111,10 @@ liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
     k := coefficientRing B;
     (nB, nA) := (numgens B, numgens A);
     -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-    e := symbol e;
+
+    -- e := symbol e;
     -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
-    C := k[gens B | gens P, MonomialOrder => append(getMO B, Eliminate nB)];
+    C := k[gens B | gens P, MonomialOrder => append(getMonomialOrder B, Eliminate nB)];
     B2C := map(C,B,(vars C)_{0..nB-1});
     ideal(B2C G - (vars C)_{nB..numgens C-1})
     ))
@@ -73,6 +130,7 @@ presentation Subring := A -> (
     sub(presentationGens, P)
     )
 
+
 -- quotient ring given by a presentation
 ring Subring := A -> (
     I := ideal presentation A;
@@ -83,6 +141,7 @@ options Subring := A -> A.cache#"Options"
 -- these need to be implemented
 
 -- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"
+-- todo: check if there is a finite sagbi basis and use that if available
 RingElement % Subring := (f, A) -> (
     pA := presentationRing A;
     tagVars := take(gens pA, numgens A);
@@ -131,6 +190,28 @@ leadTerm (MonomialValuation, RingElement) := (v, f) -> (
     assert(ring f === source v);
     leadTerm f
     )
+
+
+-- set a weight on the ambient ring that induces a weight on the presentation ring
+setWeight = method()
+setWeight (Subring, List) := (A, W) -> (
+    B := ambient A;
+    assert(numgens B == length W);
+    if not A.cache#?"AmbientWeight" then (
+	A.cache#"AmbientWeight" = W;
+	) else (
+	print "Weight has already been set"
+	);
+    )
+
+getWeight = method()
+getWeight Subring := A -> (
+    if not A.cache#?"AmbientWeight" then (
+	return "None set"
+	);
+    A.cache#"AmbientWeight"
+    )
+
 
 -*
 R=QQ[x,y]

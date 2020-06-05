@@ -179,3 +179,41 @@ doc ///
   Subring
   subring
 ///
+
+doc ///
+  Key
+    setWeight
+    (setWeight,Subring, List)
+  Headline
+    sets weight for ambient ring of a Subring
+  Usage
+    setWeight(A, W)
+  Inputs
+    A:Subring
+    W:List
+      a weight vector of the ambient ring of A
+  Description
+    Text
+      Setting the weight vector allows the Subring to construct a lifted weight 
+      vector which is applied to the presentation ring of A.
+      In order to apply this weight vector to the presentation of A successfully, 
+      setWeight must be used before presentationRing and presentation.
+      In this example we set the weight of ambient ring of the Pl\"ucker algebra
+      for Grassmannian(2, 4) such that the leading term of any maximal minor is 
+      the leading term.
+    Example
+      (n, k) = (4, 2);
+      D = toList apply((1,1) .. (k,n), (i,j) -> n*k - (n-j)*(i-1)) -- Diagonal weight vector 
+      R = QQ[x_(1,1) .. x_(k,n)];
+      X = transpose genericMatrix(R, n, k);
+      M = matrix { for J in subsets(n, k) list det X_J };
+      A = subring M; -- Plucker algebra
+      setWeight(A, D)
+      S = presentationRing(A, QQ[apply(toSequence\subsets(n, k), J -> p_J)])
+      I = presentation A
+      leadTerm(1, I)
+  SeeAlso
+    getWeight
+    presentationRing
+    presentation
+///

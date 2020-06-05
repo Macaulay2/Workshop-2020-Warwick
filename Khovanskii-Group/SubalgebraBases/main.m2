@@ -6,16 +6,16 @@ export {
     "sagbi" => "subalgebraBasis", 
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
-    "ProjectionBase",
-    "SyzygyIdeal",
-    "Pending",
-    "Substitution",
+    "ProjectionBase", -- no need to export
+    "SyzygyIdeal", -- no need to export
+    "Pending", -- no need to export
+    "Substitution", -- no need to export
     "SagbiDegrees",
-    "TensorRing",
+    "TensorRing", -- no need to export
     "SubalgComputations",
-    "InclusionBase",
-    "ProjectionInclusion",
-    "sagbiGB",
+    "InclusionBase", -- no need to export
+    -- "ProjectionInclusion",
+    "sagbiGB", -- no need to export
     "SagbiGens",
     "SagbiDone"
     }
@@ -98,7 +98,7 @@ subalgebraBasis Subring := o -> R -> (
     subalgComp.SyzygyIdeal = null; -- J
     subalgComp.sagbiGB = null;
 
-    subalgComp.ProjectionInclusion = null; -- RStoS
+    subalgComp#"ProjectionInclusion" = null; -- RStoS
     subalgComp.ProjectionBase = null;      -- RStoR
     subalgComp.InclusionBase = null;       -- RtoRS
     subalgComp.Substitution = null;        -- Gmap
@@ -176,6 +176,7 @@ subalgebraBasis Matrix := o -> gensMatrix -> (
     subalgebraBasis(R,o)
 )
 
+-- Change to match the other code
 subalgebraBasis List := o -> L -> (
 subalgebraBasis(o, subring L)
 );

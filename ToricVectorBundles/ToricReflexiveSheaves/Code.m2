@@ -85,12 +85,12 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
       	        << "-- expected 'E#" << i << "' to be a HashTable" << endl;
       	    return false
 	    );
-    	if not all(keys E#i, k -> instance(k, RingElement)) then (
+	if any(keys E#i, k -> not instance(k, RingElement)) then (
 	    if debugLevel > 0 then 
 	        << "-- expected the keys of 'E#" << i << "' to be ring elements" << endl;
 	    return false
 	    );
-    	if not all(values E#i, v -> instance(v, ZZ)) then (
+	if any(values E#i, v -> not instance(v, ZZ)) then (
 	    if debugLevel > 0 then 
 	        << "-- expected the values of 'E#" << i << "' to be integers" << endl;
 	    return false
@@ -111,7 +111,7 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
 	    << "-- expected 'E.ambient#1' to be a List" << endl;  
     	return false
 	);
-    if not all(length E.ambient#1, j -> instance(j, ZZ)) then (
+    if any(length E.ambient#1, j -> not instance(j, ZZ)) then (
       	if debugLevel > 0 then 
 	    << "-- expected 'E.ambient#1' to be a list of integers" << endl;  
     	return false
@@ -139,21 +139,21 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
     -- check flags
     (R, d) := ambient E;
     for i from 0 to n-1 do (
-    	if not all(keys E#i, k -> ring k === R) then (
+	if any(keys E#i, k -> ring k =!= R) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#"; 
 		<< i << "' to be elements in the ambient ring" << endl
 		);
       	    return false
 	    );
-    	if not all(keys E#i, k -> isHomogeneous k) then (
+	if any(keys E#i, k -> not isHomogeneous k) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#";
 		<< i << "' to be homogeneous" << endl
 		);
       	    return false
 	    );
-    	if not all(keys E#i, k -> degree k === d) then (
+	if any(keys E#i, k -> degree k =!= d) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#";
 		<< i << "' to have degree equal to the ambient degree" << endl
@@ -169,7 +169,7 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
 	    )
 	);
     I := ideal keys E#0;
-    if not all(n, i -> I == ideal keys E#i) then (
+    if any(n, i -> I != ideal keys E#i) then (
     	if debugLevel > 0 then (
       	    << "-- expected the ring elements on each ray ";
 	    << "to generate the same ideal" << endl
@@ -314,7 +314,7 @@ ToricReflexiveSheaf.directSum = args -> (
     m := #sheaves;
     if m === 0 then return args#0;
     X := variety sheaves#0;  
-    if not all(sheaves, E -> variety E === X) then 
+    if any(sheaves, E -> variety E =!= X) then
     	error "expected all sheaves to be over the same variety";
     p := apply(toList sheaves, E -> numgens (ambient E)#0);
     s := apply(m, k -> sum(k, j -> p#j));
@@ -353,7 +353,7 @@ tensor (ToricReflexiveSheaf, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts
     ambients := apply(sheaves, E -> ambient E);
     -- if numSheaves === 0 then return args#0;
     X := variety sheaves#0;
-    if not all(sheaves, G -> variety G === X) then
+    if any(sheaves, G -> variety G =!= X) then
         error "expected all sheaves to be over the same variety";
     fiberDims := apply(sheaves,
 	               G -> rank source basis ((ambient G)#1, (ambient G)#0));
@@ -837,7 +837,7 @@ isWellDefined ToricReflexiveSheafMap := Boolean => f -> (
       	    << "-- expected the coefficient rings of the ambient rings to be equal" << endl;
     	return false
 	);      
-    if not all(flatten entries matrix f, r -> instance(r, KK)) then (
+    if any(flatten entries matrix f, r -> not instance(r, KK)) then (
     	if debugLevel > 0 then 
       	    << "-- expected entries belong to coefficient ring of the ambient ring" << endl;
     	return false

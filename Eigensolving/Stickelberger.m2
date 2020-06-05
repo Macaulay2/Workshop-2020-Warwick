@@ -17,11 +17,36 @@ eigenSpace(Matrix, Number) := (M, e) -> (
     eVectors_ePositions
     )
 
+    
+
+rankOfInt = method()
+rankOfInt(Matrix, Matrix) := (M, N) -> (
+    MN := M||N;
+    nr := numrows MN;
+    rankOfMN := numericalRank MN;
+    nr - rankOfMN
+    )
+
 checkIntersect = method()
 checkIntersect(List) := L -> (
-    M := last accumulate((i,j) -> i||j, L);
-    if isFullNumericalRank M then false
-    else true
+    k := 0;
+    basisOfInt := fold((i, j) -> if rankOfInt(i,j) > 0 then (
+	    n := numcols i;
+	    firstRow := i|i;
+	    secondRow := j| 0*j;
+	    stMat := firstRow||secondRow;
+	    reducedMat := transpose colReduce(transpose stMat, 0.01);
+	    nr := numrows reducedMat;
+	    rows := {nr-rankOfInt(i,j) .. nr -1};
+	    reducedMat_{n .. 2*n-1}^rows;
+	    k = 0;
+	    )
+	else (
+    	    break
+    	    k = 1;
+	    )
+	, L);
+    if k == 0 then true else false
     )
 		
 
@@ -61,7 +86,7 @@ stickelbergerSolve Ideal := I -> (
     
     -- checking each combination of eigenspaces intersect 
     matrixList := apply(eigList, i -> 
-	apply(i, j -> transpose last j));
+	apply(i, j -> matrix transpose last j));
     delete( ,apply(length matrixList, i -> if checkIntersect matrixList#i then (
 	    apply(eigList#i, j -> first j)
 	    )

@@ -67,7 +67,8 @@ export {"bidirectedEdgesMatrix",
        "sVariableName",
        "kVariableName",
        "lVariableName",
-       "pVariableName"
+       "pVariableName",
+       "tops"
        	} 
 
 markovRingData = local markovRingData
@@ -1050,7 +1051,7 @@ trekSeparation MixedGraph := List => (g) -> (
               if appendnS then statements = append(statements, nS);););););););
     statements)
 
-multiTrekSeparation = method()
+-*multiTrekSeparation = method()
 multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
     print "1";
     G := graph collateVertices g;
@@ -1079,7 +1080,31 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
             print DGhash#(v#1);
             );
 	);
-    statements)
+    statements)*-
+
+tops = method()
+tops (Digraph,ZZ,List,List) := List => (g,k,Slist,Alist) ->(   
+    topList := {};
+    Glist:=apply(Alist,A->deleteVertices(g,A));
+    vert := sort vertices g;
+    for v in vert do(
+	isTop := true;
+	i:=0;
+	while (isTop and i<k) do(
+	    pathExists := false;
+	    desc := toList(descendants(Glist#i,v));
+	    d := 0;
+	    while ((not pathExists) and d<length(desc)) do(
+		if member(desc#d,Slist#i) then(pathExists=true;);
+		d=d+1;
+		);
+	    if not pathExists then (isTop=false;);
+	    i=i+1;
+	    );
+	if isTop then(topList=append(topList,v););
+	print "hi";	
+	);
+    topList)
 
 ------------------------------------------------------------------
 -- trekIdeal (Ring,MixedGraph)

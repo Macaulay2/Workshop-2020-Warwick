@@ -6,23 +6,25 @@ export {
     "sagbi" => "subalgebraBasis", 
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
-    "ProjectionBase", -- no need to export
-    "SyzygyIdeal", -- no need to export
-    "Pending", -- no need to export
-    "Substitution", -- no need to export
+    "ProjectionBase",
+    "SyzygyIdeal",
+    "Pending",
+    "Substitution",
     "SagbiDegrees",
-    "TensorRing", -- no need to export
+    "TensorRing",
     "SubalgComputations",
-    "InclusionBase", -- no need to export
-    -- "ProjectionInclusion",
-    "sagbiGB", -- no need to export
+    "InclusionBase",
+    "ProjectionInclusion",
     "SagbiGens",
     "SagbiDone"
     }
 
+
+
 -- A wrapper around rawSubduction.
 subduction = method(TypicalValue => Matrix)
 subduction(Subring, Matrix) := (subR, M) -> (      
+    
     subalgComp := subR.cache.SubalgComputations;
     Mtensor := M;
     ambR := ambient subR;    
@@ -36,26 +38,35 @@ subduction(Subring, Matrix) := (subR, M) -> (
 	);
     
     -- Check that subalgComp.sagbiGB was computed in a degree that is high enough to handle M.
-    degM := max apply(first entries Mtensor, mono -> first degree mono);
+    degreesM := apply(first entries Mtensor, mono -> first degree mono);
+    degM := 0;
+    if degreesM === {} then (
+	-- M was an empty matrix or otherwise didn't make sense.
+	return M; 
+	) else(
+	degM = max degreesM;
+	);
     degGB := {};
     
-    if subalgComp#?sagbiGB == true then (
-	degGB = (subalgComp.sagbiGB)#"stopping options".DegreeLimit;
+    if subalgComp#?"sagbiGB" == true then (
+	degGB = (subalgComp#"sagbiGB")#"stopping options".DegreeLimit;
 	) else (
-	subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+	subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
 	degGB = degM;
 	);
     
     if degGB === {} then (
 	-- This means DegreeLimit wasn't specified and it computed the full GB. Nothing to do.
-	)else if degM < degGB then(
+	)else if degM > degGB then(
+	-- degGB is not large enough to handle degM.
 	-- This assumes that subalgComp.SyzygyIdeal is up to date.
-       	subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+       	subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
 	);
     
     F := subalgComp.Substitution;
-    C := subalgComp.sagbiGB;
+    C := subalgComp#"sagbiGB";
     numblocks := rawMonoidNumberOfBlocks raw monoid ambR;
+    
     rawSubduction(numblocks, raw Mtensor, raw F, raw C)
     );
 
@@ -67,6 +78,10 @@ subalgebraBasis = method(Options => {
     Strategy => null,
     Limit => 100,
     PrintLevel => 0})
+
+subalgebraBasis List := o -> L -> (
+    subalgebraBasis(o, subring L)
+    );
 
 -- caches computation results inside of R
 subalgebraBasis Subring := o -> R -> (
@@ -96,9 +111,8 @@ subalgebraBasis Subring := o -> R -> (
     R.cache.SagbiDegrees = {};
     subalgComp.TensorRing = null;  -- RS
     subalgComp.SyzygyIdeal = null; -- J
-    subalgComp.sagbiGB = null;
 
-    subalgComp#"ProjectionInclusion" = null; -- RStoS
+    subalgComp.ProjectionInclusion = null; -- RStoS
     subalgComp.ProjectionBase = null;      -- RStoR
     subalgComp.InclusionBase = null;       -- RtoRS
     subalgComp.Substitution = null;        -- Gmap
@@ -106,6 +120,7 @@ subalgebraBasis Subring := o -> R -> (
     currDegree := null;     -- d
     nLoops := null;         -- nloops
     R.cache.SagbiDone = false;
+    sagbiGB := null;
     syzygyPairs := null;
     newElems := null;
 
@@ -130,53 +145,54 @@ subalgebraBasis Subring := o -> R -> (
     currDegree = grabLowestDegree(R, o.Limit) + 1;
 
     nLoops = currDegree;
-    local subducted;
+    local subducted;    
     
     ambR := ambient R;
     -- While the number of loops is within the limit and the isDone flag is false, continue to process
     while nLoops <= o.Limit and not R.cache.SagbiDone do (
-        nLoops = nLoops + 1;
-    
+        nLoops = nLoops + 1;     	
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
-       
-       	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
+	
+	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
 	-- p_i - [one of the generators of SagbiGens]
     	-- where none of the p_i are involved in any of the [one of the generators of SagbiGens] terms.
-        subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
-    	
-        syzygyPairs = subalgComp.Substitution(submatrixByDegrees(mingens ideal selectInSubring(1, gens subalgComp.sagbiGB), currDegree));
+        sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
+	zeroGens := submatrixByDegrees(mingens ideal selectInSubring(1, gens sagbiGB), currDegree);	
+        syzygyPairs = subalgComp.Substitution(zeroGens);    	
+
         if subalgComp.Pending#currDegree != {} then (
             syzygyPairs = syzygyPairs | subalgComp.InclusionBase(matrix{subalgComp.Pending#currDegree});
             subalgComp.Pending#currDegree = {};
-        );
-    	
-    	subd := subduction(R, syzygyPairs);
-    	subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,subd));
-        newElems = compress subducted;
-        if numcols newElems > 0 then (
+            );
+	
+       	subd := subduction(R, syzygyPairs);	
+	
+	if entries subd != {{}} then (       
+	    subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,subd));
+	    newElems = compress subducted;
+            )else (
+	    newElems = subd;
+	    );
+    
+	if numcols newElems > 0 then (
             insertPending(R, newElems, o.Limit);
-	    -- This function call has a lot of indirect effects because the cache of R is updated.
-            currDegree = grabLowestDegree(R, o.Limit);
-        )
-        else (
-	    -- "rawStatus1 raw subalgComp.sagbiGB == 6" implies subalgComp.sagbiGB is a full degree GB (i.e., an "actual" GB.)
-            if sum toList apply(subalgComp.Pending, i -> #i) === 0 and rawStatus1 raw subalgComp.sagbiGB == 6 and currDegree > maxGensDeg then (
+	    -- This call (indirectly) updates subalgComp.SyzygyIdeal (among many other things.)
+	    -- (this updating takes place mostly in the function appendToBasis.)
+	    currDegree = grabLowestDegree(R, o.Limit);
+            ) else (
+	    -- rawStatus1 raw sagbiGB == 6  if the Groebner basis sagbiGB is a complete Groebner basis.
+	    if sum toList apply(subalgComp.Pending, i -> #i) == 0 or currDegree > maxGensDeg then (
                 R.cache.SagbiDone = true;
                 if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;
+		break;
             	)
             );
-            currDegree = currDegree + 1;
+	currDegree = currDegree + 1;
     	);
     R.cache.SagbiGens
 )
-
 -- old way: intermediate results aren't cached
 subalgebraBasis Matrix := o -> gensMatrix -> (
     R := subring gensMatrix;
     subalgebraBasis(R,o)
-)
-
--- Change to match the other code
-subalgebraBasis List := o -> L -> (
-subalgebraBasis(o, subring L)
-);
+    )

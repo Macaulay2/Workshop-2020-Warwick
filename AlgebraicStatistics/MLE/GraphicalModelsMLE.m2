@@ -18,18 +18,16 @@ newPackage(
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true,
      PackageExports => {"GraphicalModels","Graphs","Bertini"}
+     -- need to check whether Bertini is actually used
+     -- EigenSolver is used for computing the MLE. May need to be replaced or complemented 
+     -- by a more efficient solver in the future
      )
 export {"sampleCovarianceMatrix",
     "JacobianMatrixOfRationalFunction",
-    "scoreEquationsFromCovarianceMatrix"
+    "scoreEquationsFromCovarianceMatrix",
+    "scoreEquationsFromCovarianceMatrixUndir"
        	} 
      
---needsPackage("GraphicalModels")     
---needsPackage("Graphs")     
---needsPackage("Bertini")
-
-
-
 --**************************--
 --  INTERNAL ROUTINES       --
 --**************************--
@@ -68,6 +66,7 @@ matRtolpR = (M,F) -> (
 --  METHODS 	      	   	  --
 --**************************--
 sampleCovarianceMatrix = method();
+-- why List and not Matrix as input?
 sampleCovarianceMatrix(List) := (U) -> (
     n := #U;
     U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
@@ -120,6 +119,47 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     J = saturate(J, prod);
     return J;
 );
+
+
+
+scoreEquationsFromCovarianceMatrixUndir = method();
+scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
+    -- check which method of computing transpose is correct.
+    S:=U*transpose(U);
+    -- need to fix conversion to rationals
+    --S=matZZtoQQ(S);
+    --V := sampleCovarianceMatrix(U);
+    -- Concentration matrix K
+    K:=undirectedEdgesMatrix R;
+    -- d is equal to the number of vertices in G
+    d := numRows K;
+    -- move to a new ring, lpR, which does not have the s variables
+    numSvars:=lift(d*(d+1)/2,ZZ);
+     --lp ring is the ring without the s variables
+    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
+    KK:=coefficientRing(R);
+    lpR:=KK[lpRvarlist];
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    K=F(K);
+    I:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*S)})};
+    J:=saturate(I,ideal{determinant(K)});
+    return J;
+ );
+
+
+-*
+R2=coefficientRing(R)[lpRvar]
+
+R2map=apply(numgens(R),i-> if i<= numgens(R)-numS-1 then (gens(R2))_i else 0)
+F=map(R2,R,R2map)
+K2=F(K)
+X=random(ZZ^4,ZZ^4)
+S=X*transpose(X)
+I=ideal{jacobian ideal{determinant(K2)}-determinant(K2)*jacobian(ideal{trace(K2*S)})}
+J=saturate(I,ideal{determinant(K2)})
+dim J, degree J
+*-
 
 -*
 scoreEquationsCovariance1 = method();
@@ -413,6 +453,7 @@ doc ///
 	    JacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
 ///
 
+
 doc /// 
     Key
         scoreEquationsFromCovarianceMatrix
@@ -441,6 +482,29 @@ doc ///
             scoreEquationsFromCovarianceMatrix(R,U)
 ///
 
+doc ///
+    Key
+    	scoreEquationsFromCovarianceMatrixUndir
+	(scoreEquationsFromCovarianceMatrixUndir,Ring,Matrix)
+    Headline
+    	computes the score equations for undirected graphs
+    Usage
+    	scoreEquationsFromCovarianceMatrixUndir(R,U)
+    Inputs
+    	R:Ring
+	U:List
+    Outputs
+    	:Ideal
+    Description
+    	Text
+	    This function computes the score equations for undirected graphs. 
+	    See Example 2.1.13 of Sturmfels' lecture notes
+	Example
+	    G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    R=gaussianRing(G)
+	    U=random(ZZ^4,ZZ^4)
+	    scoreEquationsFromCovarianceMatrixUndir(R,U)				
+///
 -*
 doc /// 
     Key
@@ -507,8 +571,6 @@ assert(Y===B)
 ///
 
 TEST ///
-needsPackage("Graphs");
-needsPackage("GraphicalModels");
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
@@ -516,6 +578,15 @@ J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 ///     
+
+TEST ///
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+R=gaussianRing(G)
+U=random(ZZ^4,ZZ^4)
+J=scoreEquationsFromCovarianceMatrixUndir(R,U)
+assert(dim J===0)
+assert(degree J===5)
+///   
 
 -*
 TEST ///

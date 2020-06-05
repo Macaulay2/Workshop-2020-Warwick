@@ -13,7 +13,6 @@ newPackage(
 	Date => "July 2019",
 	Authors => {
 	    	{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
-		{Name => "Ahmed U.Ashraf", Email => "aashra9@gmail.com", HomePage => "publish.uwo.ca/~aashra9/"},
 	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
   		{Name => "Sara Lamboglia", Email => "lamboglia@math.uni-frankfurt.de", HomePage=>""},
 	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
@@ -945,7 +944,8 @@ doc ///
 	       {HREF("http://www.math.harvard.edu/~cmwang/","Charles Wang")},
 	       {HREF("https://math.berkeley.edu/~yelena/", "Yelena Mandelshtam")},
 	       {HREF("https://alessioborzi.github.io/", "Alessio Borzì")},
-		   {HREF("https://www.linkedin.com/in/timothyxu/", "Timothy Xu")},
+	       {HREF("https://www.linkedin.com/in/timothyxu/", "Timothy Xu")},
+	       {HREF{"publish.uwo.ca/~aashra9/","Ahmed Umer Ashraf"}}
     	     }@
 ///
 

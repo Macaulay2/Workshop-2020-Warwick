@@ -6,15 +6,16 @@ export {
     "sagbi" => "subalgebraBasis", 
     "PrintLevel",
     -- things that get cached in the computation: do we really want to export all of these?
-    "ProjectionBase",
-    "SyzygyIdeal",
-    "Pending",
-    "Substitution",
+    --"ProjectionBase", 
+    -- "SyzygyIdeal", 
+    -- "Pending", -- No need to export
+    -- "Substitution",
     "SagbiDegrees",
-    "TensorRing",
+    -- "TensorRing", 
     "SubalgComputations",
-    "InclusionBase",
-    "ProjectionInclusion",
+    -- "InclusionBase", 
+    -- "ProjectionInclusion",
+    -- "sagbiGB", 
     "SagbiGens",
     "SagbiDone"
     }
@@ -109,14 +110,16 @@ subalgebraBasis Subring := o -> R -> (
     subalgComp := R.cache.SubalgComputations;
 
     R.cache.SagbiDegrees = {};
-    subalgComp.TensorRing = null;  -- RS
-    subalgComp.SyzygyIdeal = null; -- J
+    
+    subalgComp#"TensorRing" = null;  -- RS
+    subalgComp#"SyzygyIdeal" = null; -- J
+    subalgComp#"sagbiGB" = null;
 
-    subalgComp.ProjectionInclusion = null; -- RStoS
-    subalgComp.ProjectionBase = null;      -- RStoR
-    subalgComp.InclusionBase = null;       -- RtoRS
-    subalgComp.Substitution = null;        -- Gmap
-
+    subalgComp#"ProjectionInclusion" = null; -- RStoS
+    subalgComp#"ProjectionBase" = null;      -- RStoR
+    subalgComp#"InclusionBase" = null;       -- RtoRS
+    subalgComp#"Substitution" = null;        -- Gmap
+    
     currDegree := null;     -- d
     nLoops := null;         -- nloops
     R.cache.SagbiDone = false;
@@ -124,7 +127,7 @@ subalgebraBasis Subring := o -> R -> (
     syzygyPairs := null;
     newElems := null;
 
-    subalgComp.Pending = new MutableList from toList(o.Limit+1:{}); -- Pending
+    subalgComp#"Pending" = new MutableList from toList(o.Limit+1:{}); -- Pending
 
     -- Create an empty matrix of generators.
     -- todo: check if R.cache.SagbiGens exists: if true, start computation with these
@@ -139,7 +142,7 @@ subalgebraBasis Subring := o -> R -> (
     insertPending(R, reducedGens, o.Limit);
 
     -- Remove elements of coefficient ring
-    subalgComp.Pending#0 = {};
+    (subalgComp#"Pending")#0 = {};
 
     -- Get the lowest degree of the pending list.  Add 1 and initialize to number of loops
     currDegree = grabLowestDegree(R, o.Limit) + 1;
@@ -153,11 +156,11 @@ subalgebraBasis Subring := o -> R -> (
         nLoops = nLoops + 1;     	
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
 	
-	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
-	-- p_i - [one of the generators of SagbiGens]
+    	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
+	    -- p_i - [one of the generators of SagbiGens]
     	-- where none of the p_i are involved in any of the [one of the generators of SagbiGens] terms.
-        sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
-	zeroGens := submatrixByDegrees(mingens ideal selectInSubring(1, gens sagbiGB), currDegree);	
+        subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
+	      zeroGens := submatrixByDegrees(mingens ideal selectInSubring(1, gens (subalgComp#"sagbiGB")), currDegree);	
         syzygyPairs = subalgComp.Substitution(zeroGens);    	
 
         if subalgComp.Pending#currDegree != {} then (
@@ -180,8 +183,8 @@ subalgebraBasis Subring := o -> R -> (
 	    -- (this updating takes place mostly in the function appendToBasis.)
 	    currDegree = grabLowestDegree(R, o.Limit);
             ) else (
-	    -- rawStatus1 raw sagbiGB == 6  if the Groebner basis sagbiGB is a complete Groebner basis.
 	    if sum toList apply(subalgComp.Pending, i -> #i) == 0 or currDegree > maxGensDeg then (
+
                 R.cache.SagbiDone = true;
                 if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;
 		break;

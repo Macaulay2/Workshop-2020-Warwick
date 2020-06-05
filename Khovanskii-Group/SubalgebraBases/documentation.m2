@@ -210,7 +210,97 @@ doc ///
       I = presentation A
       leadTerm(1, I)
   SeeAlso
+    Subring
+    subring
+    liftedPresentation
     getWeight
     presentationRing
     presentation
+///
+
+-* --This documentation doesn't work
+doc ///
+  Key
+    (presentation, Subring)
+  Headline
+    get generators of the presentation
+  Usage
+    M = presentation A
+  Inputs
+    A:Subring
+  Outputs
+    M:matrix
+      generators of the presentation ideal
+  Description
+    Text
+      The presentationRign $pR$ of a subring $A$ has one generator for each
+      generator of the subring. The presentation ideal is the kernel of the 
+      map sending each variable of $pR$ to its corresponding generator of $A$. 
+    Example
+      R = QQ[x];
+      A = subring({x, x^2, x^3});
+      presentation A
+      presentationRing A / ideal presentation A -- isomorphic to A
+  SeeAlso
+    Subring
+    subring
+    liftedPresentation
+    presentationRing
+    setWeight
+///
+*-
+
+doc ///
+  Key
+    presentationRing
+    (presentationRing, Subring, Ring)
+    (presentationRing, Subring)
+  Headline
+    initialize the presentation ring
+  Usage
+    P = presentationRing(A, S)
+  Inputs
+    A:Subring
+    S:Ring
+      optional, a template ring to be used as the presentation ring
+  Outputs
+    P:Ring
+      the presentation ring
+  Description
+    Text
+      If no template ring $S$ is provided then presentationRing will generate a ring using the indexed variables $e_i$ where $i$ begins indexing from $0$.
+    Example
+      R = QQ[x, y];
+      A = subring({x+y, x-y, x, y});
+      pR = presentationRing A;
+      describe pR
+      presentation A
+    Text
+      If a template ring $S$ is provided, the number of generators of $S$ must match the number generators of the subring $A$.
+    Example
+      R = QQ[x1, x2, y1, y2];
+      A = subring {x1*y1, x1*y2, x2*y1, x2*y2};
+      S = QQ[p_(1,1), p_(1,2), p_(2,1), p_(2,2), MonomialOrder => {Eliminate 1}];
+      pR = presentationRing(A, S);
+      pR === S
+      presentation A
+    Text
+      If $setWeight(A, W)$ is used then the presentationRing $pR$ will differ from template ring $S$.
+      The weights used in the term order for $pR$ are the induced weights from $W$.
+      The induced weight of a generator $e_i$ of $pR$ is the weight of leading term of the $i^{th}$
+      generator of the subring $A$.  
+    Example
+      R = QQ[x, y, z];
+      A = subring({x+y+z, x-y-z, x, y, z});
+      setWeight(A, {0, 1, 2}); --weight x=0, y=1, z = 2
+      pR = presentationRing A;
+      pR_0^2 > pR_3^3 
+    Text
+      Note that to use setWeight, it must proceed presentationRing      
+  SeeAlso
+    Subring
+    subring
+    liftedPresentation
+    presentation
+    setWeight
 ///

@@ -34,8 +34,8 @@ export {"sampleCovarianceMatrix",
     "JacobianMatrixOfRationalFunction",
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
-    "PDcheck",
-    "MLEsolver"
+    "PDcheck"
+--    "MLEsolver"
        	} 
      
 --**************************--
@@ -77,22 +77,24 @@ matRtolpR = (M,F) -> (
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
 
+
 genListmatrix = (L,R) ->
 (
-    T = {};
-    K=undirectedEdgesMatrix R;
+    T := {};
+    K:=undirectedEdgesMatrix R;
     for l in L do
     (
     	T = T|{coordinates(l)};	
     );
-    M = {};
+    M := {};
     for t in T do
     (
-    	m = substitute(K,matrix{t});	
+    	m := substitute(K,matrix{t});	
     	M = M|{m}
     );    
-    return M;
+    return M
 );
+
 
 
 --**************************--
@@ -183,12 +185,12 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
 
 PDcheck = method();
 PDcheck(List) := (L) -> (
-(   mat = {};
+   mat := {};
     for l in L do
     (
-    	flag = 0;
+    	flag := 0;
     	-- Compute eigenvalues for each matrix
-	L1 = eigenvalues l;
+	L1 := eigenvalues l;
     	--Check whether all of them are positive
 	for t in L1 do 
     	(	 
@@ -203,7 +205,7 @@ PDcheck(List) := (L) -> (
 
 
 MLEsolver = method();
-MLEsolver(Ideal,Ring) := (J,R) -> (
+MLEsolver(Ideal,Ring):= (J,R) -> (
     --solve system with eigensolver
     sols:=zeroDimSolve(J);
     --evaluate matrices on solutions
@@ -216,6 +218,7 @@ MLEsolver(Ideal,Ring) := (J,R) -> (
     E:=inverse L_0;
     return E;    
 );
+
 
 -*
 R2=coefficientRing(R)[lpRvar]
@@ -495,7 +498,7 @@ doc ///
 	    sampleCovarianceMatrix(M)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}};
 	    sampleCovarianceMatrix(U)	    
-///
+     ///
 
 doc /// 
     Key
@@ -520,7 +523,7 @@ doc ///
 	    R=QQ[t_1,t_2,t_3];
 	    FR=frac R;
 	    JacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
-///
+   ///
 
 
 doc /// 
@@ -549,7 +552,7 @@ doc ///
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsFromCovarianceMatrix(R,U)
-///
+    ///
 
 doc ///
     Key
@@ -573,12 +576,12 @@ doc ///
 	    R=gaussianRing(G)
 	    U=random(ZZ^4,ZZ^4)
 	    scoreEquationsFromCovarianceMatrixUndir(R,U)				
-///
+     ///
 
-doc ///
+doc   ///
     Key
     	PDcheck
-	(PDcheck,L)
+	(PDcheck,List)
     Headline
     	checks which matrices from the list are positive definite
     Usage
@@ -594,12 +597,13 @@ doc ///
       	Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}}}				
     	    PDcheck(L)
-///
+     	 ///
+
 
 doc ///
     Key
     	MLEsolver
-	(MLEsolver,J,R)
+	(MLEsolver,Ideal,Ring)
     Headline
     	computes MLE from score equations
     Usage
@@ -621,6 +625,7 @@ doc ///
 	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
 	    MLEsolver(J,R)				
 ///
+
 -*
 doc /// 
     Key

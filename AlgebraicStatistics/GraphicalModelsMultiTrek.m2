@@ -1052,7 +1052,34 @@ trekSeparation MixedGraph := List => (g) -> (
 
 multiTrekSeparation = method()
 multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
-    {42})
+    print "1";
+    G := graph collateVertices g;
+    print "2";
+    statements := {};
+    v := sort vertices g;
+    print v;
+    DG := graph G#Digraph;
+    print "3";
+    DGhash := new MutableHashTable from apply(v,i->{i,DG#i});
+    print DGhash#(v#1);
+    for A in toList(((set subsets v)^**k)/deepSplice) do(
+	SS := apply(k-1,i->delete({},subsetsBetween(A#i,v)));
+	Slist := (set (SS#0));
+	for i from 1 to k-2 do(
+	    Slist = (Slist ** (set (SS#i)))/splice; 
+	    );
+        for S in toList(Slist) do(
+	    print "hi";
+	    --toplist := tops(g,A,S,k);
+	    scan(v,i->DGhash#i=DG#i);
+	    print "hi2";
+	    scan(A#(k-1), i->scan(v, j->(
+	    DGhash#i=DGhash#i-{j};
+	    DGhash#j=DGhash#j-{i};)));
+            print DGhash#(v#1);
+            );
+	);
+    statements)
 
 ------------------------------------------------------------------
 -- trekIdeal (Ring,MixedGraph)

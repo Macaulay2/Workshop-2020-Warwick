@@ -1,4 +1,4 @@
---      AuxiliaryFiles => true,                                                                           
+--      AuxiliaryFiles => true,
 --path = prepend ("~/src/M2/Workshop-2018-Leipzig/Tropical/", path)
 --Delete the line above when the "loading the wrong version" has been fixed.
 --polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version 2>&1") >= "3.0" else false;
@@ -207,7 +207,7 @@ isBalancedCurves = T ->(
 	m := multiplicities T;
 	r := entries transpose rays T;
 	(first unique sum(#r, i->(m_i * r_i))) == 0
-)    
+)
 
 --computes the star of the codimension-one polyhedron P in the tropical cycle Sigma
 star = (Sigma, P) -> (
@@ -228,16 +228,16 @@ star = (Sigma, P) -> (
 		--version for Polyhedral complexes
 --    		w:=interiorPoint(sigma)-interiorPoint(P);
     	        --version for fans
-		w:=sum(rank source rays sigma, i->(rays sigma)_{i}) - 
+		w:=sum(rank source rays sigma, i->(rays sigma)_{i}) -
 		     sum(rank source rays P, i->(rays sigma)_{i});
 		--Project it onto ker(P)
 		w=entries(B*w);
 		w=posHull matrix apply(#w-d,i->(w_(i+d)))
 	));
-    	multsSigma:=multiplicities Sigma;	
+    	multsSigma:=multiplicities Sigma;
 	multStar:=apply(adjacentCellsPos,i->(multsSigma_i));
 	return(tropicalCycle(fan raysStar,multStar));
-);       
+);
 
 
 isBalanced = method(TypicalValue => Boolean)
@@ -280,17 +280,17 @@ isBalanced (TropicalCycle):= T->(
 	F:= faces(1,T);
 	i:=0;
 	while balanced and i<#F do (
---change next line when PolyhedralComplex change is made	    
+--change next line when PolyhedralComplex change is made
 	    balanced = isBalancedCurves(star(fan T,F_i));
 	    i=i+1;
 	);
     	return balanced;
        );
     );
-);	
-	
-	
-     
+);
+
+
+
 
 
 
@@ -868,7 +868,7 @@ BergmaneI = (M, I) -> (
     L := {};
     for i in E do(
 	if member(i,I) then L =  append(L,1) else L = append(L,0);
-	);   
+	);
     L
     )
 
@@ -882,7 +882,7 @@ BergmanconeC  = (M, C) -> (
     L := {};
     for F in C do(
 	L = append(L, BergmaneI(M, F));
-	); 
+	);
    transpose  matrix L
     )
 
@@ -894,7 +894,7 @@ BergmanFan = (M) -> (
     if (not isWellDefined(M) ) then
 	    error("The input Matroid is not well-defined");
     if ( loops(M) != {} ) then
-	    error("The current method only works for loopless matroids");   
+	    error("The current method only works for loopless matroids");
     E := toList M.groundSet;
     n := #E ;
     r := rank M;
@@ -906,7 +906,7 @@ BergmanFan = (M) -> (
     for C in redOrdcplx do(
 	L = append(L, coneFromVData BergmanconeC(M,C));
 	);
-    fan L 
+    fan L
     )
 
 ----------------------------------------------------------------------------
@@ -944,6 +944,7 @@ doc ///
 	       {HREF("http://www.math.unibe.ch/ueber_uns/personen/vargas_de_leon_alejandro/index_ger.html","Alejandro Vargas de Leon")},
 	       {HREF("http://www.math.harvard.edu/~cmwang/","Charles Wang")},
 	       {HREF("https://math.berkeley.edu/~yelena/", "Yelena Mandelshtam")},
+	       {HREF("https://alessioborzi.github.io/", "Alessio Borzì")},
     	     }@
 ///
 
@@ -2114,9 +2115,9 @@ check "Tropical"
 ---playing with some commands
 
 F = fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
-(tropicalCycle(F,{1,1,1}))#"Fan"== F 
+(tropicalCycle(F,{1,1,1}))#"Fan"== F
 (tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1}
-T = tropicalCycle(F,{1,1,1})    
+T = tropicalCycle(F,{1,1,1})
 r = rays T
 r == matrix{{0,0,0},{1,-1,0},{0,-1,1}}
 isBalanced T
@@ -2125,4 +2126,4 @@ TP = tropicalPrevariety({x_0-x_1, x_1-x_2+x_3, x_2-x_3})
 L={x_0-x_1, x_1-x_2+x_3, x_2-x_3}
 rays TP
 TV = tropicalVariety(ideal(L)) --this is empty...is this right? Gives error, should it be zero instead?
-rays TV 
+rays TV

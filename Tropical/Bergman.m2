@@ -40,6 +40,10 @@ BergmanconeC  = (M, C) -> (
 -- still needs to put some checks
 -- this depends on 
 BergmanFanI = (M) -> (
+    if (not isWellDefined(M) ) then
+	    error("The input Matroid is not well-defined");
+    if ( loops(M) != {} ) then
+	    error("The current method only works for loopless matroids");   
     E := toList M.groundSet;
     n := #E ;
     r := rank M;
@@ -57,20 +61,16 @@ BergmanFanI = (M) -> (
 
 U24 = uniformMatroid(2,4)
 F = BergmanFanI U24
-rays F
-maxCones F
-
-
-
-MK4 = matroid completeGraph 4
-F = BergmanFanI MK4
-rays F
-maxCones F
-
+ray = rays F
+mC = maxCones F
+l = flatten mC
+ray == id_(ZZ^4)
+l  == toList(0..3)
 
 
 ---- We will see this later
-
+restart
+needsPackage "Matroids"
 
 
 M = matroid({0,1,2,3},{{0,1},{2,3}}) --you can modify the matroid to play with Bergman
@@ -83,11 +83,12 @@ rank M
 isWellDefined M
 
 P = latticeOfFlats M
-C = chains(P)
-chains(P,rank(M)-1)
-#(M)
+P1 = P - {{},{0,1,2,3}}
+chains(P1, rank(M)-1)
+maximalChains P1
 
 
+    
 -- First version of code for matroids of rank 2, needs some more looping for maximal chains
 -- of length bigger than 1
 

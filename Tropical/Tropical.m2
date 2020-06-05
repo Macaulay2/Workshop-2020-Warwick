@@ -25,13 +25,13 @@ newPackage(
 	Configuration => {
 		"path" => "",
 		"fig2devpath" => "",
---		"keepfiles" => true,
+		"keepfiles" => true,
 		"cachePolyhedralOutput" => true,
 		"tropicalMax" => false,
 		"polymakeCommand" =>""
 	},
     --Might need PackageImports here - should Polyhedra be here instead??
-        PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra"},
+        PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra","Matroids"},
 	DebuggingMode => true,
 	AuxiliaryFiles => true,
 --	AuxiliaryFiles => false,
@@ -61,7 +61,8 @@ export{
   "Symmetry",
   "visualizeHypersurface",
   "Valuation",
-  "isBalancedCurves"
+  "isBalancedCurves",
+  "BergmanFan"
   }
 
 
@@ -853,6 +854,62 @@ isPure TropicalCycle := Boolean => T->( isPure(fan(T)))
 
 isSimplicial TropicalCycle:= Boolean => T->( isSimplicial(fan(T)))
 
+
+
+--------------------
+--Bergman fan code
+--------------------
+
+-- BergmaneI returns the indicator vector (as a list) for a subset I of the ground set of a matroid M
+-- We are assumin that the matroid is over the ground set [[n]] = {0,1,2,..,n}
+BergmaneI = (M, I) -> (
+    E := toList M.groundSet;
+    n := #E;
+    L := {};
+    for i in E do(
+	if member(i,I) then L =  append(L,1) else L = append(L,0);
+	);   
+    L
+    )
+
+-- BergmanconeC returns the matrix of of generators of the cones corresponding to the chain of flats C
+-- it does not check whether C is a chain of flat or not
+-- This calles and therefore depends on BergmaneI
+-- We will remove redundancies later
+BergmanconeC  = (M, C) -> (
+    E := toList M.groundSet;
+    n := #E ;
+    L := {};
+    for F in C do(
+	L = append(L, BergmaneI(M, F));
+	); 
+   transpose  matrix L
+    )
+
+
+-- BergmanFan returns the fan of a loopless well-defined matroid
+-- groun set must be [n]
+-- depends on functions above
+BergmanFan = (M) -> (
+    if (not isWellDefined(M) ) then
+	    error("The input Matroid is not well-defined");
+    if ( loops(M) != {} ) then
+	    error("The current method only works for loopless matroids");   
+    E := toList M.groundSet;
+    n := #E ;
+    r := rank M;
+     L := {};
+    LM := latticeOfFlats M;
+    redLM := dropElements(LM, {{}, E});
+    rset := {toList(1..r-1)};
+    redOrdcplx := maximalChains redLM;
+    for C in redOrdcplx do(
+	L = append(L, coneFromVData BergmanconeC(M,C));
+	);
+    fan L 
+    )
+
+----------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -1992,6 +2049,19 @@ T#"Fan" = F;
 assert(isSimplicial(T)==(false))
 ///
 
+
+-----------------------
+--BergmanFan
+-----------------------
+TEST///
+U24 = uniformMatroid(2,4)
+F = BergmanFan U24
+ray = rays F
+mC = maxCones F
+l = sort(flatten(mC))
+assert(ray == id_(ZZ^4))
+assert(l == toList(0..3))
+///
 
 
 

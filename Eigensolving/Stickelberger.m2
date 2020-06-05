@@ -86,7 +86,7 @@ stickelbergerSolve Ideal := I -> (
     
     -- checking each combination of eigenspaces intersect 
     matrixList := apply(eigList, i -> 
-	apply(i, j -> matrix transpose last j));
+	apply(i, j -> transpose last j));
     delete( ,apply(length matrixList, i -> if checkIntersect matrixList#i then (
 	    apply(eigList#i, j -> first j)
 	    )

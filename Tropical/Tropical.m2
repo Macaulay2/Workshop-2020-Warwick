@@ -12,7 +12,8 @@ newPackage(
 	Version => "1.0",
 	Date => "July 2019",
 	Authors => {
-   		{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
+	    	{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
+		{Name => "Ahmed U.Ashraf", Email => "aashra9@gmail.com", HomePage => "publish.uwo.ca/~aashra9/"},
 	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
   		{Name => "Sara Lamboglia", Email => "lamboglia@math.uni-frankfurt.de", HomePage=>""},
 	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
@@ -901,7 +902,6 @@ BergmanFan = (M) -> (
      L := {};
     LM := latticeOfFlats M;
     redLM := dropElements(LM, {{}, E});
-    rset := {toList(1..r-1)};
     redOrdcplx := maximalChains redLM;
     for C in redOrdcplx do(
 	L = append(L, coneFromVData BergmanconeC(M,C));

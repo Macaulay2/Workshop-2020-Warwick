@@ -2,6 +2,7 @@ export {
     "Subring",
     "subring",
     "liftedPresentation",
+    "liftedPresentationRing",
     "presentationRing",
     "getWeight",
     "setWeight"
@@ -39,8 +40,8 @@ net Subring := A -> "subring of " | toString(ambient A)
 presentationRing = method()
 presentationRing Subring := A -> (
     B := ambient A;
-    k := coefficientRing B;   
-    e := symbol e; 
+    k := coefficientRing B;
+    e := symbol e;
     nA := numgens A;
     return presentationRing(A, k[apply(nA, i -> e_i)]);
     )
@@ -66,6 +67,40 @@ presentationRing (Subring, Ring) := (A, newPresRing) -> (
     A.cache#"PresentationRing"
     )
 
+presentationRing (List, Matrix) := (pVars, M) -> (
+    assert (#pVars === numcols M);
+    newRing (ring M, Variables => pVars)
+    )
+
+presentationRing Matrix := M -> (
+    n := numcols M;
+    pVars := toList vars (0..n-1);
+    presentationRing (pVars, M)
+    )
+
+-*
+    Input:  - matrix with n columns over polynomial ring R
+            - a list of n new variables
+            - optional: a prescribed term order
+    Output: a polynomial ring with with variables coming from R and the list
+    *-
+
+liftedPresentationRing = method (
+    TypicalValue => PolynomialRing,
+    Options => {MonomialOrder => null})
+liftedPresentationRing (List, Matrix) := PolynomialRing => o -> (pVars, M) -> (
+    assert (#pVars === numcols M);
+    X := (ring M)_*;
+    newVars := X | pVars;
+    liftedPR := if o.MonomialOrder === null then
+    newRing (ring M, Variables => newVars) else
+    newRing (ring M, Variables => newVars, MonomialOrder => o.MonomialOrder);
+    liftedPR
+    )
+liftedPresentationRing Matrix := PolynomialRing => o -> M -> (
+    pVars := (presentationRing M)_*;
+    lpVars := (ring M)_* | pVars;
+    liftedPresentationRing (lpVars, M, MonomialOrder => o.MonomialOrder))
 
 
 -- computes the presentation of the subring in the presentation ring

@@ -694,9 +694,9 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
 
 restrictToInvCurves = method ()
 restrictToInvCurves ToricReflexiveSheaf := List => (cacheValue symbol restrictToInvCurves) (E -> (
- F := fan variety E;
- n := dim variety E; 
- apply( cones(n-1,F), tau -> restrictToCurve(tau,E))
+ X := variety E;
+ n := dim X; 
+ apply( (orbits X)#(n-1), tau -> restrictToCurve(tau,E))
 ))
 
 isNef ToricReflexiveSheaf := Boolean => E -> 

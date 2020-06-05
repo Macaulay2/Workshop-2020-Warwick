@@ -80,20 +80,36 @@ eigSolveP2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2 et 2 (
     JnR := ideal(E0,E1); -- homogenized equations
     deg := degrees JnR;
     satind := (deg_0)_0+(deg_1)_0-1;
-    psi := map(nR^1, nR^(-(JnR_*/degree)), gens JnR);
-    B := flatten entries basis(satind, nR);
-    H := hashTable apply(#B, i -> B#i => i);
+    psi := map(nR^{0}, nR^(-(JnR_*/degree)), gens JnR);
     elimMat := matrix basis(satind,psi);
     elimMatTr := transpose sub(elimMat,CC);
     K := numericalKernel(elimMatTr,getDefault(Tolerance));
     numroots := rank source K; -- expected number of roots
-    B0 := select(numroots, B, b -> member(nR_1*b // nR_0, B));
-    D0 := K^(apply(B0, b -> H#b));
+    B := flatten entries basis(satind, nR);
+    H := hashTable apply(#B, i -> B#i => i);
+    preB0 := select(B, b -> member(nR_1*b // nR_0, B));
+    B0 := {first preB0};
+    D0 := K^{H#(B0_0)}; -- assumption here
+    i := 0; -- intialization
+    -- to be optimized
+    while (numericalRank(D0) < numroots) and (i < numrows K) do (
+	i=i+1;
+    	b := preB0_i;
+	addRow := K^{H#b};
+	if numericalRank (D0||addRow) > numericalRank(D0) then (
+	   D0=D0||addRow; 
+	   B0=B0|{b};
+	   );
+    );
+    --B0 := select(numroots, B, b -> member(nR_1*b // nR_0, B)); -- !! must be numerically full rank
+    --D0 := K^(apply(B0, b -> H#b));
     B1 := apply(B0, b -> (b*nR_1)//nR_0);
     D1 := K^(apply(B1, b -> H#b));
     (EVal,EVec) := eigenvectors (inverse(D0)*D1); -- NEED GENERALIZED EIGENVALUES (provisionally assume no solutions at infinity, separated by x_1)
-    EVect := D0*EVec;
-    apply(#EVal, i -> point{{EVal_i,EVect_(2,i)/EVect_(0,i)}}) -- roots (x_1,y_1) assuming x0=y0=1    
+    EVect := D0*EVec; 
+    << "numerical rank of D0=" << numericalRank D0 << endl;
+    apply(#EVal, i -> point{{EVal_i,EVect_(2,i)/EVect_(0,i)}}) -- BE CAREFULL: we are assuming that the three rows are indexed by 1,x1,x2.
+           
 )
 
 -- needs "laurent-eigensolving.m2"
@@ -135,7 +151,11 @@ R = QQ[x1,x2]
 spe = map(R,B,matrix{{1,x1,x2}})
 J = spe I
 listSol = zeroDimSolve(J, Strategy => "elimMatrixP2")
+netList listSol
 sort apply(listSol, p -> norm evaluate(gens J, p))
+zSol= zeroDimSolve(J, Strategy => "Stickelberger")
+netList zSol
+sort apply(zSol, p -> norm evaluate(gens J, p))
 assert(#listSol == product(I_*/degree/first))
 ///
 

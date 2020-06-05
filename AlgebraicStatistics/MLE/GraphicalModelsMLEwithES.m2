@@ -98,3 +98,22 @@ PDcheck = L ->
     -- output - list of positive definite matrices
 );
 
+genListmatrix = L ->
+(
+    T = {};
+    for l in L do
+    (
+    	T = T|{coordinates(l)};	
+    );
+    M = {};
+    for t in T do
+    (
+    	m = substitute(K2,matrix{t});	
+    	M = M|{m}
+    );    
+    return M;
+    -- input -  list of points from solves
+    -- output - list of matrices after substituting these values
+);
+
+

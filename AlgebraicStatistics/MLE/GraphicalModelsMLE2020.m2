@@ -52,6 +52,7 @@ d=4
 numS=lift(d*(d+1)/2,ZZ);
 lpRvar=apply(numgens(R)-numS,i->(gens(R))_i);
 R2=coefficientRing(R)[lpRvar]
+-- R2 = QQ[a,b,c,e,f,g,h,l]
 
 R2map=apply(numgens(R),i-> if i<= numgens(R)-numS-1 then (gens(R2))_i else 0)
 F=map(R2,R,R2map)
@@ -61,11 +62,18 @@ S=X*transpose(X)
 I=ideal{jacobian ideal{determinant(K2)}-determinant(K2)*jacobian(ideal{trace(K2*S)})}
 J=saturate(I,ideal{determinant(K2)})
 dim J, degree J
-options solveSystem
+--options solveSystem
 s=solveSystem J_*
 solveSystem(J_*,Precision=>infinity)
 sparseMonodromySolve(polySystem J_*)
 
+J2 = trim J
+solveSystem(J_*,Software=>BERTINI)
+
+--| 1 5 5 0 |
+--| 7 2 7 4 |
+--| 9 4 0 5 |
+--| 7 4 7 8 |
 
 U={random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4),random(ZZ^1,ZZ^4)}
 scoreEquationsFromCovarianceMatrix(R,U)

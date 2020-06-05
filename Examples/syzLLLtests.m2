@@ -45,7 +45,7 @@ matrixLLLoneDegree (Matrix) := M -> (
     (mons,coeffs) := coefficients M;
     LLLM = mons * LLL lift(coeffs,ZZ);
     -- TEST: does this still define the same cokernel?
-    assert (coker M == coker LLLM);
+    -- assert (coker M == coker LLLM);
     return LLLM
     )
 

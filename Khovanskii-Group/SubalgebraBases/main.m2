@@ -20,13 +20,43 @@ export {
     "SagbiDone"
     }
 
-
-
 -- A wrapper around rawSubduction.
--- This exists so that it can be documented.
 subduction = method(TypicalValue => Matrix)
-subduction(ZZ, Matrix, RingMap, GroebnerBasis) := (numparts, M, F, C) -> (
-    rawSubduction(numparts, raw M, raw F, raw C)
+subduction(Subring, Matrix) := (subR, M) -> (      
+    subalgComp := subR.cache.SubalgComputations;
+    Mtensor := M;
+    ambR := ambient subR;    
+        
+    if ring M === subalgComp.TensorRing then (
+    	-- It is already in the tensor ring, nothing to do.
+	) else if ring M === ambR then(
+	Mtensor = subalgComp.InclusionBase(M);
+	) else(
+	error "M should have entries from ambient(subR) (or possibly subR.cache.SubalgComputations.TensorRing.)";
+	);
+    
+    -- Check that subalgComp.sagbiGB was computed in a degree that is high enough to handle M.
+    degM := max apply(first entries Mtensor, mono -> first degree mono);
+    degGB := {};
+    
+    if subalgComp#?sagbiGB == true then (
+	degGB = (subalgComp.sagbiGB)#"stopping options".DegreeLimit;
+	) else (
+	subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+	degGB = degM;
+	);
+    
+    if degGB === {} then (
+	-- This means DegreeLimit wasn't specified and it computed the full GB. Nothing to do.
+	)else if degM < degGB then(
+	-- This assumes that subalgComp.SyzygyIdeal is up to date.
+       	subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+	);
+    
+    F := subalgComp.Substitution;
+    C := subalgComp.sagbiGB;
+    numblocks := rawMonoidNumberOfBlocks raw monoid ambR;
+    rawSubduction(numblocks, raw Mtensor, raw F, raw C)
     );
 
 
@@ -113,27 +143,23 @@ subalgebraBasis Subring := o -> R -> (
 	-- p_i - [one of the generators of SagbiGens]
     	-- where none of the p_i are involved in any of the [one of the generators of SagbiGens] terms.
         subalgComp.sagbiGB = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
+    	
         syzygyPairs = subalgComp.Substitution(submatrixByDegrees(mingens ideal selectInSubring(1, gens subalgComp.sagbiGB), currDegree));
         if subalgComp.Pending#currDegree != {} then (
             syzygyPairs = syzygyPairs | subalgComp.InclusionBase(matrix{subalgComp.Pending#currDegree});
             subalgComp.Pending#currDegree = {};
         );
-        
-	numparts := rawMonoidNumberOfBlocks raw monoid ambR;
-    	M := syzygyPairs;
-    	F := subalgComp.Substitution;
-    	C := subalgComp.sagbiGB;
-	
-    	subd := subduction(numparts, M, F, C);
     	
+    	subd := subduction(R, syzygyPairs);
     	subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,subd));
         newElems = compress subducted;
         if numcols newElems > 0 then (
             insertPending(R, newElems, o.Limit);
-	    -- This funciton call has a lot of indirect effects because the cache of R is updated.
+	    -- This function call has a lot of indirect effects because the cache of R is updated.
             currDegree = grabLowestDegree(R, o.Limit);
         )
         else (
+	    -- "rawStatus1 raw subalgComp.sagbiGB == 6" implies subalgComp.sagbiGB is a full degree GB (i.e., an "actual" GB.)
             if sum toList apply(subalgComp.Pending, i -> #i) === 0 and rawStatus1 raw subalgComp.sagbiGB == 6 and currDegree > maxGensDeg then (
                 R.cache.SagbiDone = true;
                 if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;

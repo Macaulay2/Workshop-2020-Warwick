@@ -749,7 +749,43 @@ doc ///
         isArithmeticallyFree
 ///
 
-
+doc ///
+    Key
+    	(tensor, ToricReflexiveSheaf, ToricReflexiveSheaf)
+	(symbol **, ToricReflexiveSheaf, ToricReflexiveSheaf)
+    Headline
+        make the tensor product of two toric reflexive sheaves
+    Usage
+    	F = E1 ** E2
+	F = tensor(E1, E2)
+    Inputs
+        E1 : ToricReflexiveSheaf
+	E2 : ToricReflexiveSheaf
+    Outputs
+        F : ToricReflexiveSheaf
+	    the tensor product of the input toric reflexive sheaves
+    Description
+        Text
+	    Under the Klyachko equivalence of categories, the tensor product
+	    of toric reflexive sheaves $E_1$ and $E_2$ is determined by the 
+	    tensor product of the vector spaces corresponding to $E_1$ and
+	    $E_2$ equipped with the induced families of separated 
+	    exhaustive decreasing filtrations indexed by the irreducible
+	    torus-invariant divisors.
+	Example
+	    (X,R) = (toricProjectiveSpace(2),QQ[e_1,e_2]);
+            W1 = {{(-e_1-e_2,2),(e_1,0)},{(e_1,-1),(e_2,-2)},{(e_2,7),(e_1,-1)}};
+            E1 = toricReflexiveSheaf(W1,X);
+            describe E1
+            W2 = {{(-e_1-e_2,1),(e_1,0)},{(e_1,1),(e_2,0)},{(e_2,1),(e_1,0)}};
+            E2 = toricReflexiveSheaf(W2,X);
+            describe E2
+            F = E1 ** E2
+            describe F
+    SeeAlso
+	    toricReflexiveSheaf
+///
+	    
 doc ///
     Key
         (symbol **, ToricReflexiveSheaf, ToricDivisor)

@@ -33,12 +33,12 @@ reduceCoeffs = (A, I, m) -> transpose sub(last coefficients(A % I, Monomials => 
 eigSolve1 = method(Options => options zeroDimSolve) -- based on Tomas' function SolvePolyEqByEigV
 eigSolve1 Ideal := List => opts -> I -> (
     R := ring I;
-    B := if opts.Basis != null then opts.Basis else sub(basis(R/I), R);
-    f := if opts.Multiplier != 0 then opts.Multiplier else random(1, R);
+    B := if opts.Basis =!= null then opts.Basis else sub(basis(R/I), R);
+    f := if opts.Multiplier =!= 0 then opts.Multiplier else random(1, R);
     M := reduceCoeffs(f*B, I, B);
     (E, V) := eigenvectors M;
     V = V*inverse diagonalMatrix V^{0};
-    entries transpose(reduceCoeffs(vars R, I, B)*V)
+    (entries transpose(reduceCoeffs(vars R, I, B)*V))/(p -> point{p})
 )
 
 eigSolveP1P1 = method(Options => options zeroDimSolve) -- based on Laurent's code
@@ -107,17 +107,18 @@ R = QQ[a_1..a_(n-1),b_1..b_(n-1)]
 S = R[x,y]/ideal(x*y-1)
 f = sum(n-1, i -> R_i*x^(i+1) + R_(n-1+i)*y^(i+1)) + x^n + y^n
 I = sub(ideal apply(toList(2..2*n-1), i -> last coefficients(f^i, Monomials => {1_S})), R)
-s = zeroDimSolve I
-realPts = realPoints(s/(v -> point matrix{v}))
-assert(#realPts == 6)
-G = gens sub(I, CC[gens R])
--- tally apply(50, i -> (
-    -- s = zeroDimSolve I;
-    -- realPts = realPoints(s/(v -> point {v}));
-    -- all(realPts, p -> clean(1e-8, evaluate(G, p)) == 0)
--- ))
+sols = zeroDimSolve I
+realPts = realPoints sols
+assert(#sols == 66 and #realPts == 6)
+sort apply(sols, p -> norm evaluate(gens I, p))
 ///
 
+TEST ///
+needsPackage "ExampleSystems"
+cyc6 = ideal cyclic(6, QQ)
+elapsedTime sols = zeroDimSolve cyc6;
+sort apply(sols, p -> norm evaluate(gens cyc6, p))
+///
 
 TEST ///
 A = QQ[x0,x1,y0,y1,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]

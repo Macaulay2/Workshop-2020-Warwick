@@ -30,8 +30,10 @@ newPackage(
 		"tropicalMax" => false,
 		"polymakeCommand" =>""
 	},
+
     --Might need PackageImports here - should Polyhedra be here instead??
         PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra","Matroids"},
+
 	DebuggingMode => true,
 	AuxiliaryFiles => true,
 --	AuxiliaryFiles => false,
@@ -47,6 +49,7 @@ newPackage(
 
 export{
   "TropicalCycle",
+  "TropicalCycle1",
   "tropicalCycle",
   "isBalanced",
   "tropicalPrevariety",
@@ -54,7 +57,8 @@ export{
   "Prime",
   "stableIntersection",
   "tropicalVariety",
-  "tropicalVarietyWithVal",
+  "tropicalVarietyWithValExternal",
+  "tropicalVarietyWithPuiseuxVal",
   "isTropicalBasis",
   "multiplicities",
   "IsHomogeneous",
@@ -184,7 +188,25 @@ tropicalCycle (Fan, List) := (F,mult)->(
     return T
 )
 
+--Setting up the data type TropicalCycle1
 
+TropicalCycle1 = new Type of MutableHashTable
+TropicalCycle1.synonym = "tropical polyhedral complex"
+TropicalCycle1.GlobalAssignHook = globalAssignFunction
+TropicalCycle1.GlobalReleaseHook = globalReleaseFunction
+
+
+--basic operations on a tropical cycle
+
+tropicalCycle1 = method(TypicalValue => TropicalCycle1)
+
+tropicalCycle1 (PolyhedralComplex, List) := (PC,mult)->(
+    --- if #maxCones(PC) != #mult then error("The multiplicity list has the wrong length");
+    T := new TropicalCycle1;
+    T#"Multiplicities" = mult;
+    T#"PolyhedralComplex" = PC;
+    return T
+)    
 
 --functions to switch to min-convention
 
@@ -210,7 +232,7 @@ isBalancedCurves = T ->(
 )
 
 --computes the star of the codimension-one polyhedron P in the tropical cycle Sigma
-star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
+star = (Sigma, P) -> (
     	--Create the linear space parallel to P
 	--and quotient by it
 	--Version for cones
@@ -502,8 +524,9 @@ tropicalVariety (Ideal) := o -> (I) ->(
 	if (Tropical#Options#Configuration#"tropicalMax" == true) then return  T  else return minmaxSwitch T
 )
 
-tropicalVarietyWithVal = method(
-    TypicalValue => TropicalCycle,
+
+tropicalVarietyWithValExternal = method(
+    TypicalValue => TropicalCycle,  
     Options => {
 	IsHomogeneous => true,
 	Valuation => false
@@ -512,12 +535,13 @@ tropicalVarietyWithVal = method(
 
 --EXPERIMENTAL: Tropicalization with adic valuation and puisseux valuation.
 -- In development. Merge with tropicalVariety method when done.
-tropicalVarietyWithVal (Ideal) := o -> (I) ->(
+tropicalVarietyWithValExternal (Ideal) := o -> (I) ->(
     local T;
     local F;
     R := ring I;
 
 --Adic valuation
+
     if (instance(o.Valuation, ZZ)) then (
 	if (not isPrime(o.Valuation)) then
 	    error("The 'p' in the p-adic valuation has to be prime");
@@ -558,8 +582,59 @@ tropicalVarietyWithVal (Ideal) := o -> (I) ->(
 	);
 
 --Otherwise, we don't understand the given valuation. (or maybe no valuation was given?)
+
        return "Can't handle the given valuation. Maybe no valuation given? Then use tropicalVariety";
-);
+)
+
+tropicalVarietyWithPuiseuxVal = method(
+    TypicalValue => TropicalCycle1,  
+    Options => {
+	Prime => true,
+	IsHomogeneous => true
+    }
+)
+
+tropicalVarietyWithPuiseuxVal (Ideal) := o -> (I) ->(
+    
+    --- we expect that we are working over 	QQ{{t}}, where t is the first variable of the poly ring.
+
+	local T;
+    local F;
+	listOfSlicedCones := {};
+	T = tropicalVariety(I);
+	
+		-- now slice the fan with a plane at height 1 for min convention (or -1) for max convention
+		addsemiringAdd := minmax();
+		heightCut := 0;
+		if (addsemiringAdd == "Min") then
+			heightCut = 1
+		else heightCut = -1;
+			
+		M := matrix{{join(toSequence{1},(numgens ring I -1): 0)}}; 
+		N := matrix{{(numgens ring I): 0}}; 
+		slicePlane := polyhedronFromHData(N, matrix{{0}}, M, matrix{{heightCut}});
+
+		--- for each cone in the fan fan T, slice and append to PolyhedralComplex Output
+		raysMatrix := rays (T);
+		listOfMaxCones := maxCones(T);
+		numberOfMaxCones := length listOfMaxCones; 
+
+		if (numberOfMaxCones == 0) then (print "The vartiey is empty!"; return T;)
+		else( 
+			for i from 1 when i < (numberOfMaxCones) do (
+				currentMaxCone := coneFromVData submatrix(raysMatrix, listOfMaxCones#i);  
+				slicedMaxCone := intersection(currentMaxCone, slicePlane);
+				A := submatrix'(id_(ZZ^(numgens ring I)), {0}, );
+				newSlicedMaxCone := affineImage(A,slicedMaxCone);
+				listOfSlicedCones = listOfSlicedCones | {newSlicedMaxCone};
+			)
+		);
+
+		PC := tropicalCycle1(polyhedralComplex listOfSlicedCones, multiplicities(T));
+		return PC;
+     )
+
+	 ------------------------------------------------------------------------------
 
 --EXPERIMENTAL: RAW function to execute singular code
 --This function should make its own package of interface to singular, but for now it is just a function to execute raw code
@@ -573,8 +648,9 @@ runSingularCommand = (data) -> (
 	-- return tmpName;
 
 	-- in the future we want to make this check when we install SingularInterface package
-	if run ("Singular -q -c 'quit;'") =!= 0 then
-		return("You need to install Singular for using tropicalVarietyWithVal")
+
+	if run ("Singular -q -c 'quit;'") =!= 0 then 
+		return("You need to install Singular for using tropicalVarietyWithValExternal") 
 	else (
 	ex := "Singular -q  < " | tmpName | " 2> " | tmpName | ".err";
 
@@ -836,7 +912,7 @@ ambDim TropicalCycle:= T->( ambDim fan T)
 fVector TropicalCycle:= T->( fVector fan T)
 
 fan TropicalCycle := T -> (T#"Fan")
-
+fan TropicalCycle1 := T -> (T#"PolyhedralComplex")
 
 linealitySpace (TropicalCycle):= T->( linSpace fan T)
 
@@ -847,7 +923,7 @@ maxCones (TropicalCycle):= T->( maxCones fan T)
 multiplicities = method(TypicalValue => List)
 
 multiplicities (TropicalCycle) := T -> (T#"Multiplicities")
-
+multiplicities (TropicalCycle1) := T -> (T#"Multiplicities")
 
 isPure TropicalCycle := Boolean => T->( isPure(fan(T)))
 
@@ -945,8 +1021,7 @@ doc ///
 	       {HREF("https://math.berkeley.edu/~yelena/", "Yelena Mandelshtam")},
 	       {HREF("https://alessioborzi.github.io/", "Alessio Borzì")},
 	       {HREF("https://www.linkedin.com/in/timothyxu/", "Timothy Xu")},
-	       {HREF("publish.uwo.ca/~aashra9/","Ahmed Umer Ashraf")},
-		   {"Ellie Thieu"}
+	       {HREF{"publish.uwo.ca/~aashra9/","Ahmed Umer Ashraf"}}
     	     }@
 ///
 
@@ -1036,6 +1111,26 @@ doc ///
 			F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
 			mult = {1,2,-3,1}
 			tropicalCycle(F, mult)
+///
+
+doc ///
+    Key
+	tropicalCycle1
+	(tropicalCycle1, PolyhedralComplex, List)
+    Headline
+    	constructs a TropicalCycle from a polyhedral complex and a list with multiplicities
+    Usage
+    	tropicalCycle1(PC,mult)
+    Inputs
+    	PC:PolyhedralComplex
+		mult:List 
+    Outputs
+    	T:TropicalCycle1
+    Description
+		Text
+			This function creates a tropical cycle from a fpolyhedral complex and a list of multiplicities.
+			The multiplicities must be given in the same order as the maximal cones
+			appear in the MaximalCones list.
 ///
 
 doc///
@@ -1183,18 +1278,18 @@ doc///
 
 doc///
     Key
-      tropicalVarietyWithVal
-      (tropicalVarietyWithVal, Ideal)
-      [tropicalVarietyWithVal, IsHomogeneous]
-      [tropicalVarietyWithVal, Valuation]
+      tropicalVarietyWithValExternal    
+      (tropicalVarietyWithValExternal, Ideal)
+      [tropicalVarietyWithValExternal, IsHomogeneous]
+      [tropicalVarietyWithValExternal, Valuation]
 
     Headline
       EXPERIMENTAL: tropical variety with valuations
     Usage
-      tropicalVarietyWithVal(I,Valuation=>11)
+      tropicalVarietyWithValExternal(I,Valuation=>11)
     Inputs
-      I:Ideal
-        of polynomials
+      I:Ideal 
+	  of polynomials
       IsHomogeneous=>Boolean
         is the ideal homogeneous?
     Outputs
@@ -1205,11 +1300,33 @@ doc///
       Example
        R = QQ[x,y,z]
        I = ideal(x+y+z)
-       tropicalVarietyWithVal(I)
-       tropicalVarietyWithVal(I, Valuation=>11)
-       tropicalVarietyWithVal(I, Valuation=>x)
+	   tropicalVarietyWithValExternal(I)
+	   tropicalVarietyWithValExternal(I, Valuation=>11)
+       tropicalVarietyWithValExternal(I, Valuation=>x)
 ///
 
+doc///
+    Key
+      tropicalVarietyWithPuiseuxVal  
+      (tropicalVarietyWithPuiseuxVal, Ideal)
+
+    Headline
+      EXPERIMENTAL: tropical variety with valuations
+    Usage
+      tropicalVarietyWithPuiseuxVal(I)
+    Inputs
+      I:Ideal 
+	  of polynomials in QQ[t, x_1, ..., x_n], later interpreted as I in QQ{{t}}[x_1, ..., x_n]
+    Outputs
+        F:TropicalCycle1
+    Description 
+       Text
+         EXPERIMENTAL feature to implement puiseux valuation. 
+      Example
+      	QQ[t,x,y]
+	  	I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
+      	tropicalVarietyWithPuiseuxVal(I)
+///
 
 doc///
     Key
@@ -2070,8 +2187,20 @@ assert(l == toList(0..3))
 
 
 -----------------------
+--tropicalVarietyWithPuiseuxVal
+-----------------------
+TEST///
+QQ[t,x,y]
+I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
+T:=tropicalVarietyWithPuiseuxVal(I)
+assert(vertices(T#"PolyhedralComplex")==transpose matrix{{0,0},{-1,0},{0,-1},{2,2}})
+///
+
+
+-----------------------
 --convertToPolymake
 -----------------------
+
 
 -*
 -----------------------

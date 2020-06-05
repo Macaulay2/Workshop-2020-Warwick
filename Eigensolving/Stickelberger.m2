@@ -38,8 +38,9 @@ checkIntersect(List) := L -> (
 	    reducedMat := transpose colReduce(transpose stMat, 0.01);
 	    nr := numrows reducedMat;
 	    rows := {nr-rankOfInt(i,j) .. nr -1};
-	    reducedMat_{n .. 2*n-1}^rows;
+	    if first first rows < 0 then break k = 0;
 	    k = 0;
+	    reducedMat_{n .. 2*n-1}^rows
 	    )
 	else (
     	    break
@@ -129,3 +130,5 @@ I = sub(ideal apply(toList(2..2*n-1), i -> last coefficients(f^i, Monomials => {
 -- multiple root example
 R = QQ[x,y,z]
 I = ideal(x^3 - 3*x^2 *y + 3*x*y^2 - y^3 - z^2, z^3 -3*z^2*x + 3*z*x^2 -x^3-y^2, y^3 - 3*y^2 * z + 3*y*z^2 - z^3 -x^2)
+stickelbergerSolve I
+stickelbergerSolve radical I -- correct

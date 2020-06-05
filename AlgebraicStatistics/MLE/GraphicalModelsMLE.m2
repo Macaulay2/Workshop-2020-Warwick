@@ -2,10 +2,10 @@
 
 newPackage(
      "GraphicalModelsMLE",
-     Version => "0.2",
-     Date => "February 14, 2014",
+     Version => "0.3",
+     Date => "June 5, 2020",
      Authors => {
-	  {Name => "Luis Garcia-Puente",
+	  {Name => "Luis David Garcia Puente",
 	   Email => "lgarcia@shsu.edu",
 	   HomePage => "http://www.shsu.edu/~ldg005"},
           {Name=> "David Swinarski", 
@@ -13,11 +13,19 @@ newPackage(
 	   HomePage=>"http://faculty.fordham.edu/dswinarski"}, 
           {Name=> "Elina Robeva", 
 	   Email=> "erobeva@gmail.com",
-	   HomePage=>"http://math.berkeley.edu/~erobeva"}
+	   HomePage=>"http://math.berkeley.edu/~erobeva"},
+   	  {Name=> "Harshit J Motwani", 
+	   Email=> "harshitmotwani2015@gmail.com"},
+   	  {Name=> "Olga Kuznetsova", 
+	   Email=> "kuznetsova.olga@gmail.com",
+	   HomePage=>"https://okuznetsova.com"},
+   	  {Name=> "Roser Homs Pons", 
+	   Email=> "roserhp@gmail.com",
+	   HomePage=>"https://personal-homepages.mis.mpg.de/homspons/index.html"}
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true,
-     PackageExports => {"GraphicalModels","Graphs","Bertini"}
+     PackageExports => {"GraphicalModels","Graphs","Bertini","EigenSolver"}
      -- need to check whether Bertini is actually used
      -- EigenSolver is used for computing the MLE. May need to be replaced or complemented 
      -- by a more efficient solver in the future
@@ -25,7 +33,9 @@ newPackage(
 export {"sampleCovarianceMatrix",
     "JacobianMatrixOfRationalFunction",
     "scoreEquationsFromCovarianceMatrix",
-    "scoreEquationsFromCovarianceMatrixUndir"
+    "scoreEquationsFromCovarianceMatrixUndir",
+    "PDcheck",
+    "MLEsolver"
        	} 
      
 --**************************--
@@ -60,6 +70,29 @@ matRtolpR = (M,F) -> (
     return matrix apply(#E, i -> apply(#(E_i), j -> F(E_i_j)))    
 );
 
+
+------------------------------------------------------
+-- Substitues a list of points on a list of matrices
+    -- input -  list of points from solves
+    -- output - list of matrices after substituting these values
+------------------------------------------------------
+
+genListmatrix = (L,R) ->
+(
+    T = {};
+    K=undirectedEdgesMatrix R;
+    for l in L do
+    (
+    	T = T|{coordinates(l)};	
+    );
+    M = {};
+    for t in T do
+    (
+    	m = substitute(K,matrix{t});	
+    	M = M|{m}
+    );    
+    return M;
+);
 
 
 --**************************--
@@ -147,6 +180,42 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     return J;
  );
 
+
+PDcheck = method();
+PDcheck(List) := (L) -> (
+(   mat = {};
+    for l in L do
+    (
+    	flag = 0;
+    	-- Compute eigenvalues for each matrix
+	L1 = eigenvalues l;
+    	--Check whether all of them are positive
+	for t in L1 do 
+    	(	 
+	    if 0 >= t then flag = 1;
+     	);
+        if flag == 0 then mat = mat | {l} ;
+    );
+    if mat == {} then print("none of the matrices are pd");
+    return mat;
+);
+
+
+
+MLEsolver = method();
+MLEsolver(Ideal,Ring) := (J,R) -> (
+    --solve system with eigensolver
+    sols:=zeroDimSolve(J);
+    --evaluate matrices on solutions
+    M:=genListmatrix(sols,R);
+    --consider only PD matrices
+    L:=PDcheck M;
+    --check there is only one PD matrix
+    if #L>1 then error("It is not an undirected graph"); 
+    --return MLE: inverse of the PD matrix
+    E:=inverse L_0;
+    return E;    
+);
 
 -*
 R2=coefficientRing(R)[lpRvar]
@@ -398,7 +467,7 @@ doc ///
 --	    scoreEquationsCovariance1(G, U)
     Caveat
         GraphicalModelsMLE requires Graphs.m2 and GraphicalModels.m2. 
-///;
+///
 
 --------------------------------
 -- Documentation
@@ -504,6 +573,53 @@ doc ///
 	    R=gaussianRing(G)
 	    U=random(ZZ^4,ZZ^4)
 	    scoreEquationsFromCovarianceMatrixUndir(R,U)				
+///
+
+doc ///
+    Key
+    	PDcheck
+	(PDcheck,L)
+    Headline
+    	checks which matrices from the list are positive definite
+    Usage
+    	PDcheck(L)
+    Inputs
+    	L: List  
+    Outputs
+    	 : List
+    Description
+    	Text
+	   This function takes a list of matrices and returns another list with
+	   only positive definite matrices
+      	Example
+	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}}}				
+    	    PDcheck(L)
+///
+
+doc ///
+    Key
+    	MLEsolver
+	(MLEsolver,J,R)
+    Headline
+    	computes MLE from score equations
+    Usage
+    	MLEsolver(J,R)
+    Inputs
+    	J: Ideal
+      	R: Ring 
+    Outputs
+    	:Matrix
+    Description
+    	Text
+	    This function computes the MLE from score equations. At the moment
+	    only works fine for undirected graphs. 
+	    See Example 2.1.13 of Sturmfels' lecture notes
+	Example
+	    G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    R=gaussianRing(G)
+	    U=random(ZZ^4,ZZ^4)
+	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
+	    MLEsolver(J,R)				
 ///
 -*
 doc /// 

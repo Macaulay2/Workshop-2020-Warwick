@@ -130,11 +130,11 @@ listSol = zeroDimSolve(J, Strategy => "elimMatrixP1P1")
 assert(#listSol == 20)
 
 B = QQ[x0,x1,x2]
-I = ideal(random(3,B), random(3,B))
+I = ideal(random(2,B), random(2,B))
 R = QQ[x1,x2]
 spe = map(R,B,matrix{{1,x1,x2}})
 J = spe I
-listSol = zeroDimSolve(J, Strategy => "elimMatrixP2")
+elapsedTime listSol = zeroDimSolve(J, Strategy => "elimMatrixP2")
 sort apply(listSol, p -> norm evaluate(gens J, p))
 assert(#listSol == product(I_*/degree/first))
 ///

@@ -945,6 +945,7 @@ doc ///
 	       {HREF("http://www.math.harvard.edu/~cmwang/","Charles Wang")},
 	       {HREF("https://math.berkeley.edu/~yelena/", "Yelena Mandelshtam")},
 	       {HREF("https://alessioborzi.github.io/", "Alessio Borzì")},
+		   {HREF("https://www.linkedin.com/in/timothyxu/", "Timothy Xu")},
     	     }@
 ///
 

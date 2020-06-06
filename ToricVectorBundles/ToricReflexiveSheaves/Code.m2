@@ -577,7 +577,7 @@ isGloballyGenerated ToricReflexiveSheaf := Boolean => E -> (
 
 separatesJets = method()
 separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
- testing := false;
+ testing := true;
  if testing then << "METHOD: separatesJets" << endl;
 -- exclude trivial case
  if E == 0 then return 0;
@@ -655,6 +655,77 @@ separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E
   lift(lJets,ZZ)
  else
   -1
+))
+
+
+separatesJetsNew = method()
+separatesJetsNew ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
+ testing := true;
+ if testing then << "METHOD: separatesJetsNew" << endl;
+-- exclude trivial case
+ if E == 0 then return 0;
+ X := variety E;
+ n := dim X;
+ gsE := groundSet E;
+ parE := apply(components cover E, toricDivisor);
+ parEpoly := apply(parE, polytope);
+-- exclude another trivial case
+ if min apply(parEpoly, dim) < 0 then (
+  if testing then << "There are empty polytopes, so not even 0-jets are separated." << endl;
+  return -1;
+ );
+ parEvert := apply(parEpoly, vertices);
+-- Why changed sign?
+ assCharE := - associatedCharacters E;
+ onefaces := apply(apply(parEpoly, p -> faces(n-1, p)), L -> apply(L, l -> l#0));
+-- for each maximal cone sigma
+-- the following searches for each component u of the character usigma
+-- all polytopes parE#i such that u is j0-th vertex
+-- then checks whether the cone at u is (degenerate form of) dual cone of sigma
+-- and computes the edge lengths
+ uPositions := for k in 0 ..< # assCharE list (
+  usigma := assCharE#k;
+  sigma := (rays X)_((max X)#k);
+  if testing then << "For the maximal cone" << endl << sigma << endl;
+  for u in usigma list (
+   if testing then << "the component " << u << " of the associated character" << endl;
+   uPos := for i in 0 ..< #parEvert list (
+    j0 := -1;
+    for j in 0 ..< numgens source parEvert#i do (
+     if u == entries parEvert#i_j then (
+      j0 = j;
+      break;
+     )
+    );
+    if j0 >= 0 then (
+     coneAtU := fold( apply( flatten select(apply(onefaces#i, f -> delete(j0,f)), f-> #f == 1), f -> parEvert#i_f - parEvert#i_j0 ), (a,b) -> matrix a| matrix b);
+     if testing then << "is a vertex of the polytope " << endl  << parEvert#i << endl << "with cone at corner " << endl << coneAtU << endl;
+     dualSigma := coneFromHData matrix sigma;
+     if isFace(coneFromVData coneAtU, dualSigma) then (
+      if testing then << "is subcone of dual cone of sigma " << endl << rays dualSigma << endl;
+-- Here: gcd = lattice length of vector
+      l := min apply(entries transpose coneAtU, gcd);
+      if testing then << "with minimal edge length: " << l << endl;
+      {i,j0,l}
+     )
+     else (
+      if testing then << "is not a subcone of dual cone of sigma " << endl << rays dualSigma << endl;
+      continue
+     )
+    )
+    else 
+     continue
+   );
+   if #uPos == 0 then (
+    if testing then << "is not a vertex of any polytope, so not even 0-jets are separated." << endl;
+    return -1;
+   );
+-- At this point: in uPos list for every u in usigma, possible places of u as a vertex
+-- Missing: take a choice for each u, such that  condition (iv) of Theorem 6.2 is met and the edge length maximal
+   uPos
+  )
+ );
+ uPositions
 ))
 
 isVeryAmple ToricReflexiveSheaf := Boolean => E -> 

@@ -759,6 +759,7 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
   );
   lift(a,ZZ)
  );
+-- How can we keep the notation 'P1' outside package?
  P1 := toricProjectiveSpace 1;
  directSum apply(twists, a -> toricReflexiveSheaf toricDivisor({a,0},P1) )
 )

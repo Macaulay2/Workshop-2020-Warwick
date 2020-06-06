@@ -33,7 +33,6 @@ newPackage(
 
     --Might need PackageImports here - should Polyhedra be here instead??
         PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra","Matroids"},
-
 	DebuggingMode => true,
 	AuxiliaryFiles => true,
 --	AuxiliaryFiles => false,
@@ -505,6 +504,8 @@ tropicalVariety (Ideal) := o -> (I) ->(
 			--call the function tropicalCycle to create a new tropical variety with multiplicities
 		 T=tropicalCycle(F,findMultiplicities(I,F))
 	 );  );
+--Need to fix the paragraph below - it shouldn't be doing all these checks when the
+--tropical variety is computed! 
     if   o.IsHomogeneous==false  then
 	(
 	    newRays:=dehomogenise(rays T);

@@ -30,10 +30,10 @@ subduction(Subring, Matrix) := (subR, M) -> (
     Mtensor := M;
     ambR := ambient subR;    
         
-    if ring M === subalgComp.TensorRing then (
+    if ring M === subalgComp#"TensorRing" then (
     	-- It is already in the tensor ring, nothing to do.
 	) else if ring M === ambR then(
-	Mtensor = subalgComp.InclusionBase(M);
+	Mtensor = subalgComp#"InclusionBase"(M);
 	) else(
 	error "M should have entries from ambient(subR) (or possibly subR.cache.SubalgComputations.TensorRing.)";
 	);
@@ -52,7 +52,7 @@ subduction(Subring, Matrix) := (subR, M) -> (
     if subalgComp#?"sagbiGB" == true then (
 	degGB = (subalgComp#"sagbiGB")#"stopping options".DegreeLimit;
 	) else (
-	subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+	subalgComp#"sagbiGB" = gb(subalgComp#"SyzygyIdeal", DegreeLimit => degM);
 	degGB = degM;
 	);
     
@@ -61,10 +61,10 @@ subduction(Subring, Matrix) := (subR, M) -> (
 	)else if degM > degGB then(
 	-- degGB is not large enough to handle degM.
 	-- This assumes that subalgComp.SyzygyIdeal is up to date.
-       	subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit => degM);
+       	subalgComp#"sagbiGB" = gb(subalgComp#"SyzygyIdeal", DegreeLimit => degM);
 	);
     
-    F := subalgComp.Substitution;
+    F := subalgComp#"Substitution";
     C := subalgComp#"sagbiGB";
     numblocks := rawMonoidNumberOfBlocks raw monoid ambR;
     
@@ -159,19 +159,19 @@ subalgebraBasis Subring := o -> R -> (
     	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
 	    -- p_i - [one of the generators of SagbiGens]
     	-- where none of the p_i are involved in any of the [one of the generators of SagbiGens] terms.
-        subalgComp#"sagbiGB" = gb(subalgComp.SyzygyIdeal, DegreeLimit=>currDegree);
+        subalgComp#"sagbiGB" = gb(subalgComp#"SyzygyIdeal", DegreeLimit=>currDegree);
 	      zeroGens := submatrixByDegrees(mingens ideal selectInSubring(1, gens (subalgComp#"sagbiGB")), currDegree);	
-        syzygyPairs = subalgComp.Substitution(zeroGens);    	
+        syzygyPairs = subalgComp#"Substitution"(zeroGens);    	
 
-        if subalgComp.Pending#currDegree != {} then (
-            syzygyPairs = syzygyPairs | subalgComp.InclusionBase(matrix{subalgComp.Pending#currDegree});
-            subalgComp.Pending#currDegree = {};
+        if subalgComp#"Pending"#currDegree != {} then (
+            syzygyPairs = syzygyPairs | subalgComp#"InclusionBase"(matrix{subalgComp#"Pending"#currDegree});
+            subalgComp#"Pending"#currDegree = {};
             );
 	
        	subd := subduction(R, syzygyPairs);	
 	
 	if entries subd != {{}} then (       
-	    subducted = subalgComp.ProjectionBase(map(subalgComp.TensorRing,subd));
+	    subducted = (subalgComp#"ProjectionBase")(map(subalgComp#"TensorRing",subd));
 	    newElems = compress subducted;
             )else (
 	    newElems = subd;
@@ -183,7 +183,7 @@ subalgebraBasis Subring := o -> R -> (
 	    -- (this updating takes place mostly in the function appendToBasis.)
 	    currDegree = grabLowestDegree(R, o.Limit);
             ) else (
-	    if sum toList apply(subalgComp.Pending, i -> #i) == 0 or currDegree > maxGensDeg then (
+	    if sum toList apply(subalgComp#"Pending", i -> #i) == 0 or currDegree > maxGensDeg then (
 
                 R.cache.SagbiDone = true;
                 if (o.PrintLevel > 0) then << "SAGBI basis is FINITE!" << endl;

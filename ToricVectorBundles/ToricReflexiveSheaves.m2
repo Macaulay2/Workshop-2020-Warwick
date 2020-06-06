@@ -48,6 +48,7 @@ export {
     "toricTangentBundle",
     "toricCotangentBundle",
     "separatesJets",
+    "separatesJetsNew",
     "restrictToCurve"
   }
 ------------------------------------------------------------------------------

@@ -232,7 +232,7 @@ isBalancedCurves = T ->(
 )
 
 --computes the star of the codimension-one polyhedron P in the tropical cycle Sigma
-star = (Sigma, P) -> (
+star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
     	--Create the linear space parallel to P
 	--and quotient by it
 	--Version for cones

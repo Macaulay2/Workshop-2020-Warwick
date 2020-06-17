@@ -1,50 +1,42 @@
 -- return the monomial order stashed inside of a ring
 getMonomialOrder = R -> (options R).MonomialOrder
 
--- Sorts and adds the elements of the matrix m to the pending list of R
+-- Sorts and adds the elements of the matrix "candidates" to the pending list of R
     -- R is a subalgebra
     -- candidates is a matrix of elements of the subalgebra.
-    -- Algorithm makes a pass through the elements in m and places them in the correct sublist of pending.
-
+    -- Algorithm makes a pass through the elements in the first row of "candidates" and places them in the correct sublist of subalgComp#"Pending".
 insertPending = (R, candidates, maxDegree) -> (
-
-    -- Check R.cache.pending exists!!!
-    -- ADD THIS!!!
-
     subalgComp := R.cache.SubalgComputations;
-
-    -- i steps through the columns of candiates
-    i := 0;
-    while i < numcols candidates do (
-
+    
+    if subalgComp#?"Pending" == false then(
+	subalgComp#"Pending" = new MutableList from (maxDegree:{});
+	);
+    
+    for i from 0 to (numcols candidates)-1 do(
         -- get the entry of the column and its degree
         candidate := candidates_(0,i);
         level := (degree candidate)_0;
-
         -- if the degree isn't too large, then add f to the correct list
-        if level <= maxDegree then (subalgComp#"Pending")#level = append((subalgComp#"Pending")#level, candidate);
-        i = i+1;
-    );
-)
+        if level <= maxDegree then (
+	    (subalgComp#"Pending")#level = append((subalgComp#"Pending")#level, candidate);
+            );
+    	);
+    )
 
 -- Finds the lowest nonempty list in Pending
     -- R is a subalgebra
     -- Algorithm makes a pass through the lists of Pending until it finds something nonempty
-
 lowestDegree = (R, maxDegree) -> (
-
     subalgComp := R.cache.SubalgComputations;
-
     -- i steps through the lists of Pending
     i := 0;
     while i <= maxDegree and (subalgComp#"Pending")#i === {} do i=i+1;
     i
-)
+    )
 
 -- Adds generators to the set of generators and computes the syzygies of the generators.  Also defines the appropriate ring maps for future use.
     -- R is of Type Subring
     -- newGens is a matrix of generators to be added
-
 appendToBasis = (R, newGens) -> (
     -- unpack immutable fields
     ambR := ambient R;
@@ -54,8 +46,7 @@ appendToBasis = (R, newGens) -> (
     -- Add the new generators to the subalgebra generators
     R.cache.SagbiGens = R.cache.SagbiGens | newGens;
     R.cache.SagbiDegrees = R.cache.SagbiDegrees | flatten degrees source newGens;
---    << numcols newGens << " generators added" << endl;
-    
+        
     -- Find the number of generators of the ambient ring and the current list of subalgebra generators
     nBaseGens := numgens ambR;
     nSubalgGens := numcols R.cache.SagbiGens;
@@ -67,8 +58,6 @@ appendToBasis = (R, newGens) -> (
     -- Add on an elimination order that eliminates the generators of the base.
     -- Create a monoid with variables for both nBaseGens and nSubalgGens.
     -- Degrees of generators are set so that the SyzygyIdeal is homogeneous.
-    -- Original code, replaced by code from function.
-    -- newOrder := appendElimination(MonoidAmbient.Options.MonomialOrder, Weights=>nBaseGens, nSubalgGens);
     newOrder := append(MonoidAmbient.Options.MonomialOrder, Weights=>nBaseGens:1);
     
     NewVariables := monoid[
@@ -80,10 +69,10 @@ appendToBasis = (R, newGens) -> (
     subalgComp#"TensorRing" = CoeffField NewVariables;
     
     -- Construct maps between our rings to allow us to move polynomials around
-    -- "ProjectionInclusion" sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
+    -- ProjectionInclusion sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
     -- ProjectionBase sets the variables corresponding to the subalgebra generators equal to 0 and maps into the ambient ring.
     -- InclusionBase is the inclusion map from the base ring to the tensor ring.  The variables are mapped to themselves
-    -- Substitution repalces elements of the tensor ring with their formulas in terms of the base ring.
+    -- Substitution replaces elements of the tensor ring with their formulas in terms of the base ring.
     subalgComp#"ProjectionInclusion" = map(subalgComp#"TensorRing", subalgComp#"TensorRing",
         matrix {toList(nBaseGens:0_(subalgComp#"TensorRing"))} |
 	(vars subalgComp#"TensorRing")_{nBaseGens .. nBaseGens+nSubalgGens-1});
@@ -101,87 +90,29 @@ appendToBasis = (R, newGens) -> (
     subalgComp#"SyzygyIdeal" = ideal(
         (vars subalgComp#"TensorRing")_{nBaseGens..nBaseGens+nSubalgGens-1}-
 	subalgComp#"InclusionBase"(leadTerm R.cache.SagbiGens));
-)    
-    
--- ROW REDUCE FROM COMMON.
--- MONOMIAL FLAG DOES NOT SEEM TO WORK AT ALL.
--- WHAT IS THE CONSEQUENCE OF THIS???
+    )    
+
 rowReduce = (elems, d) -> (
-    -- elems is a one row matrix of polynomials, all of degree d.
-    -- return a (one row) matrix whose elements are row reduced
-    -- CAUTION: Only the monomial orders GRevLex, Eliminate, Lex, and RevLex
-    --              are supported by this routine.  The monomial orders
-    --             Lex and ProductOrder ARE NOT SUPPORTED.
     return gens gb(elems, DegreeLimit=>d);
-    R := ring elems;
-    n := numgens R;
-    M := monoid R;
-    k := coefficientRing R;
-    
-    -- Introduce a tag variable for performing homogenization.
-    -- The variables from R keep their degrees. The tag variable has degree 1.
-    N := monoid [Variables=>n+1,
-	MonomialOrder => M.Options.MonomialOrder,
-	Degrees => append(M.Options.Degrees,{1})];
-    
-    RH := k N;
-    RtoRH := map(RH,R,(vars RH)_{0..n-1});
-    RHtoR := map(R,RH,vars R | matrix{{1_R}});
-    elemsH := homogenize(RtoRH elems, RH_n);
-    result := RHtoR gens gb(elemsH, DegreeLimit=>d);
-    assert ((gens gb(elems, DegreeLimit=> d)) == (result));
-    -- Compute a GB of the homogenized matrix and eliminate the tag variable.      
-    RHtoR gens gb(elemsH, DegreeLimit=>d)
     )
--- END COPY OF ROW REDUCE
 
--- BEGINNING OF MONOMIAL ORDER FUNCTION
-
--- SAGBI-COMMON HELPER FUNCTIONS.
--- inscrutable -- Looks to be completely broken.
--- temporary patch fix given. preferrably won't need this function
-setMonomialOrderFlag = (R) -> (
-    tempflag := 0;
-    temp := (monoid R).Options.MonomialOrder;
-    if (class temp) === Nothing then (tempflag = 0)
-    else if temp#1#0 === Lex then (tempflag = 1)
-    else if (temp#1#0 === Weights and temp#2#0 === Lex) then (tempflag = 2)       --GLex
-  --  else if (class temp) === Eliminate then (tempflag = 3)                       
-  --  else if (class temp) === ProductOrder then (tempflag = 4)
-    else if (#(temp#1#1) < # gens R) and temp#1#0 === Weights then (tempflag = 3) --Eliminate
-    else if temp#2#0 != Position and temp#1#0 != Weights then (tempflag = 4)      --Product
-    else if temp#1#0 === GRevLex then (tempflag = 0)                              --GRevLex                                  --Lex
-    else if temp#1#0 === RevLex then (tempflag = 5);	    	    	    	  --RevLex
-    tempflag)
-
--- END COPY OF MONOMIAL ORDER FUNCTION
-
-
---Accepts a matrix inputMatrix and returns a matrix of columns of inputMatrix whose entries all have total degree less than maxDegree
-submatrixBelowDegree = (inputMatrix,maxDegree) -> (
-
-    -- Selected cols are the columns where the degree condition is satisfied.
+--Accepts a 1-row matrix inputMatrix and returns a matrix of columns of inputMatrix whose entries all have total degree less than maxDegree
+submatBelowDegree = (inputMatrix,maxDegree) -> (
     selectedCols := positions(0..numcols inputMatrix - 1,
         i -> (degrees source inputMatrix)_i < {maxDegree});
+    inputMatrix_selectedCols
+    )
 
-    -- Construct the submatrix using only the columns selected above.
-    inputMatrix_selectedCols)
-
---Accepts a matrix inputMatrix and returns a matrix of columns of inputMatrix where the highest degree entry has total degree equal to currDegree
-    -- Why does this function require the input to be a matrix and an integer while the previous function does not.
-submatrixByDegrees (Matrix,ZZ) := (inputMatrix,currDegree) -> (
-
-    -- Selected cols are the columns where the degree condition is satisfied.
+--Accepts a 1-row matrix inputMatrix and returns a matrix of columns of inputMatrix where the highest degree entry has total degree equal to currDegree
+submatByDegrees = (inputMatrix,currDegree) -> (
     selectedCols := positions(0..numcols inputMatrix - 1,
         i -> (degrees source inputMatrix)_i === {currDegree});
-
-    -- Construct the submatrix using only the columns selected above.
-    inputMatrix_selectedCols)
+    inputMatrix_selectedCols
+    )
 
 -- Reduces the lowest degree list in the pending list.  Adds the results to Pending.  The new lowest degree list in pending is added to the subalgebra basis.  Returns the number of elements added.
     -- !!!Assumes that the pending list has been subducted!!!
     -- R is the subalgebra
-
 grabLowestDegree = (R, maxDegree) -> (
 
     subalgComp := R.cache.SubalgComputations;
@@ -193,12 +124,7 @@ grabLowestDegree = (R, maxDegree) -> (
     if currentLowest <= maxDegree then (    
 	
     	-- Removes the redundant elements of subalgComp#"Pending".
-	temp := matrix{(subalgComp#"Pending")#currentLowest};
-	reducedGenerators = rowReduce(matrix{(subalgComp#"Pending")#currentLowest}, currentLowest);
-	--print("-- input:");
-	--print(temp);
-	--print("-- output:");	
-    	--print(reducedGenerators);
+	reducedGenerators = gens gb(matrix{(subalgComp#"Pending")#currentLowest}, DegreeLimit=>currentLowest);
     	(subalgComp#"Pending")#currentLowest = {};
     	insertPending(R, reducedGenerators, maxDegree);
     	-- Find the lowest degree elements after reduction.
@@ -213,4 +139,4 @@ grabLowestDegree = (R, maxDegree) -> (
     	-- If number of new generators is zero, then nothing was added because pending was empty.  There is no way for pending to be empty unless currentLowest is maxDegree + 1.
     	);
     currentLowest
-)
+    )

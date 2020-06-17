@@ -106,43 +106,33 @@ appendToBasis = (R, newGens) -> (
 -- ROW REDUCE FROM COMMON.
 -- MONOMIAL FLAG DOES NOT SEEM TO WORK AT ALL.
 -- WHAT IS THE CONSEQUENCE OF THIS???
-
 rowReduce = (elems, d) -> (
     -- elems is a one row matrix of polynomials, all of degree d.
     -- return a (one row) matrix whose elements are row reduced
     -- CAUTION: Only the monomial orders GRevLex, Eliminate, Lex, and RevLex
     --              are supported by this routine.  The monomial orders
     --             Lex and ProductOrder ARE NOT SUPPORTED.
-    (RH, RtoRH, RHtoR, elemsH) := 4:null;
+    return gens gb(elems, DegreeLimit=>d);
     R := ring elems;
     n := numgens R;
     M := monoid R;
-    moFlag := 0;--setMonomialOrderFlag R; -- THIS ISN'T DOING ANYTHING RIGHT NOW
     k := coefficientRing R;
-    if moFlag == 5 then (
-    N := monoid [Variables=>n+1, MonomialOrder => RevLex, Degrees => prepend({1},M.Options.Degrees)];
-    RH = k N;
-    RtoRH = map(RH,R,(vars RH)_{1..n});
-    RHtoR = map(R,RH,matrix{{1_R}} | vars R);
-    elemsH = homogenize(RtoRH elems, RH_0);)
-    else (
-    if moFlag == 2 then (
-    << "WARNING: GLex is an unstable order for rowReduce" << endl)
-    else if moFlag == 4 then (
-    N = monoid [Variables=>n+1,
-    MonomialOrder => append(M.Options.MonomialOrder,1),
-    Degrees => append(M.Options.Degrees,{1})];
-    RH = k)
-    else (
-    N = monoid [Variables=>n+1,
-    MonomialOrder => M.Options.MonomialOrder,
-    Degrees => append(M.Options.Degrees,{1})];
-    RH = k N);
-    RtoRH = map(RH,R,(vars RH)_{0..n-1});
-    RHtoR = map(R,RH,vars R | matrix{{1_R}});
-    elemsH = homogenize(RtoRH elems, RH_n););
+    
+    -- Introduce a tag variable for performing homogenization.
+    -- The variables from R keep their degrees. The tag variable has degree 1.
+    N := monoid [Variables=>n+1,
+	MonomialOrder => M.Options.MonomialOrder,
+	Degrees => append(M.Options.Degrees,{1})];
+    
+    RH := k N;
+    RtoRH := map(RH,R,(vars RH)_{0..n-1});
+    RHtoR := map(R,RH,vars R | matrix{{1_R}});
+    elemsH := homogenize(RtoRH elems, RH_n);
+    result := RHtoR gens gb(elemsH, DegreeLimit=>d);
+    assert ((gens gb(elems, DegreeLimit=> d)) == (result));
+    -- Compute a GB of the homogenized matrix and eliminate the tag variable.      
     RHtoR gens gb(elemsH, DegreeLimit=>d)
-)
+    )
 -- END COPY OF ROW REDUCE
 
 -- BEGINNING OF MONOMIAL ORDER FUNCTION
@@ -201,9 +191,14 @@ grabLowestDegree = (R, maxDegree) -> (
     -- If there are elements in the pending list, then work on them.
     local reducedGenerators;
     if currentLowest <= maxDegree then (    
-    	-- Row reduce the matrix of the pending elements of lowest degree
-    	-- WHAT IS THIS DOING???
-    	reducedGenerators = rowReduce(matrix{(subalgComp#"Pending")#currentLowest}, currentLowest);
+	
+    	-- Removes the redundant elements of subalgComp#"Pending".
+	temp := matrix{(subalgComp#"Pending")#currentLowest};
+	reducedGenerators = rowReduce(matrix{(subalgComp#"Pending")#currentLowest}, currentLowest);
+	--print("-- input:");
+	--print(temp);
+	--print("-- output:");	
+    	--print(reducedGenerators);
     	(subalgComp#"Pending")#currentLowest = {};
     	insertPending(R, reducedGenerators, maxDegree);
     	-- Find the lowest degree elements after reduction.

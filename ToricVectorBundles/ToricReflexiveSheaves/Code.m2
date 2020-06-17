@@ -751,6 +751,8 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
   local a;
   for u1 in assChar#(sigmas_1) do (
    diff := transpose matrix {u0-u1};
+   -- this is an awkward way to see whether diss is a multiple of normal
+   -- but solve(promote(normal,QQ),promote(diff,QQ)) causes problems, if unsolvable
    as := unique select(apply(entries(diff|normal), i -> if i_1==0 then (if not i_0==0 then infinity) else i_0/i_1), x -> instance(x,Number) or instance(x,InfiniteNumber));
    if #as == 1 then (
     a = as_0;
@@ -766,9 +768,7 @@ restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) ->
 
 restrictToInvCurves = method ()
 restrictToInvCurves ToricReflexiveSheaf := List => (cacheValue symbol restrictToInvCurves) (E -> (
- X := variety E;
- n := dim X; 
- apply( (orbits X)#(n-1), tau -> restrictToCurve(tau,E))
+ apply( (orbits variety E)#1, tau -> restrictToCurve(tau,E))
 ))
 
 isNef ToricReflexiveSheaf := Boolean => E -> 

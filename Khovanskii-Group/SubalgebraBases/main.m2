@@ -116,7 +116,6 @@ subalgebraBasis Subring := o -> R -> (
     subalgComp#"Pending" = new MutableList from toList(o.Limit+1:{});
 
     -- Create an empty matrix of generators.
-    -- todo: check if R.cache.SagbiGens exists: if true, start computation with these
     R.cache.SagbiGens = matrix(ambient R,{{}});
 
     -- Get the maximum degree of the generators.
@@ -129,17 +128,12 @@ subalgebraBasis Subring := o -> R -> (
 
     -- Remove elements of coefficient ring
     (subalgComp#"Pending")#0 = {};
-
-    -- Get the lowest degree of the pending list.  Add 1 and initialize to number of loops
-    -- Note: this function has a lot of side effects (it writes to the cache of R.)
-    currDegree = grabLowestDegree(R, o.Limit) + 1;
-
-    nLoops = currDegree;
-            
-    ambR := ambient R;
-    -- While the number of loops is within the limit and the isDone flag is false, continue to process
-    while nLoops <= o.Limit and not R.cache.SagbiDone do (
-        nLoops = nLoops + 1;     	
+    
+    -- Compute the initial value of subalgComp.
+    processPending(R, o.Limit);
+    currDegree = subalgComp#"CurrentLowest" + 1;
+        
+    while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
 	
     	-- At this point, the entries of subalgComp.SyzygyIdeal look like this:
@@ -147,27 +141,26 @@ subalgebraBasis Subring := o -> R -> (
     	-- where none of the p_i are involved in any of the [one of the generators of SagbiGens] terms
 	subalgComp#"sagbiGB" = gb(subalgComp#"SyzygyIdeal", DegreeLimit => currDegree);
 	zeroGens := submatByDegrees(mingens ideal selectInSubring(1, gens (subalgComp#"sagbiGB")), currDegree);	        
-       	syzygyPairs = subalgComp#"Substitution"(zeroGens);    	
-
+       	syzygyPairs = subalgComp#"Substitution"(zeroGens);
+	
         if subalgComp#"Pending"#currDegree != {} then (
             syzygyPairs = syzygyPairs | subalgComp#"InclusionBase"(matrix{subalgComp#"Pending"#currDegree});
             subalgComp#"Pending"#currDegree = {};
             );
 	
-       	subd := subduction(R, syzygyPairs);	
-	
-	if entries subd != {{}} then (       
+       	subd := subduction(R, syzygyPairs);
+	if entries subd != {{}} then (
 	    subducted := (subalgComp#"ProjectionBase")(map(subalgComp#"TensorRing",subd));
 	    newElems = compress subducted;
-            )else (
+            ) else (
 	    newElems = subd;
 	    );
     
 	if numcols newElems > 0 then (
+	    -- Put newElems in pending and update subalgComp. 
             insertPending(R, newElems, o.Limit);
-	    -- This call (indirectly) updates subalgComp.SyzygyIdeal (among many other things.)
-	    -- (this updating takes place mostly in the function appendToBasis.)
-	    currDegree = grabLowestDegree(R, o.Limit);
+    	    processPending(R, o.Limit);
+	    currDegree = subalgComp#"CurrentLowest";
             ) else (
 	    -- "rawStatus1 raw (subalgComp#"sagbiGB") == 6" means that the GB is a complete GB (as if DegreeLimit was not specified.)
 	    if sum toList apply(subalgComp#"Pending", i -> #i) == 0 and rawStatus1 raw (subalgComp#"sagbiGB") == 6 and currDegree > maxGensDeg then (
@@ -175,12 +168,11 @@ subalgebraBasis Subring := o -> R -> (
                 if (o.PrintLevel > 0) then (
 		    print("Finite SAGBI basis was found.");
 		    );
-		break;
-            	)
+            	);
             );
 	currDegree = currDegree + 1;
     	);
-    if nLoops > o.Limit and o.PrintLevel > 0 then (
+    if currDegree > o.Limit and o.PrintLevel > 0 then (
 	print("Limit was reached before a finite SAGBI basis was found");
     	);
     R.cache.SagbiGens

@@ -113,17 +113,16 @@ submatByDegrees = (inputMatrix,currDegree) -> (
 -- Reduces the lowest degree list in the pending list.  Adds the results to Pending.  The new lowest degree list in pending is added to the subalgebra basis.  Returns the number of elements added.
     -- !!!Assumes that the pending list has been subducted!!!
     -- R is the subalgebra
-grabLowestDegree = (R, maxDegree) -> (
+processPending = (R, maxDegree) -> (
 
     subalgComp := R.cache.SubalgComputations;
-
     -- Finds the current lowest degree of the pending list.
     currentLowest := lowestDegree(R, maxDegree);
+    
     -- If there are elements in the pending list, then work on them.
     local reducedGenerators;
     if currentLowest <= maxDegree then (    
 	
-    	-- Removes the redundant elements of subalgComp#"Pending".
 	reducedGenerators = gens gb(matrix{(subalgComp#"Pending")#currentLowest}, DegreeLimit=>currentLowest);
     	(subalgComp#"Pending")#currentLowest = {};
     	insertPending(R, reducedGenerators, maxDegree);
@@ -138,5 +137,6 @@ grabLowestDegree = (R, maxDegree) -> (
 	    );
     	-- If number of new generators is zero, then nothing was added because pending was empty.  There is no way for pending to be empty unless currentLowest is maxDegree + 1.
     	);
+    subalgComp#"CurrentLowest" = currentLowest;
     currentLowest
     )

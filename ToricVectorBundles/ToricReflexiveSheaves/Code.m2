@@ -613,6 +613,8 @@ separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E
       {i,j0,0}
      else (
       coneAtU := fold( apply( flatten select(apply(onefaces#i, f -> delete(j0,f)), f-> #f == 1), f -> parEvert#i_f - parEvert#i_j0 ), (a,b) -> matrix a| matrix b);
+-- Here we should use the transpose (as coneFromHData assumes the equations to be rows)
+-- related to strange sign above?
       dualSigma := coneFromHData matrix sigma;
       if isFace(coneFromVData coneAtU, dualSigma) then (
  -- Here: gcd = lattice length of vector

@@ -575,9 +575,10 @@ isGloballyGenerated ToricReflexiveSheaf := Boolean => E -> (
 	)
     );  
 
-separatesJets = method()
-separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
- testing := true;
+-- Only kept for testing purposes (to be removed soon)
+separatesJetsOld = method()
+separatesJetsOld ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
+ testing := false;
  if testing then << "METHOD: separatesJets" << endl;
 -- exclude trivial case
  if E == 0 then return 0;
@@ -651,6 +652,8 @@ separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E
    indexedPolytopes = append(indexedPolytopes, maxLengthRealisedAt_0);
   );
  );
+-- Most of the time the following check will be okay,
+-- but this is not enough to ensure [RJS, Thm 6.2(iv)]!
  if set indexedPolytopes === set keys parE then
   lift(lJets,ZZ)
  else
@@ -658,9 +661,9 @@ separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E
 ))
 
 
-separatesJetsNew = method()
-separatesJetsNew ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
- testing := true;
+separatesJets = method()
+separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
+ testing := false;
  if testing then << "METHOD: separatesJetsNew" << endl;
 -- exclude trivial case
  if E == 0 then return 0;
@@ -679,7 +682,7 @@ separatesJetsNew ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets)
  assCharE := - associatedCharacters E;
  onefaces := apply(apply(parEpoly, p -> faces(n-1, p)), L -> apply(L, l -> l#0));
 -- for each maximal cone sigma
--- the following searches for each component u of the character usigma
+-- the following searches for each component u of the character u(sigma)
 -- all polytopes parE#i such that u is j0-th vertex
 -- then checks whether the cone at u is (degenerate form of) dual cone of sigma
 -- and computes the edge lengths
@@ -698,19 +701,26 @@ separatesJetsNew ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets)
      )
     );
     if j0 >= 0 then (
-     coneAtU := fold( apply( flatten select(apply(onefaces#i, f -> delete(j0,f)), f-> #f == 1), f -> parEvert#i_f - parEvert#i_j0 ), (a,b) -> matrix a| matrix b);
-     if testing then << "is a vertex of the polytope " << endl  << parEvert#i << endl << "with cone at corner " << endl << coneAtU << endl;
-     dualSigma := coneFromHData matrix sigma;
-     if isFace(coneFromVData coneAtU, dualSigma) then (
-      if testing then << "is subcone of dual cone of sigma " << endl << rays dualSigma << endl;
--- Here: gcd = lattice length of vector
-      l := min apply(entries transpose coneAtU, gcd);
-      if testing then << "with minimal edge length: " << l << endl;
-      {i,j0,l}
+     if #(onefaces#i) == 0 then (
+      if testing then << "is a vertex of the point polytope " << endl << parEvert#i << endl;
+      if testing then << "with minimal edge length: 0" << endl;
+      {i,j0,0}
      )
      else (
-      if testing then << "is not a subcone of dual cone of sigma " << endl << rays dualSigma << endl;
-      continue
+      coneAtU := fold( apply( flatten select(apply(onefaces#i, f -> delete(j0,f)), f-> #f == 1), f -> parEvert#i_f - parEvert#i_j0 ), (a,b) -> matrix a| matrix b);
+      if testing then << "is a vertex of the polytope " << endl  << parEvert#i << endl << "with cone at corner " << endl << coneAtU << endl;
+      dualSigma := coneFromHData matrix sigma;
+      if isFace(coneFromVData coneAtU, dualSigma) then (
+       if testing then << "is subcone of dual cone of sigma " << endl << rays dualSigma << endl;
+ -- Here: gcd = lattice length of vector
+       l := min apply(entries transpose coneAtU, gcd);
+       if testing then << "with minimal edge length: " << l << endl;
+       {i,j0,l}
+      )
+      else (
+       if testing then << "is not a subcone of dual cone of sigma " << endl << rays dualSigma << endl;
+       continue
+      )
      )
     )
     else 
@@ -720,12 +730,26 @@ separatesJetsNew ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets)
     if testing then << "is not a vertex of any polytope, so not even 0-jets are separated." << endl;
     return -1;
    );
--- At this point: in uPos list for every u in usigma, possible places of u as a vertex
--- Missing: take a choice for each u, such that  condition (iv) of Theorem 6.2 is met and the edge length maximal
+-- At this point: in uPos list for every u in usigma, possible places of u as a vertex, which vertex, and edge length
    uPos
   )
  );
- uPositions
+-- helper function to parse through all choices of u as a vertex (usually not too many)
+ combinations := L -> (
+  if #L == 1 then 
+   return L_0
+  else
+   return combinations({flatten apply(L_0, l0 -> apply(L_1, l1 -> {l0,l1} | flatten drop(L,2) ))})
+ );
+ (R,d) := ambient E;
+ gsEvecs := sub((coefficients( matrix{gsE}, Monomials => basis(d,R)))#1, coefficientRing R);
+ max {-1, min for usigma in uPositions list (
+  max for c in combinations usigma list (
+   if rank gsEvecs_((transpose c)_0) != rank E then
+    continue;
+   lift(min (transpose c)_2,ZZ)
+  )
+ )}
 ))
 
 isVeryAmple ToricReflexiveSheaf := Boolean => E -> 

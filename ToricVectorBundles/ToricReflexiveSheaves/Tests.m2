@@ -209,7 +209,7 @@ TEST ///
   assert(associatedCharacters Z === apply(max X, s -> {}))
   assert isGloballyGenerated Z
   assert(coefficientRing ((ambient Z)#0) === QQ and
-      numgens ((ambient Z)#0) === 0 and {1} === (ambient Z)#1)
+      numgens ((ambient Z)#0) === 0 and {} === (ambient Z)#1)
   assert(rank Z === 0)
   assert(variety Z === X)
   assert(components Z === {Z})
@@ -219,11 +219,10 @@ TEST ///
   assert(subspace(0,-4,Z) == 0)
   assert(subspace(0,infinity,Z) == 0)
   assert(subspace(0,-infinity,Z) == 0)
-  --assert isWellDefined map(Z,Z,1)
+  assert isWellDefined map(Z,Z,1)
   assert(groundSet Z === {})
   assert isArithmeticallyFree Z
   assert(cover Z === Z)
-  cover Z
   assert(gens Z == 0)
   assert(rank exteriorPower(-1,Z) === 0)
   assert(exteriorPower(1,Z) ==  0)  

@@ -207,7 +207,7 @@ toricReflexiveSheaf (List, NormalToricVariety) := ToricReflexiveSheaf => (L, X) 
 -- constructor for the zero sheaf
 toricReflexiveSheaf NormalToricVariety := ToricReflexiveSheaf => X -> (
     n := # rays X;
-    (R, d) := (QQ[], {1});
+    (R, d) := (QQ[DegreeRank=>0], {});
     new ToricReflexiveSheaf from hashTable (
       	apply(n, i -> i => hashTable {}) | {
       	    symbol ambient => (R, d),
@@ -311,6 +311,7 @@ trim ToricReflexiveSheaf := ToricReflexiveSheaf => opts -> E -> (
 
 ToricReflexiveSheaf.directSum = args -> (
     sheaves := select(args, E -> rank E =!= 0);
+    --sheaves = apply(sheaves,trim);
     m := #sheaves;
     if m === 0 then return args#0;
     X := variety sheaves#0;  
@@ -377,6 +378,7 @@ tensor (ToricReflexiveSheaf, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts
 	)
     );
     E := toricReflexiveSheaf(W, X);
+    E = trim E;
     E.cache.components = toList sheaves;
     E
     )
@@ -704,13 +706,15 @@ isAmple ToricReflexiveSheaf := Boolean => E ->
 
 
 cover ToricReflexiveSheaf := ToricReflexiveSheaf => (cacheValue symbol cover) (E -> (
-	if E == 0 then return E;
+	if E == 0 then (
+	    E.cache.generators = map(E, E, 0);
+	    return E);
     	X := variety E;
     	n := # rays X;
     	(RE, dE) := ambient E;    
     	gSet := groundSet E;
     	if gSet === {} then (
-      	    Z := toricReflexiveSheaf(RE,dE,X);
+    	    Z := toricReflexiveSheaf(X);
       	    E.cache.generators = map(E, Z, 0);
       	    return Z);
     	divisors := for g in gSet list (

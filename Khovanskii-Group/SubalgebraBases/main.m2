@@ -26,7 +26,7 @@ subduction(Subring, Matrix) := (subR, M) -> (
     F := subalgComp#"Substitution";
     J := subalgComp#"sagbiGB";
     numblocks := rawMonoidNumberOfBlocks raw monoid ambR;
-    X := rawSubduction(numblocks, raw M, raw F, raw J)
+    rawSubduction(numblocks, raw M, raw F, raw J)
     );
 
 -- Main function for computing a subalgebraBasis.

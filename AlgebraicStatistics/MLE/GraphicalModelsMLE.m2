@@ -78,11 +78,11 @@ matRtolpR = (M,F) -> (
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
 
-
+-- change input to G instead of R
 genListmatrix = (L,R) ->
 (
     T := {};
-    K:=undirectedEdgesMatrix R;
+    K:=undirectedEdgesMatrix R;--checks for Graph, should be changed to allow for MixedGraphs
     --ring mapping begins
      -- d is equal to the number of vertices in G
     d := numRows K;

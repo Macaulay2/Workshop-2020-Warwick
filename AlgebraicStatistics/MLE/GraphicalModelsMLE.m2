@@ -35,7 +35,8 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
     "PDcheck",
-    "MLEsolver"
+    "MLEsolver",
+    "MLEmax"
        	} 
      
 --**************************--
@@ -77,11 +78,11 @@ matRtolpR = (M,F) -> (
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
 
-
+-- change input to G instead of R
 genListmatrix = (L,R) ->
 (
     T := {};
-    K:=undirectedEdgesMatrix R;
+    K:=undirectedEdgesMatrix R;--checks for Graph, should be changed to allow for MixedGraphs
     --ring mapping begins
      -- d is equal to the number of vertices in G
     d := numRows K;
@@ -227,13 +228,22 @@ MLEsolver(Ideal,Ring):= (J,R) -> (
     
     L:=PDcheck M;
     --check there is only one PD matrix
-    if #L>1 then error("It is not an undirected graph"); 
-    --return MLE: inverse of the PD matrix
-    E:=inverse L_0;
-    return E;    
-    
-    return M;
+    return L;    
+
 );
+
+MLEmax = method();
+MLEmax(Ring,List,Matrix,ZZ):=(R,L,S,n)->(
+    if #L==0 then  error("No critical points to evaluate");
+    if #L==1 then  E:=inverse L_0;
+    if #L>=1 then 
+    	eval:=for K in L list n/2*(log det K)- n/2*(trace S*K);
+	indexOptimal:=position(eval, i ->i== max eval);
+	E=inverse L_indexOptimal;
+    return E; 
+    )
+
+
 
 
 -*
@@ -562,8 +572,6 @@ doc ///
 	    The log likelihood function we want to maximize is given in Prop. 2.1.12 of Sturmfels's lecture notes (to do: update this reference to the printed version).  
 	    
         Example
-	    needsPackage("Graphs");
-	    needsPackage("GraphicalModels");
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
@@ -631,8 +639,8 @@ doc ///
     	:Matrix
     Description
     	Text
-	    This function computes the MLE from score equations. At the moment
-	    only works fine for undirected graphs. 
+	    This function computes the critical points from the score equations and 
+	    selects those that lie in the cone of positive-definite matrices.
 	    See Example 2.1.13 of Sturmfels' lecture notes
 	Example
 	    G=graph{{1,2},{2,3},{3,4},{1,4}}
@@ -641,6 +649,38 @@ doc ///
 	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
 	    MLEsolver(J,R)				
 ///
+
+doc ///
+    Key
+    	MLEmax
+	(MLEmax,Ring,List,Matrix,ZZ)
+    Headline
+        finds the optimal solution from the list of critical points that lie in the cone of positive definite matrices
+    Usage
+    	MLEmax(R,L,S,n)
+    Inputs
+      	R: Ring 
+	L: List
+	S: Matrix
+	n: ZZ
+    Outputs
+    	:Matrix
+    Description
+    	Text
+	    Given a list of critical points (solutions to the MLE problem) that are known to be positive definite matrices, 
+	    this function evaluates Equation  2.1.6 of Sturmfels' lecture notes to identify the maximizer.
+	Example
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+	    R = gaussianRing(G)
+	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+            J=scoreEquationsFromCovarianceMatrix(R,U);
+	    MLEsolver(J,R);
+	    S=U*transpose(U);
+	    n = #U;
+	    MLEmax(R,L,S,n)
+
+///
+
 
 -*
 doc /// 

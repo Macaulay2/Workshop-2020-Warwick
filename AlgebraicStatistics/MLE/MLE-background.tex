@@ -1,0 +1,77 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\newcommand{\indep}{\perp \!\!\! \perp}
+\author{M2 Graphical Models MLE team}
+\title{Graphical Models MLE}
+\begin{document}
+\maketitle
+\section{Introduction}
+%In the following, we follow~\cite{lauritzen1996graphical, drton2008lectures, sullivant2018algebraic}.
+Let $G=(V,E)$ be a simple graph (i.e., a graph with no loops or parallel edges), where $V$ is the set of vertices and $E$ is the set of edges. We denote by $(a,b)\in E$ a directed edge from $a$ to $b$. If $E$ contains both $(a,b)$ and $(b,a)$, then this is an undirected edge. 
+
+In the context of algebraic statistics, the vertices of a graph are random variables. This induces a partition:
+\[V=\Delta \cup \Gamma \quad \text{and} \quad \Delta \cap \Gamma=\emptyset,\]
+where $\Delta$ are the discrete variables and $\Gamma$ are continuous variables. A graph is called \emph{pure}, if it contains only one type of variables.  We will assume that all our graphs are \emph{pure}.
+
+\textcolor{blue}{Would "dirty" graphs be the next step for the package?}
+
+If $(a,b)$ is a directed edge, then $a$ is called the \emph{parent} of $b$ and $b$ is called the \emph{child} of $a$. If $(a,b)$ is an undirected edge, then the vertices $a$ and $b$ are called \emph{adjacent} or \emph{neighbours}. More generally, if there is a directed path from $a$ to $b$ and no reverse path from $b$ to $a$ exists, then $a$ is called an \emph{ancestor} of $b$ and $b$ is called a descendant of $a$. 
+
+\textcolor{blue}{TBD: illustrate with graphs (e.g., \cite[p. 6 Fig 2.2]{lauritzen1996graphical} )}
+
+Intuitively, the edges of a graph encode the dependencies between variables. If two non-adjacent vertices do not have the same ancestor, then they are \emph{(marginally) independent}. On the other hand, if they share  ancestors, then they are \emph{conditionally independent} given the common ancestors. 
+
+The conditional independence constraints are called the \emph{Markov properties} of a graph $G$. A \emph{graphical model} induced by $G$ is a family of probability distributions that satisfy the Markov properties.
+
+\section{Conditional independence (CI}
+Let $X=\{X_1,X_2,\cdots,X_m\}\subseteq \mathbb{R}^m$ be a random vector taking values in the probability space $\mathcal{X}=\mathcal{X}_1\times\mathcal{X}_2\times\cdots\times\mathcal{X}_m$. In the case of a graphical model, each $X_i$ corresponds to a vertex of the graph $G$ and $V=[m]$. Let $f(X)$ be the joint probability density function of $X$ with respect to the product measure on $\nu$ on $\mathcal{X}$ and we assume that $f(X)$ is continuous.  
+
+Let $A \subseteq [m]$ and let $X_A:=\{X_a:\quad a \in A\}$ be the subset of variables indexed by $A$. We obtain the \emph{marginal distribution} of $X_A$ by integrating out $x_{[m]-A}$
+\[f_A(x_A):=\int_{\mathcal{X}_{[m]-A}} f(x)d\nu(x_{[m]-A}),\quad x \in \mathcal{X}_A.\]
+
+Let $X_B=x_b$ and assume $f_B(x_B)>0$. Then the\emph{conditional density} of $X_A$ given $X_B=x_b$ is defined using the Bayes law
+\[f_{A|B}(x_A|x_B):=\frac{f_{A\cup B}(x_A,x_B)}{f_B(x_B)}.\]
+
+This leads to the notion of \emph{conditional independence}. Let $A,B,C$ be pairwise dijoint subsets of $[m]$. Assume $X_c=x_c$ and $f_C(x_C)>0$. Then we say that $X_A$ and $X_B$ are conditionally independent given $X_C=x_c$ if
+\[f_{A\cup B|C}(x_A,x_B|x_C)=f_{A|C}(x_A|x_C)f_{B|C}(x_B|x_C).\]
+We write $X_A\indep X_B|X_C$. If $C=\emptyset$, then the conditional independence is called marginal independence and we write $X_A\indep X_B$. One can also use the short-hand notation $A \indep B |C$ and $A \indep B$, respectively.
+
+\textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}}
+
+We want to consider two cases: discrete conditional independence models and Gaussian conditional independence models, the latter being a special case of continuous independence models.
+\subsection{Discrete CI models}
+\subsection{Gaussian CI models}
+\section{Graphical models}
+
+From graph to data and back
+
+undirected
+directed
+chain
+mixed(?)
+
+Example
+
+K-matrix
+
+\textcolor{blue}{Markov properties \cite[Section 3.2]{lauritzen1996graphical}}
+
+\subsection{Undirected models}
+
+\subsection{Directed models}
+
+\subsection{Mixed models}
+
+\subsection{Chain models}
+
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

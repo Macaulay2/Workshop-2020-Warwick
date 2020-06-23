@@ -10,6 +10,8 @@
 \title{Graphical Models MLE}
 \begin{document}
 \maketitle
+
+\tableofcontents
 \section{Introduction}
 %In the following, we follow~\cite{lauritzen1996graphical, drton2008lectures, sullivant2018algebraic}.
 Let $G=(V,E)$ be a simple graph (i.e., a graph with no loops or parallel edges), where $V$ is the set of vertices and $E$ is the set of edges. We denote by $(a,b)\in E$ a directed edge from $a$ to $b$. If $E$ contains both $(a,b)$ and $(b,a)$, then this is an undirected edge. 
@@ -28,13 +30,13 @@ Intuitively, the edges of a graph encode the dependencies between variables. If 
 
 The conditional independence constraints are called the \emph{Markov properties} of a graph $G$. A \emph{graphical model} induced by $G$ is a family of probability distributions that satisfy the Markov properties.
 
-\section{Conditional independence (CI}
-Let $X=\{X_1,X_2,\cdots,X_m\}\subseteq \mathbb{R}^m$ be a random vector taking values in the probability space $\mathcal{X}=\mathcal{X}_1\times\mathcal{X}_2\times\cdots\times\mathcal{X}_m$. In the case of a graphical model, each $X_i$ corresponds to a vertex of the graph $G$ and $V=[m]$. Let $f(X)$ be the joint probability density function of $X$ with respect to the product measure on $\nu$ on $\mathcal{X}$ and we assume that $f(X)$ is continuous.  
+\section{Conditional independence (CI)}\label{sec: CI}
+Let $X=(X_1,X_2,\cdots,X_m)\in \mathbb{R}^m$ be a random vector taking values in the probability space $\mathcal{X}=\mathcal{X}_1\times\mathcal{X}_2\times\cdots\times\mathcal{X}_m$. In the case of a graphical model, each $X_i$ corresponds to a vertex of the graph $G$ and $V=[m]$. Let $f(X)$ be the joint probability density function of $X$ with respect to the product measure on $\nu$ on $\mathcal{X}$ and we assume that $f(X)$ is continuous.  
 
 Let $A \subseteq [m]$ and let $X_A:=\{X_a:\quad a \in A\}$ be the subset of variables indexed by $A$. We obtain the \emph{marginal distribution} of $X_A$ by integrating out $x_{[m]-A}$
 \[f_A(x_A):=\int_{\mathcal{X}_{[m]-A}} f(x)d\nu(x_{[m]-A}),\quad x \in \mathcal{X}_A.\]
 
-Let $X_B=x_b$ and assume $f_B(x_B)>0$. Then the\emph{conditional density} of $X_A$ given $X_B=x_b$ is defined using the Bayes law
+Let $X_B=x_b$ and assume $f_B(x_B)>0$. Then the \emph{conditional density} of $X_A$ given $X_B=x_b$ is defined using the Bayes law
 \[f_{A|B}(x_A|x_B):=\frac{f_{A\cup B}(x_A,x_B)}{f_B(x_B)}.\]
 
 This leads to the notion of \emph{conditional independence}. Let $A,B,C$ be pairwise dijoint subsets of $[m]$. Assume $X_c=x_c$ and $f_C(x_C)>0$. Then we say that $X_A$ and $X_B$ are conditionally independent given $X_C=x_c$ if
@@ -43,21 +45,39 @@ We write $X_A\indep X_B|X_C$. If $C=\emptyset$, then the conditional independenc
 
 \textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}}
 
-We want to consider two cases: discrete conditional independence models and Gaussian conditional independence models, the latter being a special case of continuous independence models.
+\textcolor{red}{definition of statistical model}
+
+\subsection{MLE and contingency tables}
+Let $\mathcal{D}=\{X^{(1)},X^{(2)},\cdots,X^{(n)} \in \mathbb{R}^m\}$ be the data consisting of $n$ independent and identically distributed (i.i.d.) random vectors $X^{(i)}\sim P_\theta$.
+
+\textcolor{red}{general procedure for MLE}
+
+\textcolor{blue}{Write about contingency tables when discussing discrete CI models. Move the part about saturated models here. \cite[Chapter 1]{drton2008lectures} and (especially!) \cite[p.69]{lauritzen1996graphical}}
 \subsection{Discrete CI models}
+Let $X=(X_1,X_2,\cdots,X_m)$ be a discrete random vector.
+\textcolor{blue}{TBD. Description of discrete CI models and their properties in \cite[pp. 70-73]{drton2008lectures} and the MLE in \cite[pp. 36-43]{drton2008lectures}}
 \subsection{Gaussian CI models}
+Let $X=(X_1,X_2,\cdots,X_m)$ follow a multivariate normal distribution $\mathcal{N}(\mu,\Sigma)$, that is, it has the probability density function
+\[p_{\mu,\Sigma}(x) = \frac{\exp\left(-\frac 1 2 ({ x}-{\mu})^\mathrm{T}{\Sigma}^{-1}({x}-{\mu})\right)}{\sqrt{(2\pi)^m|\Sigma|}}, \quad x \in \mathbb{R}^m,\]
+where $\mu \in \mathbb{R}^m$ and $\Sigma$ is assumed to be positive definite. This is a special case of of continuous conditional independence models.
+
+Under the assumption of non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P}_\Theta$
+\[\mathcal{P}_\Theta=\{\mathcal{N}(\mu,\Sigma):\theta=(\mu,\Sigma)\in \Theta\}.\]
+In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the all variables are assumed to be mutually independent.
+
+\textcolor{red}{Gaussian MLE}
+
 \section{Graphical models}
 
 From graph to data and back
 
-undirected
-directed
-chain
-mixed(?)
+graphical models give a parametrization of a CI model. but not all CI models admit a parametrization. (above question 3.1.9)
 
 Example
 
 K-matrix
+
+MLE
 
 \textcolor{blue}{Markov properties \cite[Section 3.2]{lauritzen1996graphical}}
 
@@ -65,9 +85,9 @@ K-matrix
 
 \subsection{Directed models}
 
-\subsection{Mixed models}
+\subsection{Mixed/Chain models}
+\textcolor{blue}{Are chain and mixed models the same thing? Mixed models are not mentioned in the references}
 
-\subsection{Chain models}
 
 
 

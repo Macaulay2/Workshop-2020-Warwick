@@ -1614,11 +1614,12 @@ doc ///
             The tangent bundle on $\mathbb P^2$:
         Example
             P2 = toricProjectiveSpace 2
-            T = toricTangentBundle P2
+            T = toricTangentBundle P2;
             describe T
             groundSet T
             associatedCharacters T
-            apply(components cover T, L -> latticePoints toricDivisor L)
+            apply(components cover T, L -> vertices toricDivisor L)
+            apply(components cover T, L -> vertices polytope toricDivisor L)
             isGloballyGenerated T
             isNef T
             isAmple T
@@ -1627,14 +1628,20 @@ doc ///
             A toric vector bundle of rank 3 on $\mathbb P^1 \times \mathbb P^1$
             taken from [RJS, Example 3.7]
         Example
-            X = hirzebruchSurface 0
-            R = QQ[e_1,e_2,e_3]
-            W = {{(e_3,-1),(e_2,0),(e_1+e_2,1)},{(e_1,0),(e_3,1),(e_2,2)},{(e_2,-1),(e_1,0),(e_1+e_3,1)},{(e_1,0),(e_3,1),(e_2,2)}}
-            E = toricReflexiveSheaf(W,X)
+            X = hirzebruchSurface 0;
+            rays X
+            R = QQ[e_1,e_2,e_3];
+            W = { {(e_3,-1),(e_2,0),(e_1+e_2,1)},
+                  {(e_1,0), (e_3,1),(e_2,2)},
+                  {(e_2,-1),(e_1,0),(e_1+e_3,1)},
+                  {(e_1,0), (e_3,1),(e_2,2)} };
+            E = toricReflexiveSheaf(W,X);
             describe E
             groundSet E
+            max X
             associatedCharacters E
-            apply(components cover E, L -> latticePoints toricDivisor L)
+            apply(components cover E, L -> vertices toricDivisor L)
+            apply(components cover E, L -> (vertices polytope toricDivisor L, dim polytope toricDivisor L))
             isGloballyGenerated E
             isNef E
             isAmple E
@@ -1643,14 +1650,19 @@ doc ///
             A toric vector bundle of rank 3 on $\mathbb P^2$
             taken from [RJS, Example 4.2]
         Example
-            P2 = toricProjectiveSpace 2
-            R = QQ[e_1,e_2,e_3]
-            W = {{(e_3,-1),(e_2,0),(e_1,4)},{(e_1,-2),(e_2,0),(e_3,3)},{(e_1,-1),(e_2-e_3,2),(e_1-e_2,3)}}
-            F = toricReflexiveSheaf(W,P2)
+            P2 = toricProjectiveSpace 2;
+            rays P2
+            R = QQ[e_1,e_2,e_3];
+            W = { {(e_3,-1),(e_2,0),    (e_1,4)},
+                  {(e_1,-2),(e_2,0),    (e_3,3)},
+                  {(e_1,-1),(e_2-e_3,2),(e_1-e_2,3)} };
+            F = toricReflexiveSheaf(W,P2);
             describe F
             groundSet F
+            max P2
             associatedCharacters F
-            apply(components cover F, L -> latticePoints toricDivisor L)
+            apply(components cover F, L -> vertices toricDivisor L)
+            apply(components cover F, L -> (vertices polytope toricDivisor L, dim polytope toricDivisor L))
             isGloballyGenerated F
             isNef F
             isAmple F
@@ -1659,14 +1671,20 @@ doc ///
             A toric vector bundle of rank 2 on the first Hirzebruch surface
             taken from [RJS, Example 4.4]
         Example
-            X = hirzebruchSurface 1
-            R = QQ[e_1,e_2]
-            W = {{(e_2,-2),(e_1,4)},{(e_2,2),(e_1,3)},{(e_1,0),(e_2,5)},{(e_1,-1),(e_1+e_2,3)}}
-            G = toricReflexiveSheaf(W,X)
+            X = hirzebruchSurface 1;
+            rays X
+            R = QQ[e_1,e_2];
+            W = { {(e_2,-2),(e_1,4)},
+                  {(e_2,2), (e_1,3)},
+                  {(e_1,0), (e_2,5)},
+                  {(e_1,-1),(e_1+e_2,3)} };
+            G = toricReflexiveSheaf(W,X);
             describe G
             groundSet G
+            max X
             associatedCharacters G
-            apply(components cover G, L -> latticePoints toricDivisor L)
+            apply(components cover G, L -> vertices toricDivisor L)
+            apply(components cover G, L -> vertices polytope toricDivisor L)
             isGloballyGenerated G
             isNef G
             isAmple G
@@ -1675,14 +1693,19 @@ doc ///
             A toric vector bundle of rank 3 on $\mathbb P^2$
             taken from [RJS, Example 6.4]
         Example
-            P2 = toricProjectiveSpace 2
-            R = QQ[e_1,e_2,e_3]
-            W = {{(e_3,-2),(e_2,-1),(e_1,2)},{(e_1,-2),(e_2,0),(e_3,2)},{(e_1,1),(e_3-e_2,3),(e_1-e_2,4)}}
-            H = toricReflexiveSheaf(W,P2)
+            P2 = toricProjectiveSpace 2;
+            rays P2
+            R = QQ[e_1,e_2,e_3];
+            W = { {(e_3,-2),(e_2,-1),(e_1,2)},
+                  {(e_1,-2),(e_2,0),(e_3,2)},
+                  {(e_1,1),(e_3-e_2,3),(e_1-e_2,4)} };
+            H = toricReflexiveSheaf(W,P2);
             describe H
             groundSet H
+            max P2
             associatedCharacters H
-            apply(components cover H, L -> latticePoints toricDivisor L)
+            apply(components cover H, L -> vertices toricDivisor L)
+            apply(components cover H, L -> vertices polytope toricDivisor L)
             isGloballyGenerated H
             isNef H
             isAmple H

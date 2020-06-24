@@ -23,6 +23,8 @@ doc ///
    Key
      subalgebraBasis
      (subalgebraBasis,Subring)
+     (subalgebraBasis, Matrix)
+     (subalgebraBasis, List)
      [subalgebraBasis,Limit]
      [subalgebraBasis,PrintLevel]
      [subalgebraBasis,Strategy]
@@ -30,16 +32,22 @@ doc ///
      subalgebra basis (sagbi basis)
    Usage
      N = subalgebraBasis M
+     N = subalgebraBasis A
+     N = subalgebraBasis L
    Inputs
+     A:Subring
      M:Matrix
-       $1\times k$ with entries in a @TO "PolynomialRing"@
+       of generators for a subring of @ ofClass{PolynomialRing} @
+     L:List
+       containing generators for a subring of @ ofClass{PolynomialRing} @
      Limit=>ZZ
        a degree limit for the binomial "S-pairs" that are computed internally
      PrintLevel=>ZZ
      Strategy=>String
+       not currently used
    Outputs
      N:Matrix
-       $1\times r,$ with $r\le $ "Limit" above, whose entries form a partial subalgebra basis
+       whose entries form a partial subalgebra basis
    Description
     Text
         The output of this function is generally a partial subalgebra basis. This is unavoidable, since a subalgebra of a polynomial ring, endowed with some polynomial order, need not have a finite subalgebra basis. Here is a quintessential example of this phenomenon.
@@ -145,11 +153,7 @@ doc ///
      Subring
    Description
      Text
-       @ ofClass{Subring} @ is defined by its generators and ambient ring. Other data stored in the cache facillitate operations such as membership testing.
-     Example
-       R = QQ[x];
-       A = subring {x^4+x^3, x^2+x}
-       member(x^3+x^2, A)
+       An instance of the type Subring consists an ambient polynomial ring, a matrix of generators, and a cache Table that stores computations relevant for subalgebra bases. The cache table facillitates operations such as membership testing.
    Caveat
    SeeAlso
        subring
@@ -311,4 +315,33 @@ doc ///
     liftedPresentation
     presentation
     setWeight
+///
+
+doc ///
+   Key
+     subring
+     (subring, List)
+     (subring, Matrix)
+   Headline
+     Constructs a subring of a polynomial ring
+   Usage
+     A = subring M
+   Inputs
+     M:Matrix
+       A one row matrix whose entries come from @ ofClass{PolynomialRing} @
+     L:List 
+       whose entries come from @ ofClass{PolynomialRing} @
+   Outputs
+     A:Subring
+   Description
+    Text
+      A @ ofClass{Subring} @ stores the ambient polynomial ring, a matrix of the given generators, and a cache table with intermediate
+    Example
+       R = QQ[x];
+       A = subring {x^4+x^3, x^2+x}
+       member(x^3+x^2, A)
+   Caveat
+     The ambient ring and the generators are immutable values. A method for @TO "==" @ is currently not implemented.
+   SeeAlso
+     Subring
 ///

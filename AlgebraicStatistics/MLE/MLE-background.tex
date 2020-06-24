@@ -86,7 +86,7 @@ Under the assumption of non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P
 In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the all variables are assumed to be mutually independent.
 
 In the case of Gaussian models, the log-likelihood function~(\ref{log-likelihood function})  becomes
-\begin{align}
+\begin{align}\label{Gaussian log-likelihood}
 \ell(\mu,\Sigma)&=-\frac{n}{2}\log \det \Sigma - \frac{1}{2}\operatorname{tr}\left(\Sigma^{-1}\cdot \sum_{i=1}^n(X^{(i)}-\mu)(X^{(i)}-\mu)^T\right)+C \nonumber\\
 		&=-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\operatorname{tr}\left(S\Sigma^{-1}\right)- \frac{n}{2}\left(\overline{X}-\mu\right)^T\Sigma^{-1}\left(\overline{X}-\mu\right)+C,
 \end{align}
@@ -132,12 +132,21 @@ There are three main types of graphical models:
 \end{enumerate}
 The chain graph models can be used to model the distributions with both discrete and continuous variables~\cite[Chapter 6.1.1]{lauritzen1996graphical}.
 
+
+ 
 \textcolor{blue}{What do we mean by mixed models? }
 
 \textcolor{blue}{Possible to-do: write a more detailed description of each type of graphical models (per \cite[Chapter 3]{drton2008lectures}) but lower priorities because they mostly connect the combinatorics of graphs with the MLE estimation and we are not doing that in the package.}
 
+\subsection{Undirected models}
+In the case of multivariate normal undirected graphical models, Proposition~\ref{prop: CI submatrix condition} and the corresponding Markov properties translate into the following condition.
 
+\begin{proposition}[Proposition 2.1.14 and Equation 3.2.2. from \cite{drton2008lectures}]
+Let $G=(V,E)$ be an undirected graph and take any two vertices $a$ and $b$. Then $\hat{\Sigma}$ is the unique positive-definite matrix that satisfies
+\[\Sigma_{a,b}=S_{a,b} \quad \text{and}\quad \Sigma^{-1}_{a,b}=0,\]
+where $S$ is the sample covariance matrix defined in (\ref{Gaussian log-likelihood}).
 
+\end{proposition}
 
 
 \bibliographystyle{plain}

@@ -32,7 +32,8 @@ newPackage(
 	},
 
     --Might need PackageImports here - should Polyhedra be here instead??
-        PackageExports => {"gfanInterface","EliminationMatrices","Binomials","Polyhedra","Matroids"},
+--        PackageExports => {"gfanInterface","EliminationMatrices","Polyhedra","Binomials","Matroids"},
+        PackageExports => {"gfanInterface","EliminationMatrices","Matroids","Polyhedra"},
 	DebuggingMode => true,
 	AuxiliaryFiles => true,
 --	AuxiliaryFiles => false,
@@ -211,7 +212,8 @@ tropicalCycle1 (PolyhedralComplex, List) := (PC,mult)->(
 
 minmaxSwitch = method ()
 
-minmaxSwitch (Fan) := F -> fanFromGfan({- rays F, linSpace F, maxCones F ,dim F,isPure F,isSimplicial F,fVector F});
+minmaxSwitch (Fan) := F -> 
+      fanFromGfan({- rays F, linSpace F, maxCones F ,dim F,Polyhedra$isPure F,isSimplicial F,Polyhedra$fVector F});
 
 minmaxSwitch (TropicalCycle) := T ->(
     tropicalCycle( minmaxSwitch fan T, multiplicitiesReorder({rays (minmaxSwitch fan T),
@@ -312,13 +314,6 @@ isBalanced (TropicalCycle):= T->(
 
 
 
-
-
-
-
-
-
-
 --Computing a tropical prevariety
 
 tropicalPrevariety = method(TypicalValue => Fan,  Options => {
@@ -386,23 +381,34 @@ computeCones=(R,M,L)->(
     )
 
 
+--Compute the multiplicity of the cone spanned by the columns of the matrix M in trop(V(I))
 findMultiplicity=(M,I)->(
---compute vector w in relative interior in order to get the initial ideal in_w(I) with w in the maximal cone M
+    --compute vector w in relative interior in order to get the initial ideal in_w(I) with w in the maximal cone M
     w:=flatten entries(sum(numColumns M, j->M_{j}));
---weight the ring according to this w , we are using leadTerm and max convention since the input fan has not been changed to min convention yet
-    R:=newRing(ring I, MonomialOrder=>{Weights=>w},Global=>false);
+    --weight the ring according to this w , we are using leadTerm and max
+    --convention since the input fan has not been changed to min
+    --convention yet
+    S:=ring I;
+    R:=newRing(S, MonomialOrder=>{Weights=>w},Global=>false);
     J:=sub(I,R);
     K:=ideal(leadTerm(1,J));
---you saturate since you don't want the components outside the torus
-    InitialIdeal:= saturate(sub(K,ring I),ideal product gens ring I);
---this is the the basis of the lattice associated to the toric ideal we are going to compute
-    Basis:= (maxCol( generators kernel transpose M))_0;
-    --this is where we use  Binomials package
-    toricIdeal:=saturate(latticeBasisIdeal(ring InitialIdeal,Basis),ideal product gens ring I);
-    m:=(degree(InitialIdeal)/degree (toricIdeal));
---return multiplicity m as integer, since it lives currently in QQ
---if m is an integer (as it should be), then the following command parses it to ZZ
---otherwise, an errow will be returned "rational number is not an integer"
+    --you saturate since you don't want the components outside the torus
+    initialIdeal:= saturate(sub(K,S), product gens S);
+    --this is the the basis of the lattice associated to the toric ideal we are going to compute
+--    Basis:= (maxCol( generators kernel transpose M))_0;
+      toricIdeal:= ideal apply(flatten entries gens kernel transpose M, u->(
+	      	  mon1:=1_(ring I);
+		  mon2:=1_(ring I);
+		  scan(numgens ring I,i->(if u_i>0 then mon1=mon1*R_i^(u_i) else mon2=mon2*R_i^(-u_i)));
+		  mon1-mon2
+         ));		  
+    --this is where we used to us  Binomials package
+--    toricIdeal:=saturate(latticeBasisIdeal(ring InitialIdeal,Basis),ideal product gens ring I);
+    toricIdeal = saturate(toricIdeal,product gens S);
+    m:=(degree(initialIdeal)/degree (toricIdeal));
+    --return multiplicity m as integer, since it lives currently in QQ
+    --if m is an integer (as it should be), then the following command parses it to ZZ
+    --otherwise, an errow will be returned "rational number is not an integer"
     lift(m,ZZ)
     )
 
@@ -504,8 +510,8 @@ tropicalVariety (Ideal) := o -> (I) ->(
 			--call the function tropicalCycle to create a new tropical variety with multiplicities
 		 T=tropicalCycle(F,findMultiplicities(I,F))
 	 );  );
---Need to fix the paragraph below - it shouldn't be doing all these checks when the
---tropical variety is computed! 
+--Need to fix the paragraph below - why arewe doing all these checks when the
+--tropical variety is computed?
     if   o.IsHomogeneous==false  then
 	(
 	    newRays:=dehomogenise(rays T);
@@ -514,7 +520,7 @@ tropicalVariety (Ideal) := o -> (I) ->(
 			newLinSpace,
 			maxCones T,
 			dim(T)-1,
-			isPure fan T,
+			Polyhedra$isPure fan T,
 			isSimplicial T,
 			drop(fVector T,1)};
 	UFan:=fanFromGfan(TProperties);
@@ -910,7 +916,7 @@ dim TropicalCycle:= T->( dim fan T)
 ambDim TropicalCycle:= T->( ambDim fan T)
 
 
-fVector TropicalCycle:= T->( fVector fan T)
+fVector (TropicalCycle) := o->T->(Polyhedra$fVector fan T)
 
 fan TropicalCycle := T -> (T#"Fan")
 fan TropicalCycle1 := T -> (T#"PolyhedralComplex")
@@ -926,7 +932,7 @@ multiplicities = method(TypicalValue => List)
 multiplicities (TropicalCycle) := T -> (T#"Multiplicities")
 multiplicities (TropicalCycle1) := T -> (T#"Multiplicities")
 
-isPure TropicalCycle := Boolean => T->( isPure(fan(T)))
+isPure TropicalCycle := Boolean => T->( Polyhedra$isPure(fan(T)))
 
 
 isSimplicial TropicalCycle:= Boolean => T->( isSimplicial(fan(T)))
@@ -1474,14 +1480,15 @@ doc///
 
     Description
 		Text
-			If the option is used than  homogeneity of the ideal  is not tested. By default the ideal is always assumed not homogeneous and a test is performed before
-			applying the function tropicalVariety.
+			If the option is used than homogeneity of the
+			ideal is not tested. By default the ideal is
+			always assumed not homogeneous and a test is
+			performed before applying the function
+			tropicalVariety.
 		Example
 		          QQ[x,y];
 			  I=ideal(x+y+1);
 			  T=tropicalVariety (I,IsHomogeneous=>false)
-
-
 ///
 
 doc///
@@ -2028,9 +2035,9 @@ TEST///
 
 F=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
 T= tropicalCycle(F,{1,1,1});
-R= stableIntersection(T,T,Strategy=>"gfan")
-assert(dim R == 3)
-assert(maxCones R == {{1, 2}, {0, 2}, {0, 1}})
+T2= stableIntersection(T,T,Strategy=>"gfan")
+assert(dim T2 == 3)
+assert(maxCones T2 == {{1, 2}, {0, 2}, {0, 1}})
 
 ///
 

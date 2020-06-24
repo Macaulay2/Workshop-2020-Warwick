@@ -1982,8 +1982,7 @@ doc ///
     	    vertices (0*PP2_0)
     	    assert isAmple PP2_0
     	    V1 = vertices PP2_0
-	    vertices polytope (-PP2_0)
-	    peek'(2,polytope PP2_0)
+	    vertices polytope (PP2_0)
     	    X1 = normalToricVariety(-V1);
     	    assert (set rays X1 === set rays PP2 and max X1 === max PP2)
     	    assert isAmple (2*PP2_0)
@@ -1999,8 +1998,8 @@ doc ///
     	    assert not isAmple FF2_2
     	    V3 = vertices FF2_2
 	    vertices polytope FF2_2
-    	    normalToricVariety(-V3)  -- a degenerated version of the projective line
-    	    assert(isDegenerate normalToricVariety V3 and not isAmple FF2_3)
+    	    X3 = normalToricVariety(-V3)  -- a degenerated version of the projective line
+    	    assert(isWellDefined X3 and isDegenerate X3 and not isAmple FF2_3)
     	    V4 = vertices FF2_3
 	    vertices polytope FF2_3
     	    normalToricVariety(-V4) -- a weighted projective space
@@ -2008,8 +2007,8 @@ doc ///
     	    assert isAmple (FF2_2 + FF2_3)
     	    V5 = vertices (FF2_2 + FF2_3)
 	    vertices polytope (FF2_2 + FF2_3)
-    	    X3 = normalToricVariety(-V5) -- isomorphic Hirzebruch surface
-	    assert (set rays X3 === set rays FF2)
+    	    X4 = normalToricVariety(-V5) -- isomorphic Hirzebruch surface
+	    assert (set rays X === set rays FF2)
 	Text
 	    Unlike many classic sources, the method assumes that the rays in
 	    the underlying fan of the normal toric variety correspond to the

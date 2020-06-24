@@ -173,7 +173,7 @@ subalgebraBasis Subring := o -> R -> (
 	currDegree = currDegree + 1;
     	);
     if currDegree > o.Limit and o.PrintLevel > 0 then (
-	print("Limit was reached before a finite SAGBI basis was found");
+	print("Limit was reached before a finite SAGBI basis was detected");
     	);
     R.cache.SagbiGens
 )

@@ -34,7 +34,7 @@ doc ///
      M:Matrix
        $1\times k$ with entries in a @TO "PolynomialRing"@
      Limit=>ZZ
-       the maximum number of subalgebra generators to return
+       a degree limit for the binomial "S-pairs" that are computed internally
      PrintLevel=>ZZ
      Strategy=>String
    Outputs
@@ -42,20 +42,28 @@ doc ///
        $1\times r,$ with $r\le $ "Limit" above, whose entries form a partial subalgebra basis
    Description
     Text
-
+        The output of this function is generally a partial subalgebra basis. This is unavoidable, since a subalgebra of a polynomial ring, endowed with some polynomial order, need not have a finite subalgebra basis. Here is a quintessential example of this phenomenon.
     Example
-      R=QQ[x,t]
-      M=matrix{{t*x^3,t*(x^2+1),t*x}}
-      N=subalgebraBasis M
+      R=QQ[x,y];
+      A = subring matrix{{x+y,x*y,x*y^2}};
+      subalgebraBasis(A,Limit=>3)
+      subalgebraBasis(A,Limit=>10)
     Text
-
+        Nevertheless, a finite subalgebra basis exists for many notable examples. 
+        The following computation verifies a special case of Theorem 3.3 in "SAGBI bases with applications to blow-up algebras" by Conca, Herzog, and Valla.
     Example
-      R=QQ[x,y,MonomialOrder=>Lex]
-      M=matrix{{x+y,x*y,x*y^2}}
-      N=subalgebraBasis(M,Limit=>10)
-      N'=subalgebraBasis(M,Limit=>20)
-      N'=subalgebraBasis(M,Limit=>20,Strategy=>Engine)
-      (numcols N,numcols N')
+        R=QQ[t,z_1..z_4,MonomialOrder=>{Weights=>{1,0,0,0,0},Lex}];
+        M=matrix{{z_1,z_2,z_3},{z_2,z_3,z_4}};
+        I=minors(2,M);
+        A=subring(drop(gens R,1) | apply(I_*, p -> t* p))
+        subalgebraBasis(A, PrintLevel => 1)
+    Text
+        Continuing with this example, we illustrate how the setting the option Limit may influence the output.
+    Example
+        subalgebraBasis(A, PrintLevel => 1, Limit=>1)
+        subalgebraBasis(A, PrintLevel => 1, Limit=>6)
+    Text
+        The output of the last command is a finite Subalgebra Basis, but the computation necessary to verify this fact required setting Limit to at least 7.
     Text
       Some references for Subalgebra bases (aka canonical subalgebra bases, SAGBI bases):
 

@@ -5,6 +5,8 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 
+\newtheorem{proposition}{Proposition}
+
 \newcommand{\indep}{\perp \!\!\! \perp}
 \author{M2 Graphical Models MLE team}
 \title{Graphical Models MLE}
@@ -100,9 +102,19 @@ To solve this optimization problem, it is easier to use the \emph{concentration 
 \ell(K)=\frac{n}{2}\log \det K - \frac{n}{2}\operatorname{tr}\left(SK\right)
 \end{equation}
 
-Assume we work with a conditional independence model. The question is how to translate the conditional independence conditions on the parameter space $\Theta$ into a constraint in the optimization problem~(\ref{optimization problem}). This is resolved in the following proposition
-\textcolor{blue}{\cite[Proposition 3.1.13]{drton2008lectures}}
+Assume we work with a conditional independence model. The question is how to translate the conditional independence conditions on the parameter space $\Theta$ into a constraint in the optimization problem~(\ref{optimization problem}). This is resolved in the following proposition.
+\begin{proposition}[Proposition 3.1.13 from \cite{drton2008lectures}]\label{prop: CI submatrix condition}
+Let $A,B,C\subseteq[m]$ be pairwise disjoint and assume  $X\sim \mathcal{N}(\mu, \Sigma)$. A matrix $\tilde{\Sigma}$ is in the statistical model given by $X_A\indep X_B|X_C$ if and only if the submatrix $\Sigma_{A\cup C,B \cup C}$ has rank $\#C$.
+\end{proposition}
 
+Proposition~\ref{prop: CI submatrix condition} implies that one can form a \emph{Gaussian conditional independence ideal} in $\mathbb{R}[\sigma_{ij}]$ corresponding to $X_A\indep X_B|X_C$
+\[I_{A \indep B|C}=\left\langle (\#C+1)\times (\#C+1) \quad \text{minors of } \Sigma_{A\cup C,B \cup C} \right \rangle.\]
+\textcolor{blue}{Why do we not include $\det(\Sigma_{A\cup C,B \cup C})x-1$ in the list of generators?}
+
+From here, given a collection $\mathcal{C}$ of linear independence conditions 
+\[\mathcal{C}=\{X_{A_1}\indep X_{B_1}|X_{C_1},X_{A_2}\indep X_{B_2}|X_{C_2},\cdots\},\]
+the corresponding Gaussian conditional independence ideal is given by
+\[I_\mathcal{C}=I_{A_1\indep B_1|C_1}+I_{A_2\indep B_2|C_2}+\cdots.\]
 \section{Graphical models}
 
 From graph to data and back
@@ -111,9 +123,7 @@ graphical models give a parametrization of a CI model. but not all CI models adm
 
 Example
 
-K-matrix
 
-MLE
 
 \textcolor{blue}{Markov properties \cite[Section 3.2]{lauritzen1996graphical}}
 

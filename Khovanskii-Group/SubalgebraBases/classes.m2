@@ -23,11 +23,16 @@ Subring = new Type of HashTable
 subring = method()
 subring Matrix := M -> (
     R := ring M;
+    cTable := new CacheTable from{
+	SubalgComputations => new MutableHashTable from {},
+	SagbiGens => matrix(R, {{}}),
+	SagbiDegrees => {}
+	}; 
     new Subring from {
     	"AmbientRing" => R,
     	"Generators" => M,
-	cache => new CacheTable from {}
-	}
+	cache => cTable
+	}    
     )
 subring List := L -> subring matrix{L}
 

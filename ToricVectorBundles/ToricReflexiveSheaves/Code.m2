@@ -1,3 +1,4 @@
+
 -- -*- coding: utf-8 -*-
 ------------------------------------------------------------------------------
 -- Copyright 2017-20 Gregory G. Smith
@@ -44,7 +45,8 @@ describe ToricReflexiveSheaf := E -> (
       	    for p in P do (
       		flag = {flag#0 | {p#1}, flag#1 | {p#0}});
       	    if i === 0 then klyachkoData = flag
-      	    else klyachkoData = klyachkoData | flag);
+      	    else klyachkoData = klyachkoData | flag
+	    );
     	net Table klyachkoData
 	)
     )
@@ -83,12 +85,12 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
       	        << "-- expected 'E#" << i << "' to be a HashTable" << endl;
       	    return false
 	    );
-    	if not all(keys E#i, k -> instance(k, RingElement)) then (
+	if any(keys E#i, k -> not instance(k, RingElement)) then (
 	    if debugLevel > 0 then 
 	        << "-- expected the keys of 'E#" << i << "' to be ring elements" << endl;
 	    return false
 	    );
-    	if not all(values E#i, v -> instance(v, ZZ)) then (
+	if any(values E#i, v -> not instance(v, ZZ)) then (
 	    if debugLevel > 0 then 
 	        << "-- expected the values of 'E#" << i << "' to be integers" << endl;
 	    return false
@@ -109,7 +111,7 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
 	    << "-- expected 'E.ambient#1' to be a List" << endl;  
     	return false
 	);
-    if not all(length E.ambient#1, j -> instance(j, ZZ)) then (
+    if any(length E.ambient#1, j -> not instance(j, ZZ)) then (
       	if debugLevel > 0 then 
 	    << "-- expected 'E.ambient#1' to be a list of integers" << endl;  
     	return false
@@ -137,21 +139,21 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
     -- check flags
     (R, d) := ambient E;
     for i from 0 to n-1 do (
-    	if not all(keys E#i, k -> ring k === R) then (
+	if any(keys E#i, k -> ring k =!= R) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#"; 
 		<< i << "' to be elements in the ambient ring" << endl
 		);
       	    return false
 	    );
-    	if not all(keys E#i, k -> isHomogeneous k) then (
+	if any(keys E#i, k -> not isHomogeneous k) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#";
 		<< i << "' to be homogeneous" << endl
 		);
       	    return false
 	    );
-    	if not all(keys E#i, k -> degree k === d) then (
+	if any(keys E#i, k -> degree k =!= d) then (
       	    if debugLevel > 0 then (
 		<< "-- expected the keys of 'E#";
 		<< i << "' to have degree equal to the ambient degree" << endl
@@ -167,7 +169,7 @@ isWellDefined ToricReflexiveSheaf := Boolean => E -> (
 	    )
 	);
     I := ideal keys E#0;
-    if not all(n, i -> I == ideal keys E#i) then (
+    if any(n, i -> I != ideal keys E#i) then (
     	if debugLevel > 0 then (
       	    << "-- expected the ring elements on each ray ";
 	    << "to generate the same ideal" << endl
@@ -205,7 +207,7 @@ toricReflexiveSheaf (List, NormalToricVariety) := ToricReflexiveSheaf => (L, X) 
 -- constructor for the zero sheaf
 toricReflexiveSheaf NormalToricVariety := ToricReflexiveSheaf => X -> (
     n := # rays X;
-    (R, d) := (QQ[],{1});
+    (R, d) := (QQ[DegreeRank=>0], {});
     new ToricReflexiveSheaf from hashTable (
       	apply(n, i -> i => hashTable {}) | {
       	    symbol ambient => (R, d),
@@ -253,8 +255,8 @@ toricTangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
     n := # rays X;
     W := for i from 0 to n-1 list (
     	f := (vars R * transpose matrix {raysX#i})_(0,0);
-    	basisSet := {(f,1)};
-    	for g in select(gens R, h -> h // f == 0) do basisSet = basisSet|{(g,0)};
+    	basisSet := {(f, 1)};
+    	for g in select(gens R, h -> h // f == 0) do basisSet = basisSet | {(g, 0)};
     	basisSet
 	);
     toricReflexiveSheaf(W, X)
@@ -263,8 +265,8 @@ toricTangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
 toricCotangentBundle = method();
 toricCotangentBundle NormalToricVariety := ToricReflexiveSheaf => X -> (
     d := dim X;
-    e := symbol e;
-    R := QQ(monoid[e_1..e_d]);
+    f := symbol f;
+    R := QQ(monoid[f_1..f_d]);
     raysX := rays X;
     n := # rays X;
     W := for i from 0 to n-1 list (
@@ -308,15 +310,14 @@ trim ToricReflexiveSheaf := ToricReflexiveSheaf => opts -> E -> (
     )
 
 ToricReflexiveSheaf.directSum = args -> (
-    sheaves := args;
-    sheaves = select(sheaves, E -> rank E =!= 0);
+    sheaves := select(args, E -> rank E =!= 0);
+    --sheaves = apply(sheaves,trim);
     m := #sheaves;
     if m === 0 then return args#0;
     X := variety sheaves#0;  
-    if not all(sheaves, G -> variety G === X) then 
+    if any(sheaves, E -> variety E =!= X) then
     	error "expected all sheaves to be over the same variety";
-    -- TODO: handle ambient degree other that {1}
-    p := apply(toList sheaves, G -> numgens (ambient G)#0);
+    p := apply(toList sheaves, E -> numgens (ambient E)#0);
     s := apply(m, k -> sum(k, j -> p#j));
     e := symbol e;
     R := QQ(monoid[e_0..e_(sum(p)-1)]);
@@ -342,6 +343,49 @@ ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E, F) -> (
     )
 *-
 
+tensor (ToricReflexiveSheaf, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts ->(E1, E2) -> (
+    -- The logic of this code can compute tensor product of arbitrary
+    -- number of arguments. To interface with M2 tensor, it only allows two
+    -- arguments.
+
+    -- sheaves :=  select(args, E -> rank E =!= 0);
+    sheaves := (E1, E2);
+    numSheaves := #sheaves;
+    ambients := apply(sheaves, E -> ambient E);
+    -- if numSheaves === 0 then return args#0;
+    X := variety sheaves#0;
+    if any(sheaves, G -> variety G =!= X) then
+        error "expected all sheaves to be over the same variety";
+    fiberDims := apply(sheaves,
+	               G -> rank source basis ((ambient G)#1, (ambient G)#0));
+    -- Construct a new ambient ring.
+    e := symbol e;
+    f := symbol f;
+    newVars := toList (e_0..e_(fiberDims#0-1)) | toList(f_0..f_(fiberDims#0-1));
+    R := tensor(apply(ambients, i -> i#0), Variables => newVars);
+
+    startIndices := apply(numSheaves, k -> sum(k, j -> fiberDims#j));
+    maps := apply(numSheaves,
+	          i -> map(R, ambients#i#0, apply(toList ((startIndices#i)..(startIndices#i + fiberDims#i-1)),
+			  j -> R_j)));
+
+    -- Compute tensor products of basis elements and their weights.
+    W := apply(# rays X, i -> (
+	basisPairs := apply(numSheaves, j -> apply( pairs sheaves#j#i, p -> (maps_j(p_0), p_1)));
+	makeTensors := (l1, l2) ->
+	    flatten apply (l2, p -> apply(l1, q -> (p_0*q_0, p_1+q_1)));
+	fold(makeTensors, basisPairs_0, basisPairs_{1..numSheaves-1})
+	)
+    );
+    E := toricReflexiveSheaf(W, X);
+    E = trim E;
+    E.cache.components = toList sheaves;
+    E
+    )
+
+ToricReflexiveSheaf ** ToricReflexiveSheaf := ToricReflexiveSheaf => (E,F) -> tensor(E,F)
+
+
 ToricReflexiveSheaf ** ToricDivisor := ToricReflexiveSheaf => (E,D) -> (
     c := entries vector D;
     X := variety D;
@@ -355,29 +399,28 @@ exteriorPower (ZZ, ToricReflexiveSheaf) := ToricReflexiveSheaf => opts -> (p, E'
     E := trim E';
     X := variety E;
     r := rank E;
-    (R,d) := ambient E;
-    if p < 0 or p > r then toricReflexiveSheaf(R, p*d, X)
-    else if p === 0 then toricReflexiveSheaf(0 * X_0)
-    else if p === 1 then E'
-    else (  
-      	KK := coefficientRing (ambient E)#0;
-      	e := symbol e;
-      	newR := KK(monoid[e_1..e_r, SkewCommutative => true]);
-      	t := symbol t;
-      	degRing := KK(monoid[t]);
-      	n := # rays X;
-      	W := {};
-      	for i to n-1 do (
-	    psi := sub( 
-	  	(coefficients(matrix{keys E#i}, Monomials => vars R))#1, degRing);
-	    psi = exteriorPower(p, map(degRing^(-values E#i), degRing^r, psi));
-      	    weights := degrees target psi;
-	    psi = basis(p, newR) * sub(psi,KK);
-      	    W = W | { 
-	  	for k to binomial(r,p) -1 list ( psi_(0,k), weights#k#0)} );
-    	toricReflexiveSheaf(W,X) 
-	) 
-    )
+    (R, d) := ambient E;
+    if p < 0 or p > r then return toricReflexiveSheaf X;
+    if p === 0 then return toricReflexiveSheaf (0 * X_0);
+    if p === 1 then return E';
+    KK := coefficientRing (ambient E)#0;
+    e := symbol e;
+    newR := KK(monoid[e_1..e_r, SkewCommutative => true]);
+    t := symbol t;
+    degRing := KK(monoid[t]);
+    n := # rays X;
+    W := {};
+    for i to n-1 do (
+	psi := sub( 
+	    (coefficients(matrix{keys E#i}, Monomials => vars R))#1, degRing);
+	psi = exteriorPower(p, map(degRing^(-values E#i), degRing^r, psi));
+	weights := degrees target psi;
+	psi = basis(p, newR) * sub(psi, KK);
+	W = W | { 
+	    for k to binomial(r,p) -1 list ( psi_(0,k), weights#k#0)} );
+    toricReflexiveSheaf(W, X) 
+    ) 
+
 determinant ToricReflexiveSheaf := ToricReflexiveSheaf => opts -> E -> 
     exteriorPower(rank E, E)
 
@@ -387,7 +430,7 @@ symmetricPower (ZZ, ToricReflexiveSheaf) := ToricReflexiveSheaf => (p, E') -> (
     X := variety E;
     r := rank E;
     (R,d) := ambient E;
-    if p < 0 then return toricReflexiveSheaf(R, p*d, X);
+    if p < 0 then return toricReflexiveSheaf X;
     if p === 0 then return toricReflexiveSheaf(0 * X_0);
     if p === 1 then return E';
     if rank E === 0 then return toricReflexiveSheaf(R, p*d, X);
@@ -482,7 +525,7 @@ isLocallyFree ToricReflexiveSheaf := Boolean => E -> (
     )
 
 associatedCharacters = method();
-associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol groundSet) (E -> (
+associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol associatedCharacters) (E -> (
     	X := variety E;
     	if E == 0 then return apply(max X, sigma -> {});
     	for sigma in max X list (
@@ -534,13 +577,144 @@ isGloballyGenerated ToricReflexiveSheaf := Boolean => E -> (
 	)
     );  
 
+separatesJets = method()
+separatesJets ToricReflexiveSheaf := ZZ =>  (cacheValue symbol separatesJets) (E -> (
+-- exclude trivial case
+ if E == 0 then return 0;
+ X := variety E;
+ n := dim X;
+ gsE := groundSet E;
+ parE := apply(components cover E, toricDivisor);
+ parEpoly := apply(parE, polytope);
+-- exclude another trivial case
+ if min apply(parEpoly, dim) < 0 then 
+  return -1;
+ parEvert := apply(parEpoly, vertices);
+-- Why changed sign?
+ assCharE := - associatedCharacters E;
+ onefaces := apply(apply(parEpoly, p -> faces(n-1, p)), L -> apply(L, l -> l#0));
+-- for each maximal cone sigma
+-- the following searches for each component u of the character u(sigma)
+-- all polytopes parE#i such that u is j0-th vertex
+-- then checks whether the cone at u is (degenerate form of) dual cone of sigma
+-- and computes the edge lengths
+ uPositions := for k in 0 ..< # assCharE list (
+  usigma := assCharE#k;
+  sigma := (rays X)_((max X)#k);
+  for u in usigma list (
+   uPos := for i in 0 ..< #parEvert list (
+    j0 := -1;
+    for j in 0 ..< numgens source parEvert#i do (
+     if u == entries parEvert#i_j then (
+      j0 = j;
+      break;
+     )
+    );
+    if j0 >= 0 then (
+     if #(onefaces#i) == 0 then
+      {i,j0,0}
+     else (
+      coneAtU := fold( apply( flatten select(apply(onefaces#i, f -> delete(j0,f)), f-> #f == 1), f -> parEvert#i_f - parEvert#i_j0 ), (a,b) -> matrix a| matrix b);
+-- Here we should use the transpose (as coneFromHData assumes the equations to be rows)
+-- related to strange sign above?
+      dualSigma := coneFromHData matrix sigma;
+      if isFace(coneFromVData coneAtU, dualSigma) then (
+ -- Here: gcd = lattice length of vector
+       l := min apply(entries transpose coneAtU, gcd);
+       {i,j0,l}
+      )
+      else 
+       continue
+     )
+    )
+    else 
+     continue
+   );
+   if #uPos == 0 then
+    return -1;
+-- At this point: in uPos list for every u in usigma, possible places of u as a vertex, which vertex, and edge length
+   uPos
+  )
+ );
+-- helper function to parse through all choices of u as a vertex (usually not too many)
+ combinations := L -> (
+  if #L == 1 then 
+   return L_0
+  else
+   return combinations({flatten apply(L_0, l0 -> apply(L_1, l1 -> {l0,l1} | flatten drop(L,2) ))})
+ );
+ (R,d) := ambient E;
+ gsEvecs := sub((coefficients( matrix{gsE}, Monomials => basis(d,R)))#1, coefficientRing R);
+ max {-1, min for usigma in uPositions list (
+  max for c in combinations usigma list (
+   if rank gsEvecs_((transpose c)_0) != rank E then
+    continue;
+   lift(min (transpose c)_2,ZZ)
+  )
+ )}
+))
+
+isVeryAmple ToricReflexiveSheaf := Boolean => E -> 
+ separatesJets E > 0
+
+
+restrictToCurve = method()
+restrictToCurve (List,ToricReflexiveSheaf) := ToricReflexiveSheaf => (tau, E) -> (
+ maxCones := max variety E;
+ normal := generators kernel matrix (rays variety E)_tau;
+ sigmas := {};
+ for i in 0 ..< # maxCones do (
+  if isSubset(tau, maxCones#i) then (
+   proj := flatten entries (matrix (rays variety E)_(maxCones#i) * normal);
+   if all(proj, n -> n >= 0) then
+    sigmas = prepend(i,sigmas)
+   else
+    sigmas = append(sigmas,i);
+  );
+ );
+ assChar := associatedCharacters E;
+ twists := for u0 in assChar#(sigmas_0) list (
+  local a;
+  for u1 in assChar#(sigmas_1) do (
+   diff := transpose matrix {u0-u1};
+   -- this is an awkward way to see whether diss is a multiple of normal
+   -- but solve(promote(normal,QQ),promote(diff,QQ)) causes problems, if unsolvable
+   as := unique select(apply(entries(diff|normal), i -> if i_1==0 then (if not i_0==0 then infinity) else i_0/i_1), x -> instance(x,Number) or instance(x,InfiniteNumber));
+   if #as == 1 then (
+    a = as_0;
+    break;
+   );
+  );
+  lift(a,ZZ)
+ );
+-- How can we keep the notation 'P1' outside package?
+ P1 := toricProjectiveSpace 1;
+ directSum apply(twists, a -> toricReflexiveSheaf toricDivisor({a,0},P1) )
+)
+
+restrictToInvCurves = method ()
+restrictToInvCurves ToricReflexiveSheaf := List => (cacheValue symbol restrictToInvCurves) (E -> (
+ apply( (orbits variety E)#1, tau -> restrictToCurve(tau,E))
+))
+
+isNef ToricReflexiveSheaf := Boolean => E -> 
+ all(restrictToInvCurves E, r -> all( components r, L -> (degree toricDivisor L)_0 >= 0))
+
+isAmple ToricReflexiveSheaf := Boolean => E -> 
+ all(restrictToInvCurves E, r -> all( components r, L -> (degree toricDivisor L)_0 > 0))
+
+
+
 cover ToricReflexiveSheaf := ToricReflexiveSheaf => (cacheValue symbol cover) (E -> (
+	if E == 0 then (
+	    E.cache.generators = map(E, E, 0);
+	    return E);
     	X := variety E;
     	n := # rays X;
     	(RE, dE) := ambient E;    
     	gSet := groundSet E;
     	if gSet === {} then (
-      	    Z := toricReflexiveSheaf(RE,dE,X);
+    	    Z := toricReflexiveSheaf(X);
       	    E.cache.generators = map(E, Z, 0);
       	    return Z);
     	divisors := for g in gSet list (
@@ -663,7 +837,7 @@ isWellDefined ToricReflexiveSheafMap := Boolean => f -> (
       	    << "-- expected the coefficient rings of the ambient rings to be equal" << endl;
     	return false
 	);      
-    if not all(flatten entries matrix f, r -> instance(r, KK)) then (
+    if any(flatten entries matrix f, r -> not instance(r, KK)) then (
     	if debugLevel > 0 then 
       	    << "-- expected entries belong to coefficient ring of the ambient ring" << endl;
     	return false
@@ -704,7 +878,7 @@ kernel ToricReflexiveSheafMap := ToricReflexiveSheaf => opts -> (
     	(R, d) := ambient E;
     	I := ideal( basis(d, R) * gens ker matrix f );
     	X := variety E;    
-    	if I == 0 then return toricReflexiveSheaf(R, d, X);
+    	if I == 0 then return toricReflexiveSheaf X;
     	n := # rays X;
     	W := for i from 0 to n-1 list (
       	    basisSet := {};

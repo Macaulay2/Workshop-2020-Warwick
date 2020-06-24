@@ -45,12 +45,28 @@ We write $X_A\indep X_B|X_C$. If $C=\emptyset$, then the conditional independenc
 
 \textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}}
 
-\textcolor{red}{definition of statistical model}
+Given a set of conditions, a \emph{statistical model} is the set of all probability distributions that satisfy these conditions. This includes whether the probability distribution is discrete or continuous and possible conditional independence conditions.
 
-\subsection{MLE and contingency tables}
-Let $\mathcal{D}=\{X^{(1)},X^{(2)},\cdots,X^{(n)} \in \mathbb{R}^m\}$ be the data consisting of $n$ independent and identically distributed (i.i.d.) random vectors $X^{(i)}\sim P_\theta$.
+\subsection{Maximum likelihood estimation (MLE) and contingency tables}
+Let $\mathcal{D}=\{X^{(1)},X^{(2)},\cdots,X^{(n)} \in \mathbb{R}^m\}$ be the data consisting of $n$ independent and identically distributed (i.i.d.) random vectors $X^{(i)}\sim P_\theta$. The idea of maximum likelihood estimation (MLE) is to determine which probability distribution $P_\theta$ maximizes the probability of observing a given sample. 
 
-\textcolor{red}{general procedure for MLE}
+We describe the general procedure. We call
+\[L(\theta):=\prod_{i=1}^np_\theta(X^{(i)})\]
+the \emph{likelihood function}. And we assume that $\theta$ comes from a certain parameter family $\Theta$. Out goal is to find the \emph{estimate} $\hat{\theta}$ given by
+\[\hat{\theta} := \underset{\theta\in\Theta}{\operatorname{arg\;max}}\ L(\theta).\]
+This optimization problem is equivalent to a more convenient formulation using the \emph{log-likelikehood function}
+\begin{equation}\label{log-likelihood function}
+\ell(\theta):= \log L(\theta)=\sum_{i=1}^np_\theta(X^{(i)}),
+\end{equation}
+so we will usually take $\hat{\theta}$ as
+\begin{equation}\label{optimization problem}
+\hat{\theta} = \underset{\theta\in\Theta}{\operatorname{arg\;max}}\ \ell(\theta).
+\end{equation}
+
+
+If an optimal solution exists, it is a solution of a system of equations known as \emph{score equations} or \emph{likelihood equations}
+\[\frac{\partial \ell}{\partial \theta_i}=0.\]
+Given \emph{generic} data, the number of complex solutions to this system of equations is called the \emph{ML degree}.
 
 \textcolor{blue}{Write about contingency tables when discussing discrete CI models. Move the part about saturated models here. \cite[Chapter 1]{drton2008lectures} and (especially!) \cite[p.69]{lauritzen1996graphical}}
 \subsection{Discrete CI models}
@@ -65,7 +81,27 @@ Under the assumption of non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P
 \[\mathcal{P}_\Theta=\{\mathcal{N}(\mu,\Sigma):\theta=(\mu,\Sigma)\in \Theta\}.\]
 In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the all variables are assumed to be mutually independent.
 
-\textcolor{red}{Gaussian MLE}
+In the case of Gaussian models, the log-likelihood function~(\ref{log-likelihood function})  becomes
+\begin{align}
+\ell(\mu,\Sigma)&=-\frac{n}{2}\log \det \Sigma - \frac{1}{2}\operatorname{tr}\left(\Sigma^{-1}\cdot \sum_{i=1}^n(X^{(i)}-\mu)(X^{(i)}-\mu)^T\right)+C \nonumber\\
+		&=-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\operatorname{tr}\left(S\Sigma^{-1}\right)- \frac{n}{2}\left(\overline{X}-\mu\right)^T\Sigma^{-1}\left(\overline{X}-\mu\right)+C,
+\end{align}
+where $C$ is the constant term and
+\[\overline{X}=\frac{1}{n}\sum_{i=1}^nX^{(i)} \quad \text{and} \quad S=\frac{1}{n}\sum_{i=1}^n(X^{(i)}-\overline{X})(X^{(i)}-\overline{X})^T.\]
+The quantities $\overline{X}$ and $S$ are known as the \emph{sample mean} and \emph{sample covariance matrix}, respectively.
+In the case of a saturated Gaussian model, the solution to the optimization problem~(\ref{optimization problem}) is
+\[\hat{\theta}=(\hat{\mu},\hat{\Sigma})=(\overline{X},S).\]
+In the more general case when $\Theta\subsetneq\mathbb{R}^m \times PD_m$, the estimate of the mean is still $\hat{\mu}=\overline{X}$ but, after omitting the constant term, the estimate for the covariance matrix is now determined by
+\begin{equation*}
+\ell(\Sigma)=-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\operatorname{tr}\left(S\Sigma^{-1}\right)
+\end{equation*}
+To solve this optimization problem, it is easier to use the \emph{concentration matrix} $K:=\Sigma^{-1}$ because the fact that $\log \det K=-\log \det \Sigma$ makes it strictly convex
+\begin{equation}
+\ell(K)=\frac{n}{2}\log \det K - \frac{n}{2}\operatorname{tr}\left(SK\right)
+\end{equation}
+
+Assume we work with a conditional independence model. The question is how to translate the conditional independence conditions on the parameter space $\Theta$ into a constraint in the optimization problem~(\ref{optimization problem}). This is resolved in the following proposition
+\textcolor{blue}{\cite[Proposition 3.1.13]{drton2008lectures}}
 
 \section{Graphical models}
 

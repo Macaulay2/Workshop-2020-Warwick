@@ -22,7 +22,7 @@ In the context of algebraic statistics, the vertices of a graph are random varia
 \[V=\Delta \cup \Gamma \quad \text{and} \quad \Delta \cap \Gamma=\emptyset,\]
 where $\Delta$ are the discrete variables and $\Gamma$ are continuous variables. A graph is called \emph{pure}, if it contains only one type of variables.  We will assume that all our graphs are \emph{pure}.
 
-\textcolor{blue}{Would "dirty" graphs be the next step for the package?}
+\textcolor{blue}{Would "dirty" graphs be the next step for the package? See mixed data model from~\cite[Chapter 6.1.1]{lauritzen1996graphical}.}
 
 If $(a,b)$ is a directed edge, then $a$ is called the \emph{parent} of $b$ and $b$ is called the \emph{child} of $a$. If $(a,b)$ is an undirected edge, then the vertices $a$ and $b$ are called \emph{adjacent} or \emph{neighbours}. More generally, if there is a directed path from $a$ to $b$ and no reverse path from $b$ to $a$ exists, then $a$ is called an \emph{ancestor} of $b$ and $b$ is called a descendant of $a$. 
 Graphs that contain only directed edges are called directed (DAGs) and graphs with only undirected edges are called undirected. We are also interested in a special type of graphs that contains both types of edges called \emph{chain graphs}. If $G=(V,E)$ is a chain graph, then the set of vertices can be partitioned into
@@ -47,7 +47,7 @@ This leads to the notion of \emph{conditional independence}. Let $A,B,C$ be pair
 \[f_{A\cup B|C}(x_A,x_B|x_C)=f_{A|C}(x_A|x_C)f_{B|C}(x_B|x_C).\]
 We write $X_A\indep X_B|X_C$. If $C=\emptyset$, then the conditional independence is called marginal independence and we write $X_A\indep X_B$. One can also use the short-hand notation $A \indep B |C$ and $A \indep B$, respectively.
 
-\textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}}
+\textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}. Illustrate different cases of conditional independence axioms with graphs (directed vs undirected, colliders, etc)}
 
 Given a set of conditions, a \emph{statistical model} is the set of all probability distributions that satisfy these conditions. This includes whether the probability distribution is discrete or continuous and possible conditional independence conditions.
 
@@ -83,7 +83,7 @@ where $\mu \in \mathbb{R}^m$ and $\Sigma$ is assumed to be positive definite. Th
 
 Under the assumption of non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P}_\Theta$
 \[\mathcal{P}_\Theta=\{\mathcal{N}(\mu,\Sigma):\theta=(\mu,\Sigma)\in \Theta\}.\]
-In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the all variables are assumed to be mutually independent.
+In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the corresponding graph is a complete graph.
 
 In the case of Gaussian models, the log-likelihood function~(\ref{log-likelihood function})  becomes
 \begin{align}\label{Gaussian log-likelihood}
@@ -111,7 +111,7 @@ Let $A,B,C\subseteq[m]$ be pairwise disjoint and assume  $X\sim \mathcal{N}(\mu,
 
 Proposition~\ref{prop: CI submatrix condition} implies that one can form a \emph{Gaussian conditional independence ideal} in $\mathbb{R}[\sigma_{ij}]$ corresponding to $X_A\indep X_B|X_C$
 \[I_{A \indep B|C}=\left\langle (\#C+1)\times (\#C+1) \quad \text{minors of } \Sigma_{A\cup C,B \cup C} \right \rangle.\]
-\textcolor{blue}{Why do we not include $\det(\Sigma_{A\cup C,B \cup C})x-1$ in the list of generators?}
+\textcolor{blue}{Why do we not include $\det(\Sigma_{A\cup C,B \cup C})x-1$ in the list of generators? Because o/w it won't be a variety.}
 
 From here, given a collection $\mathcal{C}$ of linear independence conditions 
 \[\mathcal{C}=\{X_{A_1}\indep X_{B_1}|X_{C_1},X_{A_2}\indep X_{B_2}|X_{C_2},\cdots\},\]
@@ -126,15 +126,12 @@ In general, CI models do not admit a polynomial parametrization, i.e., are not u
 
 There are three main types of graphical models:
 \begin{enumerate}
-\item undirected graphical models (also known as Markov random fields) 
+\item undirected graphical models (also known as Markov random fields) \emph{see Markov.m2 package}
 \item directed graphical models (also known as Bayesian networks)
+\item mixed graphical models, that is those that contain both directed and bidirected edges) \emph{has been previously implemented in the GraphicalModelsMLE.m2 package}
 \item chain graph models 
 \end{enumerate}
 The chain graph models can be used to model the distributions with both discrete and continuous variables~\cite[Chapter 6.1.1]{lauritzen1996graphical}.
-
-
- 
-\textcolor{blue}{What do we mean by mixed models? }
 
 \textcolor{blue}{Possible to-do: write a more detailed description of each type of graphical models (per \cite[Chapter 3]{drton2008lectures}) but lower priorities because they mostly connect the combinatorics of graphs with the MLE estimation and we are not doing that in the package.}
 

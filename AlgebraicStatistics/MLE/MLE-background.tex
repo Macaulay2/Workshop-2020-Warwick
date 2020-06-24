@@ -25,7 +25,9 @@ where $\Delta$ are the discrete variables and $\Gamma$ are continuous variables.
 \textcolor{blue}{Would "dirty" graphs be the next step for the package?}
 
 If $(a,b)$ is a directed edge, then $a$ is called the \emph{parent} of $b$ and $b$ is called the \emph{child} of $a$. If $(a,b)$ is an undirected edge, then the vertices $a$ and $b$ are called \emph{adjacent} or \emph{neighbours}. More generally, if there is a directed path from $a$ to $b$ and no reverse path from $b$ to $a$ exists, then $a$ is called an \emph{ancestor} of $b$ and $b$ is called a descendant of $a$. 
-
+Graphs that contain only directed edges are called directed (DAGs) and graphs with only undirected edges are called undirected. We are also interested in a special type of graphs that contains both types of edges called \emph{chain graphs}. If $G=(V,E)$ is a chain graph, then the set of vertices can be partitioned into
+\[V=V_1 \cup V_2 \cup \cdots V_k\]
+such that all edges within the same component are undirected and the edges between components are directed and the direction goes from the smaller component to the larger. 
 \textcolor{blue}{TBD: illustrate with graphs (e.g., \cite[p. 6 Fig 2.2]{lauritzen1996graphical} )}
 
 Intuitively, the edges of a graph encode the dependencies between variables. If two non-adjacent vertices do not have the same ancestor, then they are \emph{(marginally) independent}. On the other hand, if they share  ancestors, then they are \emph{conditionally independent} given the common ancestors. 
@@ -115,24 +117,25 @@ From here, given a collection $\mathcal{C}$ of linear independence conditions
 \[\mathcal{C}=\{X_{A_1}\indep X_{B_1}|X_{C_1},X_{A_2}\indep X_{B_2}|X_{C_2},\cdots\},\]
 the corresponding Gaussian conditional independence ideal is given by
 \[I_\mathcal{C}=I_{A_1\indep B_1|C_1}+I_{A_2\indep B_2|C_2}+\cdots.\]
+
+
 \section{Graphical models}
-
-From graph to data and back
-
-graphical models give a parametrization of a CI model. but not all CI models admit a parametrization. (above question 3.1.9)
-
-Example
-
-
+In general, CI models do not admit a polynomial parametrization, i.e., are not unirational. The benefit of graphical CI models is that they often admit a parametrization. Furthermore, if it exists, it is given  by the combinatorial properties of the underlying graph.
 
 \textcolor{blue}{Markov properties \cite[Section 3.2]{lauritzen1996graphical}}
 
-\subsection{Undirected models}
+There are three main types of graphical models:
+\begin{enumerate}
+\item undirected graphical models (also known as Markov random fields) 
+\item directed graphical models (also known as Bayesian networks)
+\item chain graph models 
+\end{enumerate}
+The chain graph models can be used to model the distributions with both discrete and continuous variables~\cite[Chapter 6.1.1]{lauritzen1996graphical}.
 
-\subsection{Directed models}
+\textcolor{blue}{What do we mean by mixed models? }
 
-\subsection{Mixed/Chain models}
-\textcolor{blue}{Are chain and mixed models the same thing? Mixed models are not mentioned in the references}
+\textcolor{blue}{Possible to-do: write a more detailed description of each type of graphical models (per \cite[Chapter 3]{drton2008lectures}) but lower priorities because they mostly connect the combinatorics of graphs with the MLE estimation and we are not doing that in the package.}
+
 
 
 

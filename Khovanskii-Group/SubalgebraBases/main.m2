@@ -11,7 +11,7 @@ export {
     "SagbiDone"
     }
 
--- A wrapper around rawSubduction. Intended for internal use. 
+-- A wrapper around rawSubduction. Intended for internal use only.
    -- M should be a 1-row matrix with entries in the tensor ring of subR.
 subduct = method(TypicalValue => Matrix)
 subduct(Subring, Matrix) := (subR, M) -> (   

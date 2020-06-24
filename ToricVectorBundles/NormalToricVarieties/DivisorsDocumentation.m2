@@ -1981,12 +1981,14 @@ doc ///
     	    assert (null === vertices (-PP2_0))
     	    vertices (0*PP2_0)
     	    assert isAmple PP2_0
-    	    V1 = vertices (PP2_0)
-    	    X1 = normalToricVariety V1;
+    	    V1 = vertices PP2_0
+	    vertices polytope (PP2_0)
+    	    X1 = normalToricVariety(-V1);
     	    assert (set rays X1 === set rays PP2 and max X1 === max PP2)
     	    assert isAmple (2*PP2_0)
     	    V2 = vertices (2*PP2_0)
-    	    X2 = normalToricVariety V2;
+	    vertices polytope (2*PP2_0)
+    	    X2 = normalToricVariety(-V2);
     	    assert (rays X2 === rays X1 and max X2 === max X1)
         Text
             On a Hirzebruch surface, the polytopes associated to non-ample
@@ -1995,23 +1997,31 @@ doc ///
     	    FF2 = hirzebruchSurface 2;
     	    assert not isAmple FF2_2
     	    V3 = vertices FF2_2
-    	    normalToricVariety V3  -- a degenerated version of the projective line
-    	    assert isDegenerate normalToricVariety V3  
-    	    assert not isAmple FF2_3
+	    vertices polytope FF2_2
+    	    X3 = normalToricVariety(-V3)  -- a degenerated version of the projective line
+    	    assert(isWellDefined X3 and isDegenerate X3 and not isAmple FF2_3)
     	    V4 = vertices FF2_3
-    	    normalToricVariety V4 -- a weighted projective space
+	    vertices polytope FF2_3
+    	    normalToricVariety(-V4) -- a weighted projective space
     	    vertices FF2_1
     	    assert isAmple (FF2_2 + FF2_3)
     	    V5 = vertices (FF2_2 + FF2_3)
-    	    X3 = normalToricVariety V5 -- isomorphic Hirzebruch surface
-	    assert (set rays X3 === set rays FF2)
+	    vertices polytope (FF2_2 + FF2_3)
+    	    X4 = normalToricVariety(-V5) -- isomorphic Hirzebruch surface
+	    assert (set rays X === set rays FF2)
+	Text
+	    Unlike many classic sources, the method assumes that the rays in
+	    the underlying fan of the normal toric variety correspond to the
+	    {\em outer} normal vectors of the polytope.  To obtain the
+	    vertices where the rays are treated as the inner normal vectors
+	    use @TO(vertices, Polyhedron)@.
     SeeAlso
         "working with divisors"
     	(isComplete, NormalToricVariety)
     	(isCartier, ToricDivisor)
-    	(isEffective, ToricDivisor)
     	(normalToricVariety, Matrix)
     	(latticePoints, ToricDivisor)
+	(vertices, Polyhedron)	
 ///	
 
 
@@ -2043,12 +2053,14 @@ doc ///
     	    assert (null === vertices (-PP2_0))
     	    latticePoints (0*PP2_0)
     	    assert isAmple PP2_0
-    	    V1 = latticePoints (PP2_0)
-    	    X1 = normalToricVariety V1;
+    	    V1 = latticePoints PP2_0
+	    latticePoints polytope PP2_0
+    	    X1 = normalToricVariety (-V1);
     	    assert (set rays X1 === set rays PP2 and  max X1 === max PP2)
     	    assert isAmple (2*PP2_0)
     	    V2 = latticePoints (2*PP2_0)
-    	    X2 = normalToricVariety(V2, MinimalGenerators => true);
+	    latticePoints polytope (2*PP2_0)
+    	    X2 = normalToricVariety(-V2, MinimalGenerators => true);
     	    assert (rays X2 === rays X1 and max X2 === max X1)
         Text
             In this singular example, we see that all the lattice points in
@@ -2058,11 +2070,20 @@ doc ///
             Y = normalToricVariety matrix {{0,1,0,0,1},{0,0,1,0,1},{0,0,0,1,1},{0,0,0,0,3}};
     	    D = 3*Y_0;
     	    latticePoints D
+	    latticePoints polytope D
     	    latticePoints (2*D)
+	    latticePoints polytope (2*D)
+	Text
+	    Unlike many classic sources, the method assumes that the rays in
+	    the underlying fan of the normal toric variety correspond to the
+	    {\em outer} normal vectors of the polytope.  To obtain the
+	    lattices points where the rays are treated as the inner normal
+	    vectors use @TO(latticesPoints, Polyhedron)@.
     SeeAlso
         "working with divisors"
     	(normalToricVariety, Matrix)
     	(vertices, ToricDivisor)
+	(latticePoints, Polyhedron)
 ///
 
 doc ///	

@@ -1,0 +1,33 @@
+1) Compute cohomology of a toric vector bundle or toric reflexive sheaf
+For toric vector bundles, this is already implemented in the package ToricVectorBundles.
+Idea is by Klyachko that gives a specific resolution to compute the cohomology in a given degree. 
+Problem: the estimate for the locus with non-zero cohomology is a bit too big in ToricVectorBundles
+
+2) Computation of Chern data, equivariant and usual one, using Klyachko's description
+
+3) Pass between toric reflexive sheaves (in Klyachko's description) and graded modules over the Cox ring
+The direction from sheaves to modules should not be too hard.
+For the converse direction, there are two caveats:
+* note that a graded module encodes an arbitrary sheaf over the toric variety.
+* two graded modules can encode the same sheaf (if they differ by something from the irrelevant ideal)
+So for the converse direction, we might want to
+* find a canonical ("saturated") representation of a module
+* take its double dual to get its reflexive hull
+* implement a check whether it is equivariant 
+* implement a way to deform the module to an equivariant one 
+  (in analogy to deform an ideal to a monomial ideal, there are finitely many possibilities)
+Note that with such a way to pass between sheaves and modules, we can compare computations (cohomology and Chern are already available on the side of modules).
+
+4) computation of pullback (this should be fairly easy)
+
+-------------
+The following ones are quite open, and need also much theoretical thought
+-------------
+
+5) computation of pushforward
+
+6) Boij-Soederberg theory for toric varieties
+
+7) Derived categories of toric varieties
+
+8) Minimal model program for toric varieties

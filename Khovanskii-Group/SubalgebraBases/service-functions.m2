@@ -43,21 +43,27 @@ appendToBasis = (R, newGens) -> (
     
     R.cache.SagbiGens = R.cache.SagbiGens | newGens;
     R.cache.SagbiDegrees = R.cache.SagbiDegrees | flatten degrees source newGens;
-        
-    -- Find the number of generators of the ambient ring and the current list of subalgebra generators
+    
     nBaseGens := numgens ambR;
     nSubalgGens := numcols R.cache.SagbiGens;
     
-    -- A monoid with an elimination order that can be used to eliminate the generators of the base.
+    -- Create a ring with combined generators of base and subalgebra.  Monoid is needed for constructing a monomial order and the coefficient ring is used to construct the new ring.
+    MonoidAmbient := monoid ambR;
+    CoeffField := coefficientRing ambR;
+    
+    -- Add on an elimination order that eliminates the generators of the base.
+    -- Create a monoid with variables for both nBaseGens and nSubalgGens.
+    -- Degrees of generators are set so that the SyzygyIdeal is homogeneous.
+    --newOrder := append(MonoidAmbient.Options.MonomialOrder, Eliminate nBaseGens);
+    newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
+
     NewVariables := monoid[
         Variables=>nBaseGens+nSubalgGens,
         Degrees=>join(degrees source vars ambR, degrees source R.cache.SagbiGens),
-        MonomialOrder => Eliminate nBaseGens
-	];
-    
-    CoeffField := coefficientRing ambR;
+        MonomialOrder => newOrder];
+          
     subalgComp#"TensorRing" = CoeffField NewVariables;
-        
+	    
     -- ProjectionInclusion sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
     subalgComp#"ProjectionInclusion" = map(subalgComp#"TensorRing", subalgComp#"TensorRing",
         matrix {toList(nBaseGens:0_(subalgComp#"TensorRing"))} |

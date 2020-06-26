@@ -58,9 +58,13 @@ R = kk[symbol x,symbol y]   -- x>y gives infinite, y>x gives finite
 F = matrix{{x, x*y-y^2, x*y^2}}
 time (assert(  subalgebraBasis(F,Limit=>30) == matrix {{x, x*y-y^2, x*y^2, x*y^3+50*y^4, x*y^4, x*y^5-34*y^6, x*y^6, x*y^7+25*y^8, x*y^8, x*y^9+20*y^10, x*y^10, x*y^11-17*y^12, x*y^12, x*y^13-29*y^14, x*y^14, x*y^15-38*y^16, x*y^16, x*y^17-45*y^18, x*y^18, x*y^19+10*y^20, x*y^20, x*y^21-46*y^22, x*y^22, x*y^23+42*y^24, x*y^24, x*y^25+31*y^26, x*y^26, x*y^27+36*y^28, x*y^28, x*y^29-27*y^30}}))
 
-
 print("example with both finite and infinite sagbi bases (finite one)")
 R = kk[symbol y,symbol x]   -- x>y gives infinite, y>x gives finite
+F = matrix{{x, x*y-y^2, x*y^2}}
+time (assert(subalgebraBasis(F,Limit=>1000)== matrix {{x, y^2-y*x, y*x^2}}))
+
+print("make sure that an elimination order on the ambient ring doesn't cause problems.");
+BaseRing = QQ[y, x, MonomialOrder=>{Eliminate 1, GRevLex}]
 F = matrix{{x, x*y-y^2, x*y^2}}
 time (assert(subalgebraBasis(F,Limit=>1000)== matrix {{x, y^2-y*x, y*x^2}}))
 

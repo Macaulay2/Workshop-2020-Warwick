@@ -32,8 +32,19 @@ ToricReflexiveSheaf.GlobalAssignHook = globalAssignFunction
 ToricReflexiveSheaf.GlobalReleaseHook = globalReleaseFunction
 net ToricReflexiveSheaf := net @@ expression
 expression ToricReflexiveSheaf := E -> if hasAttribute(E, ReverseDictionary) 
-    then expression getAttribute(E, ReverseDictionary) else 
-    Describe (expression  toricReflexiveSheaf) (expression "...", expression variety E)
+    then expression getAttribute(E, ReverseDictionary) else (
+	X := variety E;
+	n := # rays X;
+	W := apply (n, i -> apply (sort apply (pairs E#i, p -> (p#1, p#0)), q -> (q#1, q#0)));
+    	Describe (expression  toricReflexiveSheaf) (expression W, expression X)
+    	)
+toString ToricReflexiveSheaf := String := E -> (
+    X := variety E;
+    n := # rays X;
+    W := apply (n, i -> apply (sort apply (pairs E#i, p -> (p#1, p#0)), q -> (q#1, q#0)));
+    varietyString := "normalToricVariety(" | toString rays X | ", " | toString max X | ")";
+     "toricReflexiveSheaf(" | toString W | ", " | varietyString | ")"
+    )
 describe ToricReflexiveSheaf := E -> (
     local klyachkoData;
     if rank E === 0 then return net expression 0
@@ -525,14 +536,15 @@ isLocallyFree ToricReflexiveSheaf := Boolean => E -> (
     )
 
 associatedCharacters = method();
-associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol associatedCharacters) (E -> (
+associatedCharacters ToricReflexiveSheaf := List => (
+    cacheValue symbol associatedCharacters) (E -> (
     	X := variety E;
     	if E == 0 then return apply(max X, sigma -> {});
     	for sigma in max X list (
-    	    U := normalToricVariety((rays X)_sigma, {toList(0..#sigma-1)});
-    	    EU := toricReflexiveSheaf(for i in sigma list pairs E#i,U);
+    	    U := normalToricVariety ((rays X)_sigma, {toList(0..#sigma-1)}); 
+    	    EU := toricReflexiveSheaf (for i in sigma list pairs E#i, U);
     	    G := groundSet EU;
-    	    C := transpose matrix for g in G list (
+    	    C := matrix for g in G list (
       		for i to # rays U - 1 list (
 		    weights := reverse sort unique values EU#i;
 		    j := 0;
@@ -540,11 +552,11 @@ associatedCharacters ToricReflexiveSheaf := List => (cacheValue symbol associate
 		    weights#j
 		    )
 		);
-    	    if rank source C =!= rank EU then 
+    	    if rank target C =!= rank EU then 
 		error "expected sheaf to be locally free";
     	    if not isSmooth U then 
 		error "expected sheaf on a smooth toric variety";
-    	    entries transpose ((inverse matrix rays U) * C)
+    	    sort entries (C * transpose inverse matrix rays U)
 	    )
 	)
     )

@@ -182,6 +182,8 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
 
 scoreEquationsFromCovarianceMatrixUndir = method();
 scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
+    -- convert an integer matrix into rational
+    if ring(U)===ZZ then U=matZZtoQQ(U);
     -- check which method of computing transpose is correct.
     S:=U*transpose(U);
     -- need to fix conversion to rationals

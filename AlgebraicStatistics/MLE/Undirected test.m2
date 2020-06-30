@@ -10,10 +10,17 @@ dim J
 degree J
 
 --Find the optimal concentration matrix
-MLEsolver(J,R)
+L=MLEsolver(J,R)
+
+--Test MLE max
+S=U*transpose(U);
+n = #U;
+MLEmax(R,L,S,n)
+
 
 --Test which matrices in a list are PD
 L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}}};				
 PDcheck(L)
+
 
 

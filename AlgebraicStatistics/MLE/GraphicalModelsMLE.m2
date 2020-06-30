@@ -5,26 +5,32 @@ newPackage(
      Version => "0.3",
      Date => "June 5, 2020",
      Authors => {
-	  {Name => "Luis David Garcia Puente",
-	   Email => "lgarcia@shsu.edu",
-	   HomePage => "http://www.shsu.edu/~ldg005"},
-          {Name=> "David Swinarski", 
-	   Email=> "dswinarski@fordham.edu",
-	   HomePage=>"http://faculty.fordham.edu/dswinarski"}, 
-          {Name=> "Elina Robeva", 
-	   Email=> "erobeva@gmail.com",
-	   HomePage=>"http://math.berkeley.edu/~erobeva"},
 	  {Name=> "Carlos Amendola", 
 	   Email=> "carlos.amendola@tum.de",
 	   HomePage=>"http://www.carlos-amendola.com/"},
-   	  {Name=> "Harshit J Motwani", 
-	   Email=> "harshitmotwani2015@gmail.com"},
-   	  {Name=> "Olga Kuznetsova", 
+       
+	  {Name => "Luis David Garcia Puente",
+	   Email => "lgarcia@shsu.edu",
+	   HomePage => "http://www.shsu.edu/~ldg005"},
+       
+          {Name=> "Roser Homs Pons", 
+	   Email=> "roserhp@gmail.com",
+	   HomePage=>"https://personal-homepages.mis.mpg.de/homspons/index.html"},
+       
+          {Name=> "Olga Kuznetsova", 
 	   Email=> "kuznetsova.olga@gmail.com",
 	   HomePage=>"https://okuznetsova.com"},
-   	  {Name=> "Roser Homs Pons", 
-	   Email=> "roserhp@gmail.com",
-	   HomePage=>"https://personal-homepages.mis.mpg.de/homspons/index.html"}
+       
+          {Name=> "Harshit J Motwani", 
+	   Email=> "harshitmotwani2015@gmail.com"},
+       
+          {Name=> "Elina Robeva", 
+	   Email=> "erobeva@gmail.com",
+	   HomePage=>"http://math.berkeley.edu/~erobeva"},
+       
+          {Name=> "David Swinarski", 
+	   Email=> "dswinarski@fordham.edu",
+	   HomePage=>"http://faculty.fordham.edu/dswinarski"}
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true,
@@ -673,11 +679,11 @@ doc ///
 	    Given a list of critical points (solutions to the MLE problem) that are known to be positive definite matrices, 
 	    this function evaluates Equation  2.1.6 of Sturmfels' lecture notes to identify the maximizer.
 	Example
-	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
-	    R = gaussianRing(G)
-	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-            J=scoreEquationsFromCovarianceMatrix(R,U);
-	    MLEsolver(J,R);
+    	    G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    R=gaussianRing(G)
+	    U=random(ZZ^4,ZZ^4)
+	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
+	    L=MLEsolver(J,R);
 	    S=U*transpose(U);
 	    n = #U;
 	    MLEmax(R,L,S,n)

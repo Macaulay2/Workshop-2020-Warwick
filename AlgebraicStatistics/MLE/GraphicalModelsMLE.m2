@@ -81,6 +81,34 @@ matRtolpR = (M,F) -> (
 );
 
 
+-----------------------------------------
+-- move to a new ring, lpR, which does not have the s variables
+-- When the function gaussianRing is applied to an object of 
+-- class Graph, Digraph and MixedGraph, then it outputs
+-- a ring with indeterminates s(i,j) for 1 ≤i ≤j ≤n, and
+-- additionally l(i,j), p(i,j) for mixed graphs or k(i,j) for 
+-- graphs with 1 ≤i ≤j ≤n where n is the number of vertices in G
+-- (see its documentation for details) In our computations, we
+-- do not need the indeterminates s(i,j) .  
+-- Output is a map F:R-->lpR and the ring lpR.
+-----------------------------------------
+changeRing=(d,R)->(
+    -- count the number of S variables. d is the number of
+    -- rows in a relevant matrix (clarify!!)
+    numSvars:=lift(d*(d+1)/2,ZZ);
+    --lp ring is the ring without the s variables
+    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
+    KK:=coefficientRing(R);
+    lpR:=KK[lpRvarlist];
+    -- here i is taken to numgens(R)-numSvars-1 because
+    -- indexing starts from 0. But for subscripts it
+    -- starts from 1.
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    return (F,lpR)
+    );
+
+
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
     -- input -  list of points from solves
@@ -96,13 +124,7 @@ genListmatrix = (L,R) ->
      -- d is equal to the number of vertices in G
     d := numRows K;
     -- move to a new ring, lpR, which does not have the s variables
-    numSvars:=lift(d*(d+1)/2,ZZ);
-     --lp ring is the ring without the s variables
-    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
-    KK:=coefficientRing(R);
-    lpR:=KK[lpRvarlist];
-    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
-    F:=map(lpR,R,lpRTarget);
+    F:=changeRing(d,R);
     K=F(K);
     --ring mapping ends 
     for l in L do
@@ -154,13 +176,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     -- Omega
     W := bidirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
-    numSvars:=lift(d*(d+1)/2,ZZ);
-    --lp rings is the ring without the s variables
-    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
-    KK:=coefficientRing(R);
-    lpR:=KK[lpRvarlist];
-    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
-    F:=map(lpR,R,lpRTarget);
+    (F,lpR):=changeRing(d,R);
     L = matRtolpR(L,F);
     W = matRtolpR(W,F);
     FR := frac(lpR);
@@ -186,26 +202,21 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     if ring(U)===ZZ then U=matZZtoQQ(U);
     -- check which method of computing transpose is correct.
     S:=U*transpose(U);
-    -- need to fix conversion to rationals
-    --S=matZZtoQQ(S);
     --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- d is equal to the number of vertices in G
     d := numRows K;
     -- move to a new ring, lpR, which does not have the s variables
-    numSvars:=lift(d*(d+1)/2,ZZ);
-     --lp ring is the ring without the s variables
-    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
-    KK:=coefficientRing(R);
-    lpR:=KK[lpRvarlist];
-    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
-    F:=map(lpR,R,lpRTarget);
+    (F,lpR):=changeRing(d,R);
     K=F(K);
     I:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*S)})};
     J:=saturate(I,ideal{determinant(K)});
     return J;
  );
+
+
+
 
 
 PDcheck = method();
@@ -496,15 +507,12 @@ doc ///
 	    
 	    In the example below, we create the score equations (defining the critical points of the log likelihood function written in terms of the covariance matrix) associated to the four data vectors $(1,2,1,-1)$, $(2,1,3,0)$, $(-1,0,1,1)$, $(-5,3,4,-6)$ for a graphical model with four vertices, five directed edges, and one bidirected edge.
 	    
-        Example
-	    needsPackage("Graphs");
-	    needsPackage("GraphicalModels");
-	    needsPackage("GraphicalModelsMLE");
+        Example	   
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
             scoreEquationsFromCovarianceMatrix(R,U)
---	    scoreEquationsCovariance1(G, U)
+
     Caveat
         GraphicalModelsMLE requires Graphs.m2 and GraphicalModels.m2. 
 ///

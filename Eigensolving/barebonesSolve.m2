@@ -48,10 +48,10 @@ opts -> (I,S,x,signature) -> (
     -- solve the eigen-problem: xA - a*A drops rank 
     (E,V) := eigenvectors(inverse A * xA); --TO DO: generalized e-solver
     assert isSubset(outputVariables,quotientBasis); --TO DO: in fact, this is not necessary
-    apply(numcols V,i->point {apply(outputVariables, y->(
+    apply(numcols V,i->apply(outputVariables, y->(
     		    yA := projection*Scoeffs_(apply(y*quotientBasis,g->ind#g));
     	    	    (solve(A*V_{i},yA*V_{i},ClosestFit=>true))_(0,0)
-	    	    ))} 
+	    	    )) 
 	)	
 )
 end

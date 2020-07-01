@@ -145,6 +145,7 @@ genListmatrix = (L,R) ->
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
+-- allow to input both lists and matrices
 sampleCovarianceMatrix = method();
 -- why List and not Matrix as input?
 sampleCovarianceMatrix(List) := (U) -> (
@@ -200,8 +201,8 @@ scoreEquationsFromCovarianceMatrixUndir = method();
 scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     -- convert an integer matrix into rational
     if ring(U)===ZZ then U=matZZtoQQ(U);
-    -- check which method of computing transpose is correct.
-    S:=U*transpose(U);
+    --update to not assume zero mean variables
+    S:=(1/n)*U*transpose(U);
     --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
@@ -259,7 +260,7 @@ MLEmax(Ring,List,Matrix,ZZ):=(R,L,S,n)->(
     if #L==0 then  error("No critical points to evaluate");
     if #L==1 then  E:=inverse L_0;
     if #L>=1 then 
-    	eval:=for K in L list n/2*(log det K)- n/2*(trace S*K);
+    	eval:=for K in L list log det K- trace S*K;
 	indexOptimal:=position(eval, i ->i== max eval);
 	E=inverse L_indexOptimal;
     return E; 

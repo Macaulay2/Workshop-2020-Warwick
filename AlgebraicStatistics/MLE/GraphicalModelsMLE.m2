@@ -218,6 +218,13 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     return J;
 );
 
+scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
+   X := {};
+   n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return scoreEquationsFromCovarianceMatrix(R,X);
+);
 
 
 scoreEquationsFromCovarianceMatrixUndir = method();
@@ -240,9 +247,12 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     return J;
  );
 
-
-
-
+scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
+    n = #U;
+    L = for i from 0 to n-1 list {U_i};
+    M = matrix(L);
+    return scoreEquationsFromCovarianceMatrixUndir(R,M);
+);
 
 PDcheck = method();
 PDcheck(List) := (L) -> (

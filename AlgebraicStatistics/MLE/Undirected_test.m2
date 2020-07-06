@@ -20,8 +20,16 @@ matZZtoQQ = (M) -> (
  R=gaussianRing(G)
  U=random(ZZ^4,ZZ^4)
  ring(U)
+  n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   X
+   
 J=scoreEquationsFromCovarianceMatrixUndir(R,U)
+J1 = scoreEquationsFromCovarianceMatrixUndir(R,X)
 
+L=MLEsolver(J,R)
+L1=MLEsolver(J1,R)
 dim J
 degree J
 

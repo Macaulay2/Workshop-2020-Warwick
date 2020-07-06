@@ -155,6 +155,15 @@ sampleCovarianceMatrix(List) := (U) -> (
     return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
 );
 
+sampleCovarianceMatrix(Matrix) := (U) -> (
+   X := {};
+   n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return sampleCovarianceMatrix(X);
+);
+
+
 
 JacobianMatrixOfRationalFunction = method();
 JacobianMatrixOfRationalFunction(RingElement) := (F) -> (

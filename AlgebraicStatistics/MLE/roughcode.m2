@@ -13,10 +13,83 @@ d=numrows L
 X={}
 for i from 1 to d do (X=append(X,random(ZZ^1,ZZ^d)))
 X
+
+L = for i from 0 to d-1 list {X_i};
+L
+U1 = matrix(L)
 U = matrix({{X_0},{X_1},{X_2}})
 
 S=sampleCovarianceMatrix(X)   
 S1 = sampleCovarianceMatrix(U)   -- checking the new written code for matrices
+
+
+changeRing=(d,R)->(
+    -- count the number of S variables. d is the number of
+    -- rows in a relevant matrix (clarify!!)
+    numSvars:=lift(d*(d+1)/2,ZZ);
+    --lp ring is the ring without the s variables
+    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
+    KK:=coefficientRing(R);
+    lpR:=KK[lpRvarlist];
+    -- here i is taken to numgens(R)-numSvars-1 because
+    -- indexing starts from 0. But for subscripts it
+    -- starts from 1.
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    return (F,lpR)
+    );
+
+
+removeSvar = (R) ->(
+    numSvars := #set support covarianceMatrix R;
+    lpRvarlist := gens R - set support covarianceMatrix R;
+    KK := coefficientRing(R);
+    lpR := KK[lpRvarlist];
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    return {F,lpR};
+);
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+R=gaussianRing(G)
+ K:=undirectedEdgesMatrix R
+
+F = removeSvar(R)
+
+F_0
+
+F_1
+
+
+
+ 
+
+K = F_0(K)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- change rings
 R2=coefficientRing(R)[select(gens R,v-> first baseName v!=symbol s)]

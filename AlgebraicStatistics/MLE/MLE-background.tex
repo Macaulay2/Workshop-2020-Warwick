@@ -119,14 +119,14 @@ the corresponding Gaussian conditional independence ideal is given by
 \[I_\mathcal{C}=I_{A_1\indep B_1|C_1}+I_{A_2\indep B_2|C_2}+\cdots.\]
 
 
-\section{Graphical models}
+\section{Gaussian graphical models}
 In general, CI models do not admit a polynomial parametrization, i.e., are not unirational. The benefit of graphical CI models is that they often admit a parametrization. Furthermore, if it exists, it is given  by the combinatorial properties of the underlying graph.
 
 \textcolor{blue}{Markov properties \cite[Section 3.2]{lauritzen1996graphical}}
 
 There are three main types of graphical models:
 \begin{enumerate}
-\item undirected graphical models (also known as Markov random fields) \emph{see Markov.m2 package}
+\item undirected graphical models (also known as Markov random fields) \emph{see GraphicalModels.m2 package which supercedes Markov.m2}
 \item directed graphical models (also known as Bayesian networks)
 \item mixed graphical models, that is those that contain both directed and bidirected edges) \emph{has been previously implemented in the GraphicalModelsMLE.m2 package}
 \item chain graph models 
@@ -145,7 +145,17 @@ where $S$ is the sample covariance matrix defined in (\ref{Gaussian log-likeliho
 
 \end{proposition}
 
+\subsection{Directed models}
 
+\subsection{Mixed models}
+
+\subsection{Chain graph models}
+From~\cite[Section 5.4.1]{lauritzen1996graphical} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
+
+\begin{equation}
+\hat{K}=\sum\limits_{\tau \in \mathcal{T}}[\hat{K}^*_{\tau*}]^{|\Gamma|}-n[S_{\text{pa}(\tau)}^{-1}]^{|\Gamma|},
+\end{equation}
+where $\tau$ is a chain component and $\tau*$ denotes an undirected graph that has $\tau \cup \text{pa}(\tau)$ as vertices and undirected edges between a pair $(\alpha,\beta)$ if either both of these are in $\text{pa}(\tau)$ or there is an edge, directed or undirected, between them in the chain graph $G$. The symbol $\hat{K}^*_{\tau*}$ denoted the MLE of the inverse covariance in the \textcolor{blue}{covariance selection model?} with graph $\tau*$.  
 \bibliographystyle{plain}
 \bibliography{references}
 

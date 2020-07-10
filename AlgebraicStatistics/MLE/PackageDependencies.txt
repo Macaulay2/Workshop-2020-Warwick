@@ -1,0 +1,5 @@
+GraphicalModels.m2
+- covarianceMatrix
+- undirectedEdgesMatrix
+- directedEdgesMatrix
+- bidirectedEdgesMatrix

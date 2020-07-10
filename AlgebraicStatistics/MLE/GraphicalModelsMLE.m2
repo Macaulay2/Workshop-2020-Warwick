@@ -109,6 +109,16 @@ changeRing=(d,R)->(
     );
 
 
+-- alternative function to changeRing, removes s variables and returns a list instead of sequence, I was getting some errors with changeRing
+removeSvar = (R) ->(
+    numSvars := #set support covarianceMatrix R;
+    lpRvarlist := gens R - set support covarianceMatrix R;
+    KK := coefficientRing(R);
+    lpR := KK[lpRvarlist];
+    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
+    F:=map(lpR,R,lpRTarget);
+    return {F,lpR};
+);
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
     -- input -  list of points from solves
@@ -124,8 +134,12 @@ genListmatrix = (L,R) ->
      -- d is equal to the number of vertices in G
     d := numRows K;
     -- move to a new ring, lpR, which does not have the s variables
-    F:=changeRing(d,R);
-    K=F(K);
+   -- F:=changeRing(d,R);
+   F := removeSvar(R);
+   K = F_0(K);
+   -- K = matRtolpR(K,F);
+    
+    
     --ring mapping ends 
     for l in L do
     (
@@ -135,7 +149,7 @@ genListmatrix = (L,R) ->
     for t in T do
     (
     	m := substitute(K,matrix{t});	
-    	M = M|{m}
+    	M = M|{m};
     );    
     return M
 );
@@ -154,6 +168,15 @@ sampleCovarianceMatrix(List) := (U) -> (
     Ubar := matrix{{(1/n)}} * sum(U);
     return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
 );
+
+sampleCovarianceMatrix(Matrix) := (U) -> (
+   X := {};
+   n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return sampleCovarianceMatrix(X);
+);
+
 
 
 JacobianMatrixOfRationalFunction = method();
@@ -195,6 +218,13 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     return J;
 );
 
+scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
+   X := {};
+   n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return scoreEquationsFromCovarianceMatrix(R,X);
+);
 
 
 scoreEquationsFromCovarianceMatrixUndir = method();
@@ -202,7 +232,8 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     -- convert an integer matrix into rational
     if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
-    S:=(1/n)*U*transpose(U);
+   -- S:=(1/n)*U*transpose(U); do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
+    S:= U*transpose(U);
     --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
@@ -216,9 +247,12 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     return J;
  );
 
-
-
-
+scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
+    n = #U;
+    L = for i from 0 to n-1 list {U_i};
+    M = matrix(L);
+    return scoreEquationsFromCovarianceMatrixUndir(R,M);
+);
 
 PDcheck = method();
 PDcheck(List) := (L) -> (

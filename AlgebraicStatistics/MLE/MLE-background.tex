@@ -145,10 +145,48 @@ where $S$ is the sample covariance matrix defined in (\ref{Gaussian log-likeliho
 
 \end{proposition}
 
+In general, (from~\cite[Proposition 2.1.12]{drton2008lectures}), $\hat{K}$ is the maximizer of 
+\begin{equation}
+\ln(K)=\frac{n}{2}\log \det K+ \frac{n}{2}\operatorname{tr}(SK).
+\end{equation}
+
 \subsection{Directed models}
+From~\cite[Section 13.2]{sullivant2018algebraic} 
+\textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
+Let $\Lambda$ be an $m \times m$ upper triangular matrix such that
+\[
+\Lambda_{k,j}=
+	\begin{cases}
+	\lambda_{k,j} \quad \text{if} \quad k \rightarrow j \in E\\
+	0 \quad \text{otherwise}
+	\end{cases}.
+\]
+Define the random variables $X_j$ for
+$k \in V$ by
+\[X_j=\sum\limits_{k \in pa(j)}\lambda_{kj}X_k+\epsilon_j,\]
+where $\epsilon \sim \mathcal{N}(\nu, \Omega)$ and $\Omega$ is diagonal with positive entries. Then
+\begin{equation}
+\Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}
+\end{equation}
 
+\textcolor{red}{Assume uncorrelated but not necessarily non-zero mean error term}
 \subsection{Mixed models}
+From~\cite[Section 14.2]{sullivant2018algebraic} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
+Let $G=(V,B,D)$ be a mixed graph with vertex set $V$ and biderected edges $i \leftrightarrow j \in B$ and directed edged $i \rightarrow j \in D$. Let 
+\[PD(B) = \{ \Omega \in PD_m : \omega_{ij} = 0 \quad \text{if} \quad i \neq j\quad \text{and} \quad i \leftrightarrow j \notin B\}\]
+be the set of positive definite matrices with zeroes in off-diagonal positions corresponding to $ij$ pairs where $i \leftrightarrow j$ is not a bidirected edge.
 
+To each directed edge $i \rightarrow j$ we have a real parameter $\lambda_{ij}\in \mathbb{R}$. Let
+\[\mathbb{R}^D=\{\Lambda \in \mathbb{R}^{m\times m}:\lambda_{i,j} \quad \text{if} \quad i \rightarrow j \in D, \quad \text{and} \quad \Lambda_{ij}=0 \quad \text{otherwise}\}.\]
+Let $\epsilon \sim \mathcal{N}(0, \Omega)$ where $\Omega \in PD(B)$. Define the random variables $X_j$ for
+$k \in V$ by
+\[X_j=\sum\limits_{k \in pa(j)}\lambda_{kj}X_k+\epsilon_j.\]
+Note that this is the same linear relations as in directed Gaussian graphical models except that now we allow correlated error terms $\epsilon \sim \mathcal{N}(0, \Omega)$. Then
+\begin{equation}
+\Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}
+\end{equation}
+
+\textcolor{red}{Assume possibly correlated but zero mean error term. Mean of the error term not used in the formulas though}
 \subsection{Chain graph models}
 From~\cite[Section 5.4.1]{lauritzen1996graphical} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
 

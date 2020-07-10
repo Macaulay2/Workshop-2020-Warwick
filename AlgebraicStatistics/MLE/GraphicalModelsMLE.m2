@@ -248,9 +248,9 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
  );
 
 scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
-    n = #U;
-    L = for i from 0 to n-1 list {U_i};
-    M = matrix(L);
+    n := #U;
+    L := for i from 0 to n-1 list {U_i};
+    M := matrix(L);
     return scoreEquationsFromCovarianceMatrixUndir(R,M);
 );
 
@@ -483,16 +483,15 @@ doc ///
 doc ///
     Key
     	MLEmax
-	(MLEmax,Ring,List,Matrix,ZZ)
+	(MLEmax,Ring,List,Matrix)
     Headline
         finds the optimal solution from the list of critical points that lie in the cone of positive definite matrices
     Usage
-    	MLEmax(R,L,S,n)
+    	MLEmax(R,L,S)
     Inputs
       	R: Ring 
 	L: List
 	S: Matrix
-	n: ZZ
     Outputs
     	:Matrix
     Description
@@ -506,8 +505,7 @@ doc ///
 	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
 	    L=MLEsolver(J,R);
 	    S=U*transpose(U);
-	    n = #U;
-	    MLEmax(R,L,S,n)
+	    MLEmax(R,L,S)
 
 ///
 

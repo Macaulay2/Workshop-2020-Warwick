@@ -1,6 +1,6 @@
 -- 0) Subring tests
 -- 1) SubalgebraBases tests
--- 2)
+-- 2) Infinite generators
 -- 3)
 -- 4)
 -- 5)
@@ -47,7 +47,7 @@ genericminors = (minorsize,rowsize,colsize) -> (
 --------------------------------------------
 -- test top-level and engine strategies on trivial example
 
--- 2)
+-- 2) Infinite generators
 
 TEST ///
 R=QQ[x,y,MonomialOrder=>Lex]

@@ -290,7 +290,7 @@ MLEsolver(Ideal,Ring):= (J,R) -> (
 );
 
 MLEmax = method();
-MLEmax(Ring,List,Matrix,ZZ):=(R,L,S,n)->(
+MLEmax(Ring,List,Matrix):=(R,L,S)->(
     if #L==0 then  error("No critical points to evaluate");
     if #L==1 then  E:=inverse L_0;
     if #L>=1 then 

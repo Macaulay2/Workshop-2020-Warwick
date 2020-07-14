@@ -26,7 +26,8 @@ subring Matrix := M -> (
     cTable := new CacheTable from{
 	SubalgComputations => new MutableHashTable from {},
 	SagbiGens => matrix(R, {{}}),
-	SagbiDegrees => {}
+	SagbiDegrees => {},
+	SagbiDone => false
 	}; 
     new Subring from {
     	"AmbientRing" => R,
@@ -143,11 +144,15 @@ ring Subring := A -> (
     P/I
     )
 options Subring := A -> A.cache#"Options"
--- these need to be implemented
 
 -- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"
--- todo: check if there is a finite sagbi basis and use that if available
+-- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
 RingElement % Subring := (f, A) -> (
+    
+    if hasComputedSagbi A then(
+	return subduction(A, f);
+	);
+    
     pA := presentationRing A;
     tagVars := take(gens pA, numgens A);
     tagSubs := flatten entries sub(gens A, ring liftedPresentation A);
@@ -164,7 +169,7 @@ RingElement // Subring := (f, A) -> (
     sub(f, T) % I
     )
 
--- probably needs to change!
+-- probably needs to change! (why? :P)
 member (RingElement, Subring) := (f, A) -> (
     r := f%A;
     R := ambient A;

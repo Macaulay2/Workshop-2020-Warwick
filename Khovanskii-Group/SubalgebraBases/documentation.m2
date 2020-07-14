@@ -100,6 +100,27 @@ doc ///
    Caveat
    SeeAlso
 ///
+doc ///
+   Key
+     (subduction, Subring, RingElement)
+   Headline
+     Perform subduction on an element of a ring.
+   Usage
+     result = subduction(subR, f)
+   Inputs
+     subR:Subring
+       must have a previously computed Sagbi basis.
+     f:RingElement
+       an element of the ambient ring of subR.
+   Outputs
+     result:RingElement
+       f after subduction has been performed.	
+   Description
+     Text
+       Performs subduction. Will throw an error if f is not a member of the ambient ring of subR or subR does not have a cached Sagbi basis.
+   SeeAlso
+     (symbol %, RingElement, Subring)
+///
 
 
 doc ///
@@ -303,4 +324,62 @@ doc ///
     liftedPresentation
     presentation
     setWeight
+///
+
+doc ///
+  Key
+    hasComputedSagbi
+    (hasComputedSagbi, Subring)
+  Headline
+    Check if an instance of Subring has a computed Sagbi basis. 
+  Usage
+    ans = hasComputedSagbi(subR)
+  Inputs
+    subR:Subring
+  Outputs
+    ans:Boolean
+      Whether or not a Sagbi basis is present in the cache of subR.
+  Description
+    Text
+      This function is used to check whether a call to subalgebraBasis has succeeded or failed.
+    Example
+      BaseRing = QQ[y,x]
+      subR = subring(matrix{{x, x*y-y^2, x*y^2}})
+      hasComputedSagbi subR
+      subalgebraBasis subR
+      hasComputedSagbi subR
+  SeeAlso
+    Subring
+    subring
+    subalgebraBasis
+    gensSagbi
+///
+
+doc ///
+  Key
+    gensSagbi
+    (gensSagbi, Subring)
+  Headline
+    Return the previously computed Sagbi basis of an instance of Subring.
+  Usage
+    S = gensSagbi(subR)
+  Inputs
+    subR:Subring
+  Outputs
+    S:Matrix
+      A one row matrix whose entries are a Sagbi basis for subR. 
+  Description
+    Text
+      This will throw an error unless a previous execution of subalgebraBasis(subR) has succeeded. 
+    Example
+      baseRing = QQ[a,b,c];
+      subR = subring(matrix{{a+b+c-1, a^2+b^2+c^2-a, a^3+b^3+c^3-b}});
+      subalgebraBasis subR;
+      gens subR
+      gensSagbi subR
+  SeeAlso
+    Subring
+    subring
+    subalgebraBasis
+    hasComputedSagbi
 ///

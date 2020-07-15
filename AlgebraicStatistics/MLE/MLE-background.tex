@@ -4,8 +4,13 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{xcolor}
+\usepackage{todonotes}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 \newtheorem{proposition}{Proposition}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
 
 \newcommand{\indep}{\perp \!\!\! \perp}
 \author{M2 Graphical Models MLE team}
@@ -16,7 +21,7 @@
 \tableofcontents
 \section{Introduction}
 %In the following, we follow~\cite{lauritzen1996graphical, drton2008lectures, sullivant2018algebraic}.
-Let $G=(V,E)$ be a simple graph (i.e., a graph with no loops or parallel edges), where $V$ is the set of vertices and $E$ is the set of edges. We denote by $(a,b)\in E$ a directed edge from $a$ to $b$. If $E$ contains both $(a,b)$ and $(b,a)$, then this is an undirected edge. 
+Let $G=(V,E)$ be a simple graph (i.e., a graph with no loops or parallel edges), where $V$ is the set of vertices and $E$ is the set of edges. We denote by $(a,b)\in E$ a directed edge from $a$ to $b$. If $E$ contains both $(a,b)$ and $(b,a)$, then this is an undirected \todo{Isn't this a bidirected edge?} edge. 
 
 In the context of algebraic statistics, the vertices of a graph are random variables. This induces a partition:
 \[V=\Delta \cup \Gamma \quad \text{and} \quad \Delta \cap \Gamma=\emptyset,\]
@@ -25,7 +30,7 @@ where $\Delta$ are the discrete variables and $\Gamma$ are continuous variables.
 \textcolor{blue}{Would "dirty" graphs be the next step for the package? See mixed data model from~\cite[Chapter 6.1.1]{lauritzen1996graphical}.}
 
 If $(a,b)$ is a directed edge, then $a$ is called the \emph{parent} of $b$ and $b$ is called the \emph{child} of $a$. If $(a,b)$ is an undirected edge, then the vertices $a$ and $b$ are called \emph{adjacent} or \emph{neighbours}. More generally, if there is a directed path from $a$ to $b$ and no reverse path from $b$ to $a$ exists, then $a$ is called an \emph{ancestor} of $b$ and $b$ is called a descendant of $a$. 
-Graphs that contain only directed edges are called directed (DAGs) and graphs with only undirected edges are called undirected. We are also interested in a special type of graphs that contains both types of edges called \emph{chain graphs}. If $G=(V,E)$ is a chain graph, then the set of vertices can be partitioned into
+Graphs that contain only directed edges are called directed \todo{DAG needs the extra assumption of being acyclic. No loops is different from no cycles, right?} (DAGs) and graphs with only undirected edges are called undirected. We are also interested in a special type of graphs that contains both types of edges called \emph{chain graphs}. If $G=(V,E)$ is a chain graph, then the set of vertices can be partitioned into
 \[V=V_1 \cup V_2 \cup \cdots V_k\]
 such that all edges within the same component are undirected and the edges between components are directed and the direction goes from the smaller component to the larger. 
 \textcolor{blue}{TBD: illustrate with graphs (e.g., \cite[p. 6 Fig 2.2]{lauritzen1996graphical} )}
@@ -47,20 +52,20 @@ This leads to the notion of \emph{conditional independence}. Let $A,B,C$ be pair
 \[f_{A\cup B|C}(x_A,x_B|x_C)=f_{A|C}(x_A|x_C)f_{B|C}(x_B|x_C).\]
 We write $X_A\indep X_B|X_C$. If $C=\emptyset$, then the conditional independence is called marginal independence and we write $X_A\indep X_B$. One can also use the short-hand notation $A \indep B |C$ and $A \indep B$, respectively.
 
-\textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}. Illustrate different cases of conditional independence axioms with graphs (directed vs undirected, colliders, etc)}
+\textcolor{blue}{TBD: Add conditional independence axioms (incl. C5) \cite[p. 29]{lauritzen1996graphical} \todo{I don't think we need to add any more theory here.} or \cite[Proposition 3.1.2 and Proposition 3.1.3]{drton2008lectures}. Illustrate \todo{adding meaningful examples might be interesting} different cases of conditional independence axioms with graphs (directed vs undirected, colliders, etc)} 
 
 Given a set of conditions, a \emph{statistical model} is the set of all probability distributions that satisfy these conditions. This includes whether the probability distribution is discrete or continuous and possible conditional independence conditions.
 
-\subsection{Maximum likelihood estimation (MLE) and contingency tables}
+\subsection{Maximum likelihood estimation (MLE) }
 Let $\mathcal{D}=\{X^{(1)},X^{(2)},\cdots,X^{(n)} \in \mathbb{R}^m\}$ be the data consisting of $n$ independent and identically distributed (i.i.d.) random vectors $X^{(i)}\sim P_\theta$. The idea of maximum likelihood estimation (MLE) is to determine which probability distribution $P_\theta$ maximizes the probability of observing a given sample. 
 
 We describe the general procedure. We call
 \[L(\theta):=\prod_{i=1}^np_\theta(X^{(i)})\]
-the \emph{likelihood function}. And we assume that $\theta$ comes from a certain parameter family $\Theta$. Out goal is to find the \emph{estimate} $\hat{\theta}$ given by
+the \emph{likelihood function}. Here $p_\theta$ is the density function of the probability distribution $P_\theta$ w.r.t some fixed measure $\nu$. In other words, $P_\theta(A)=\int_A p_\theta(x)d\nu(x)$ for all measurable sets $A$. We assume that $\theta$ comes from a certain parameter family $\Theta$. Our goal is to find the \emph{estimate} $\hat{\theta}$ given by
 \[\hat{\theta} := \underset{\theta\in\Theta}{\operatorname{arg\;max}}\ L(\theta).\]
 This optimization problem is equivalent to a more convenient formulation using the \emph{log-likelikehood function}
 \begin{equation}\label{log-likelihood function}
-\ell(\theta):= \log L(\theta)=\sum_{i=1}^np_\theta(X^{(i)}),
+\ell(\theta):= \log L(\theta)=\sum_{i=1}^n \log p_\theta(X^{(i)}),
 \end{equation}
 so we will usually take $\hat{\theta}$ as
 \begin{equation}\label{optimization problem}
@@ -72,7 +77,7 @@ If an optimal solution exists, it is a solution of a system of equations known a
 \[\frac{\partial \ell}{\partial \theta_i}=0.\]
 Given \emph{generic} data, the number of complex solutions to this system of equations is called the \emph{ML degree}.
 
-\textcolor{blue}{Write about contingency tables when discussing discrete CI models. Move the part about saturated models here. \cite[Chapter 1]{drton2008lectures} and (especially!) \cite[p.69]{lauritzen1996graphical}}
+\textcolor{blue}{Write about contingency tables when discussing discrete CI models.  \todo{I woud keep this section at it is}  Move the part about saturated models here. \cite[Chapter 1]{drton2008lectures} and (especially!) \cite[p.69]{lauritzen1996graphical}}
 \subsection{Discrete CI models}
 Let $X=(X_1,X_2,\cdots,X_m)$ be a discrete random vector.
 \textcolor{blue}{TBD. Description of discrete CI models and their properties in \cite[pp. 70-73]{drton2008lectures} and the MLE in \cite[pp. 36-43]{drton2008lectures}}
@@ -81,37 +86,58 @@ Let $X=(X_1,X_2,\cdots,X_m)$ follow a multivariate normal distribution $\mathcal
 \[p_{\mu,\Sigma}(x) = \frac{\exp\left(-\frac 1 2 ({ x}-{\mu})^\mathrm{T}{\Sigma}^{-1}({x}-{\mu})\right)}{\sqrt{(2\pi)^m|\Sigma|}}, \quad x \in \mathbb{R}^m,\]
 where $\mu \in \mathbb{R}^m$ and $\Sigma$ is assumed to be positive definite. This is a special case of of continuous conditional independence models.
 
-Under the assumption of non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P}_\Theta$
+Under the assumption of \todo{meaning $\Sigma$ has full rank, i.e. it's invertible, right?} non-degeneracy of $\Sigma$, a Gaussian model $\mathcal{P}_\Theta$
 \[\mathcal{P}_\Theta=\{\mathcal{N}(\mu,\Sigma):\theta=(\mu,\Sigma)\in \Theta\}.\]
 In general, the space of parameters $\Theta$ is a subset of $\mathbb{R}^m \times PD_m$. However, if there are no conditional independence conditions, then $\Theta=\mathbb{R}^m \times PD_m$ and such models are called \emph{saturated}. This is equivalent to saying the corresponding graph is a complete graph.
 
-In the case of Gaussian models, the log-likelihood function~(\ref{log-likelihood function})  becomes
+In the case of Gaussian models, the log-likelihood function~(\ref{log-likelihood function}) associated to $n$ i.i.d random vectors $X^{(1)}, \dots, X^{(n)} \sim \mathcal{N}(\mu,\Sigma)$  becomes \todo{Added first line because it's not obvious to me. Equality comes from $X^T\Sigma^{-1} X=\operatorname{tr}\left(\Sigma\cdot(XX^T)\right)$}
 \begin{align}\label{Gaussian log-likelihood}
-\ell(\mu,\Sigma)&=-\frac{n}{2}\log \det \Sigma - \frac{1}{2}\operatorname{tr}\left(\Sigma^{-1}\cdot \sum_{i=1}^n(X^{(i)}-\mu)(X^{(i)}-\mu)^T\right)+C \nonumber\\
+\ell(\mu,\Sigma)& =-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\sum_{i=1}^n (X^{(i)}-\mu)^T\Sigma^{-1}(X^{(i)}-\mu)+C \nonumber\\
+		& =-\frac{n}{2}\log \det \Sigma - \frac{1}{2}\operatorname{tr}\left(\Sigma^{-1}\cdot \sum_{i=1}^n(X^{(i)}-\mu)(X^{(i)}-\mu)^T\right)+C \nonumber\\
 		&=-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\operatorname{tr}\left(S\Sigma^{-1}\right)- \frac{n}{2}\left(\overline{X}-\mu\right)^T\Sigma^{-1}\left(\overline{X}-\mu\right)+C,
 \end{align}
 where $C$ is the constant term and
 \[\overline{X}=\frac{1}{n}\sum_{i=1}^nX^{(i)} \quad \text{and} \quad S=\frac{1}{n}\sum_{i=1}^n(X^{(i)}-\overline{X})(X^{(i)}-\overline{X})^T.\]
+
 The quantities $\overline{X}$ and $S$ are known as the \emph{sample mean} and \emph{sample covariance matrix}, respectively.
 In the case of a saturated Gaussian model, the solution to the optimization problem~(\ref{optimization problem}) is
 \[\hat{\theta}=(\hat{\mu},\hat{\Sigma})=(\overline{X},S).\]
-In the more general case when $\Theta\subsetneq\mathbb{R}^m \times PD_m$, the estimate of the mean is still $\hat{\mu}=\overline{X}$ but, after omitting the constant term, the estimate for the covariance matrix is now determined by
+In the more general case when $\Theta\subsetneq\mathbb{R}^m \times PD_m$, the estimate of the mean is still $\hat{\mu}=\overline{X}$ \todo{OWL proves the following for $\Theta =\mathbb{R}^m \times \Theta_2$. How I should interpret that in terms of the statistical model... the mean could be anything? Data can be centered around any value? Can this not hold for some graphical model?} but, after omitting the constant term, the estimate for the covariance matrix is now determined by
 \begin{equation*}
 \ell(\Sigma)=-\frac{n}{2}\log \det \Sigma - \frac{n}{2}\operatorname{tr}\left(S\Sigma^{-1}\right)
 \end{equation*}
 To solve this optimization problem, it is easier to use the \emph{concentration matrix} $K:=\Sigma^{-1}$ because the fact that $\log \det K=-\log \det \Sigma$ makes it strictly convex
-\begin{equation}
+\begin{equation}\label{ell}
 \ell(K)=\frac{n}{2}\log \det K - \frac{n}{2}\operatorname{tr}\left(SK\right)
 \end{equation}
+
+\begin{remark} Since we are only interested on when all  partial derivatives of $\ell$ will vanish simultaneously, we can forget about the coefficient $n/2$ because it will not affect the solutions of the equations. We need to focus on differentiating the expression $$\log \det K - \operatorname{tr}\left(SK\right)$$
+
+or 
+
+$$-\log \det \Sigma - \operatorname{tr}\left(S\Sigma^{-1}\right)$$
+
+Things to consider:
+\begin{itemize}
+\item For each kind of graph, what is easier to compute: $K$ or $\Sigma$? Is it a problem using the second expression (regarding convexity) as done in the code for mixedGraphs?
+\item In which variables are we given $K$ or $\Sigma^{-1}$? I.e. w.r.t. what variables do we need to take partial derivatives?
+\item Computational issues:
+\begin{itemize}
+\item computing derivatives might be tricky depending on how $\Sigma,K$ is given
+\item saturation w.r.t. determinant might be too expensive as graphs grow
+\end{itemize}
+\end{itemize}
+\end{remark}
 
 Assume we work with a conditional independence model. The question is how to translate the conditional independence conditions on the parameter space $\Theta$ into a constraint in the optimization problem~(\ref{optimization problem}). This is resolved in the following proposition.
 \begin{proposition}[Proposition 3.1.13 from \cite{drton2008lectures}]\label{prop: CI submatrix condition}
 Let $A,B,C\subseteq[m]$ be pairwise disjoint and assume  $X\sim \mathcal{N}(\mu, \Sigma)$. A matrix $\tilde{\Sigma}$ is in the statistical model given by $X_A\indep X_B|X_C$ if and only if the submatrix $\Sigma_{A\cup C,B \cup C}$ has rank $\#C$.
 \end{proposition}
 
-Proposition~\ref{prop: CI submatrix condition} implies that one can form a \emph{Gaussian conditional independence ideal} in $\mathbb{R}[\sigma_{ij}]$ corresponding to $X_A\indep X_B|X_C$
+Proposition~\ref{prop: CI submatrix condition} implies that one can form a \emph{Gaussian conditional independence ideal} in $\mathbb{R}[\sigma_{ij}]$ corresponding to $X_A\indep X_B|X_C$ \todo{but this includes submatrices of rank less than $\#C$...}
 \[I_{A \indep B|C}=\left\langle (\#C+1)\times (\#C+1) \quad \text{minors of } \Sigma_{A\cup C,B \cup C} \right \rangle.\]
-\textcolor{blue}{Why do we not include $\det(\Sigma_{A\cup C,B \cup C})x-1$ in the list of generators? Because o/w it won't be a variety.}
+
+\textcolor{blue}{Why do we not include $\det(\Sigma_{A\cup C,B \cup C})x-1$ in the list of generators? Because o/w it won't be a variety.}\todo{I don't understand this comment}
 
 From here, given a collection $\mathcal{C}$ of linear independence conditions 
 \[\mathcal{C}=\{X_{A_1}\indep X_{B_1}|X_{C_1},X_{A_2}\indep X_{B_2}|X_{C_2},\cdots\},\]
@@ -140,53 +166,157 @@ In the case of multivariate normal undirected graphical models, Proposition~\ref
 
 \begin{proposition}[Proposition 2.1.14 and Equation 3.2.2. from \cite{drton2008lectures}]
 Let $G=(V,E)$ be an undirected graph and take any two vertices $a$ and $b$. Then $\hat{\Sigma}$ is the unique positive-definite matrix that satisfies
-\[\Sigma_{a,b}=S_{a,b} \quad \text{and}\quad \Sigma^{-1}_{a,b}=0,\]
+\[\Sigma_{a,b}=S_{a,b} \mbox{ for all $(a,b)\in E$}\quad \text{and}\quad \left(\Sigma^{-1}\right)_{a,b}=0 \mbox{ for all $(a,b)\notin E$},\]
 where $S$ is the sample covariance matrix defined in (\ref{Gaussian log-likelihood}).
 
 \end{proposition}
 
-In general, (from~\cite[Proposition 2.1.12]{drton2008lectures}), $\hat{K}$ is the maximizer of 
-\begin{equation}
-\ln(K)=\frac{n}{2}\log \det K+ \frac{n}{2}\operatorname{tr}(SK).
-\end{equation}
+Let $K=(k_{i,j})$ be a symmetric matrix such that $K=\Sigma^{-1}$. The undirected graph $G=(V,E)$ gives vanishing conditions on certain entries of $K$. Then (\ref{ell}) is a function on the non-vanishing entries $k_{i,j}$ of $K$ and hence the score equations are 
+
+$$\frac{n}{2\det K}\cdot\frac{\partial}{\partial k_{i,j}} \det K-\frac{n}{2}\frac{\partial }{\partial k_{i,j}}\operatorname{tr(S K)}=0.$$
+
+In other words, we need to solve 
+
+$$\frac{\partial}{\partial k_{i,j}} \det K-\det K\frac{\partial }{\partial k_{i,j}}\operatorname{tr(S K)}=0.$$
+
+\noindent for every $(i,j)\in E$ and $\det K\neq 0$.
+
+\begin{algorithm}[H]
+\caption[Aun]{Compute MLE of an undirected graph}
+\label{Aun}
+\begin{algorithmic}
+\REQUIRE $G=(V,E)$ is an undirected graph
+%\ENSURE 
+\begin{enumerate}
+\item Compute the concentration matrix $K=(k_{i,j})$ given by $G$
+\item Define a ring with variables $k_{i,j}$ the non-zero entries of $K$ 
+\item Generate a sample covariance matrix S
+\item Compute ideal I generated by $\frac{\partial}{\partial k_{i,j}} \det K-\det K\frac{\partial }{\partial k_{i,j}}\operatorname{tr(S K)}$
+\item Compute the saturation ideal J of I w.r.t. det K
+\item Solve the zero-dimensional system of equations given by J
+\item Count the number of solutions with multiplicity (ML-degree)
+\item Evaluate solutions in K and find the only one giving a PD matrix
+\item Compute the inverse $\hat{\Sigma}$ of the previous PD matrix (MLE)
+\end{enumerate}
+
+\RETURN
+\begin{itemize}
+\item ML-degree 
+\item MLE 
+\end{itemize}
+
+
+\end{algorithmic}
+\end{algorithm}
+
 
 \subsection{Directed models}
-From~\cite[Section 13.2]{sullivant2018algebraic} 
-\textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
-Let $\Lambda$ be an $m \times m$ upper triangular matrix such that
+
+When we have a directed acyclic graph $G=([m],E)$ we can always assume after renaming the vertices that $ i \rightarrow j$ implies $i < j$. This renaming of vertices is called a topological reordering. Note that with graphs containing cycles, this is no longer possible. \todo{then what? are we never interested in the MLE in such situation?}
+
+Therefore we can always consider an upper triangular $m\times m$ matrix $\Lambda$ that encodes the directed edges of the graph as follows
+
 \[
-\Lambda_{k,j}=
+\Lambda_{i,j}=
 	\begin{cases}
-	\lambda_{k,j} \quad \text{if} \quad k \rightarrow j \in E\\
-	0 \quad \text{otherwise}
+	\lambda_{i,j}, \quad \text{if} \quad i \rightarrow j \in E;\\
+	0 ,\quad \text{otherwise}.
 	\end{cases}.
 \]
-Define the random variables $X_j$ for
-$k \in V$ by
-\[X_j=\sum\limits_{k \in pa(j)}\lambda_{kj}X_k+\epsilon_j,\]
-where $\epsilon \sim \mathcal{N}(\nu, \Omega)$ and $\Omega$ is diagonal with positive entries. Then
+
+Using a directed acyclic graph $G$ with $m$ vertices we can encode a multivariate normally distributed random vector $X=(X_1,\dots,X_m)$ with the following relations between its random variables:
+
+\[X_j=\sum\limits_{i \in pa(j)}\lambda_{i,j}X_i+\epsilon_j,\]
+
+\noindent
+where $\epsilon_j\sim\mathcal{N}(\nu_j,\omega_j)$. This means that each $X_j$ is a linear function on its parents and some random error $\epsilon_j$. It can be summarized with matrix equations
+
+\begin{equation}\label{eqX}
+X=\Lambda^T X+\epsilon,
+\end{equation}
+
+\noindent
+where $\epsilon=(\epsilon_1,\dots,\epsilon)$ is jointly normal with covariance matrix $\Omega=\operatorname{diag}(\omega_1,\dots,\omega_m)$. Note that $\Omega$ being diagonal comes from assuming the errors $\epsilon_1,\dots,\epsilon_m$ to be independent. Also note that from (\ref{eqX}) we get
+
+\[X=(\operatorname{Id}-\Lambda)^{-T}\epsilon,\]
+
+\noindent
+hence it is an affine transformation of the jointly normal vector $\epsilon$ and therefore $X\sim\mathcal{N}((\operatorname{Id}-\Lambda)^{-T}\nu, (\operatorname{Id}-\Lambda)^{-T}\Omega(\operatorname{Id}-\Lambda)^{-1})$. Then
 \begin{equation}
 \Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}
 \end{equation}
 
-\textcolor{red}{Assume uncorrelated but not necessarily non-zero mean error term}
+\begin{example} Consider the DAG given by $G=\lbrace 1\rightarrow 2, 2\rightarrow 3, 4\rightarrow 3, 4 \rightarrow 1\rbrace$. Then
+$$\Lambda_G=\left(\begin{array}{cccc}
+0 & \lambda_{1,2} & 0 & 0\\
+0 & 0 & \lambda_{2,3} & 0\\
+0 & 0 & 0 & 0\\
+\lambda_{4,1} & 0 & \lambda_{4,3} & 0
+\end{array}\right)$$
+
+\noindent
+is not upper diagonal. We can consider the topological reordering given by "shifting" the edges 90 degrees clockwise in the square we get  $G'=\lbrace 1\rightarrow 2, 2\rightarrow 3, 3\rightarrow 4, 1 \rightarrow 4\rbrace$ and
+$$\Lambda_{G'}=\left(\begin{array}{cccc}
+0 & \lambda_{1,2} & 0 & \lambda_{1,4}\\
+0 & 0 & \lambda_{2,3} & 0\\
+0 & 0 & 0 & \lambda_{3,4}\\
+0 & 0 & 0 & 0
+\end{array}\right)$$
+
+\noindent
+is indeed upper diagonal.  \todo{Our algorithm should compute a topological reordering to obtain an upper triangular matrix?  (6) is true without this assumption}
+\end{example}
+
+\begin{algorithm}[H]
+\caption[Aun]{Compute MLE of a directed graph}
+\label{Aun}
+\begin{algorithmic}
+\REQUIRE $G=(V,E)$ is a directed graph
+%\ENSURE 
+\begin{enumerate}
+\item Compute matrices $\Lambda$ and $\Omega$ 
+\item Define a ring with variables $\lambda_{i,j}$ and $\omega_k$ the non-zero entries of $\Lambda$ and $\Omega$, respectively 
+\item Compute matrix $\Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}$
+\item Generate a sample covariance matrix S
+\item Compute ideal I generated by 
+$$-\frac{\partial}{\partial \lambda_{i,j}} \det \Sigma-\det \Sigma\frac{\partial }{\partial \lambda_{i,j}}\operatorname{tr(S \Sigma^{-1})}$$
+$$-\frac{\partial}{\partial \omega_k} \det \Sigma-\det \Sigma\frac{\partial }{\partial \omega_k}\operatorname{tr(S \Sigma^{-1})}$$
+\item Compute the saturation ideal J of I w.r.t. $det \Sigma$
+\item Solve the zero-dimensional system of equations given by J
+\item Count the number of solutions with multiplicity (ML-degree)
+\item Evaluate solutions in $\ell(\Sigma)=- \log \det \Sigma - \operatorname{tr}(S\Sigma^{-1})$ and find the maximum 
+\item Evaluate the previous solution in $\Sigma$ (MLE)
+\end{enumerate}
+
+\RETURN
+\begin{itemize}
+\item ML-degree 
+\item MLE 
+\end{itemize}
+
+
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Mixed models}
-From~\cite[Section 14.2]{sullivant2018algebraic} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
-Let $G=(V,B,D)$ be a mixed graph with vertex set $V$ and biderected edges $i \leftrightarrow j \in B$ and directed edged $i \rightarrow j \in D$. Let 
+
+We now consider the linear relations 
+\[X_j=\sum\limits_{i \in pa(j)}\lambda_{i,j}X_i+\epsilon_j,\]
+from the directed case but we allow the errors $\epsilon_1,\dots,\epsilon_m$ to be correlated. \todo{In the book they assume mean zero in $\epsilon$ but it does not seem to be necessary right?}  In particular, the covariance matrix $\omega$ of the random vector $\epsilon$ will no longer be diagonal. We want to see what kind of graphs encode this conditional dependence relations.
+
+Let $G=(V,B,D)$ be a mixed graph with vertex set $V$, biderected edges $i \leftrightarrow j \in B$ and directed edged $i \rightarrow j \in D$. Let 
 \[PD(B) = \{ \Omega \in PD_m : \omega_{ij} = 0 \quad \text{if} \quad i \neq j\quad \text{and} \quad i \leftrightarrow j \notin B\}\]
-be the set of positive definite matrices with zeroes in off-diagonal positions corresponding to $ij$ pairs where $i \leftrightarrow j$ is not a bidirected edge.
 
-To each directed edge $i \rightarrow j$ we have a real parameter $\lambda_{ij}\in \mathbb{R}$. Let
-\[\mathbb{R}^D=\{\Lambda \in \mathbb{R}^{m\times m}:\lambda_{i,j} \quad \text{if} \quad i \rightarrow j \in D, \quad \text{and} \quad \Lambda_{ij}=0 \quad \text{otherwise}\}.\]
-Let $\epsilon \sim \mathcal{N}(0, \Omega)$ where $\Omega \in PD(B)$. Define the random variables $X_j$ for
-$k \in V$ by
-\[X_j=\sum\limits_{k \in pa(j)}\lambda_{kj}X_k+\epsilon_j.\]
-Note that this is the same linear relations as in directed Gaussian graphical models except that now we allow correlated error terms $\epsilon \sim \mathcal{N}(0, \Omega)$. Then
-\begin{equation}
-\Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}
-\end{equation}
+In this scenario, $\Omega$ has constrains in its off-diagonal entries given by the vanishing of those that correspond to non-bidirected edges of the graph. \todo{This would be the concentration matrix of the undirected graph given by the bidirected edges of $G$.}
 
-\textcolor{red}{Assume possibly correlated but zero mean error term. Mean of the error term not used in the formulas though}
+Directed edges encode exactly the same information as before, hence {\ref{eqX}} holds and
+the covariance matrix of $X$ is again
+
+$$\Sigma=(Id-\Lambda)^{-T}\Omega(Id-\Lambda)^{-1}$$
+
+The algorithm is the same as for directed graphical models.
+
+
 \subsection{Chain graph models}
 From~\cite[Section 5.4.1]{lauritzen1996graphical} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
 

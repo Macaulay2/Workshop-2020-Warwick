@@ -24,8 +24,9 @@ insertPending = (R, candidates, maxDegree) -> (
     )
 
 -- Finds the lowest nonempty list in Pending
+-- Makes a pass through the lists of Pending until it finds something nonempty
     -- R is a subalgebra
-    -- Algorithm makes a pass through the lists of Pending until it finds something nonempty
+    -- maxDegree is an integer
 lowestDegree = (R, maxDegree) -> (
     subalgComp := R.cache.SubalgComputations;
     -- i steps through the lists of Pending
@@ -36,55 +37,12 @@ lowestDegree = (R, maxDegree) -> (
 
 -- Adds newGens to R.cache.SagbiGens. Updates the appropriate rings/maps in R.cache.SubalgComputations.
     -- R is of Type Subring
-    -- newGens is a matrix of generators to be added
+    -- newGens is a 1-row matrix of generators to be added
 appendToBasis = (R, newGens) -> (
-    ambR := ambient R;
     subalgComp := R.cache.SubalgComputations;
-    
     R.cache.SagbiGens = R.cache.SagbiGens | newGens;
     R.cache.SagbiDegrees = R.cache.SagbiDegrees | flatten degrees source newGens;
-    
-    nBaseGens := numgens ambR;
-    nSubalgGens := numcols R.cache.SagbiGens;
-    
-    -- Create a ring with combined generators of base and subalgebra.  Monoid is needed for constructing a monomial order and the coefficient ring is used to construct the new ring.
-    MonoidAmbient := monoid ambR;
-    CoeffField := coefficientRing ambR;
-    
-    -- Add on an elimination order that eliminates the generators of the base.
-    -- Create a monoid with variables for both nBaseGens and nSubalgGens.
-    -- Degrees of generators are set so that the SyzygyIdeal is homogeneous.
-    --newOrder := append(MonoidAmbient.Options.MonomialOrder, Eliminate nBaseGens);
-    newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
-
-    NewVariables := monoid[
-        Variables=>nBaseGens+nSubalgGens,
-        Degrees=>join(degrees source vars ambR, degrees source R.cache.SagbiGens),
-        MonomialOrder => newOrder];
-          
-    subalgComp#"TensorRing" = CoeffField NewVariables;
-	    
-    -- ProjectionInclusion sets the variables corresponding to the base equal to 0.  The result is in the tensor ring.
-    subalgComp#"ProjectionInclusion" = map(subalgComp#"TensorRing", subalgComp#"TensorRing",
-        matrix {toList(nBaseGens:0_(subalgComp#"TensorRing"))} |
-	(vars subalgComp#"TensorRing")_{nBaseGens .. nBaseGens+nSubalgGens-1});
-    
-    -- ProjectionBase sets the variables corresponding to the subalgebra generators equal to 0 and maps into the ambient ring.
-    subalgComp#"ProjectionBase" = map(ambR, subalgComp#"TensorRing",
-        (vars ambR) | matrix {toList(nSubalgGens:0_(ambR))});
-    
-    -- InclusionBase is the inclusion map from the base ring to the tensor ring.  The variables are mapped to themselves
-    subalgComp#"InclusionBase" = map(subalgComp#"TensorRing", ambR,
-        (vars subalgComp#"TensorRing")_{0..nBaseGens-1});
-    
-    -- Replaces elements of the tensor ring with their formulas in terms of the base ring.
-    subalgComp#"Substitution" = map(subalgComp#"TensorRing", subalgComp#"TensorRing",
-        (vars subalgComp#"TensorRing")_{0..nBaseGens-1} | subalgComp#"InclusionBase"(R.cache.SagbiGens));
-    
-    -- An ideal consisting of variables repesenting subalgebra generators minus their leading term
-    subalgComp#"SyzygyIdeal" = ideal(
-        (vars subalgComp#"TensorRing")_{nBaseGens..nBaseGens+nSubalgGens-1}-
-	subalgComp#"InclusionBase"(leadTerm R.cache.SagbiGens));
+    subalgComp#"SagbiPres" = makePresRing(ambient R, first entries R.cache.SagbiGens);
     )
 
 --Accepts a 1-row matrix inputMatrix and returns a matrix of columns of inputMatrix whose entries all have total degree less than maxDegree

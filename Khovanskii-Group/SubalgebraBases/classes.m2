@@ -1,25 +1,18 @@
 export {
     "Subring",
     "subring",
-    "liftedPresentation",
-    "liftedPresentationRing",
-    "presentationRing",
+    "PresRing",
+    "makePresRing",
     "getWeight",
-    "setWeight"
+    "setWeight",
+    "presentationRing"
     }
-
-
--- Organization
--- 1) Subring type (and associated methods)
--- 2) experimental valuation type
-
--- 1) Subring type (and associated basic methods)
 
 -- todo: eventually, we might want Subring to inherit from Ring
 -- but inheriting from "Ring" is not straightforward, so HashTable for now
 Subring = new Type of HashTable
 
--- constructor
+
 subring = method()
 subring Matrix := M -> (
     R := ring M;
@@ -32,6 +25,11 @@ subring Matrix := M -> (
     new Subring from {
     	"AmbientRing" => R,
     	"Generators" => M,
+	-- The PresRing of a Subring instance is immutable because the generators are immutable.
+	"PresRing" => makePresRing(R, M),
+	"isSagbi" => false,
+	"isPartialSagbi" => false,
+	"partialDegree" => 0,
 	cache => cTable
 	}    
     )
@@ -43,99 +41,127 @@ numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
 net Subring := A -> "subring of " | toString(ambient A)
 
-presentationRing = method()
-presentationRing Subring := A -> (
-    B := ambient A;
-    k := coefficientRing B;
-    e := symbol e;
-    nA := numgens A;
-    return presentationRing(A, k[apply(nA, i -> e_i)]);
+-- TODO: Write a Subring equality operator which calculates the mathematical equality of subalgebras 
+-- TODO: Write good tests for % and //.
+
+-- This type is compatible with internal maps that are generated in the Sagbi algorithm.
+-- Originally, this was stored directly in the cache of an instance of Subring. 
+-- The problem with that solution is there is a need to use these maps outside of the Sagbi algorithm computations.
+PresRing = new Type of HashTable
+
+net PresRing := pres -> (    
+    tense := pres#"TensorRing";
+    A := numcols vars tense;
+    B := numcols selectInSubring(1, vars tense);
+    "PresRing instance ("|toString(B)|" generators in "|toString(A-B)|" variables)"
     )
 
-presentationRing (Subring, Ring) := (A, newPresRing) -> (
-    if not A.cache#?"PresentationRing" then (
-	B := ambient A;
-	nA := numgens A;
-	assert(nA == numgens newPresRing);
-	if A.cache#?"AmbientWeight" then (
-	    D := A.cache#"AmbientWeight";
-	    weightRing := newRing(B, MonomialOrder => { Weights => D});
-	    inducedWeights := for p in flatten entries gens A list (
-	    	p' := sub(p, weightRing);
-	    	E := (exponents leadTerm p')#0;
-	    	sum apply(E, D, (i,j) -> i*j)
-	    	);
-	    A.cache#"PresentationRing" = newRing(newPresRing, MonomialOrder => {Weights => inducedWeights});
-	    ) else (
-	    A.cache#"PresentationRing" = newPresRing;
-	    );
+-- gensR are elements of R generating some subalgebra.
+-- R is a polynomial ring.
+makePresRing = method(TypicalValue => PresRing)  
+makePresRing(Ring, Matrix) := (R, gensR) ->( 
+    if(R =!= ring(gensR)) then(
+	error "The generators of the subalgebra must be in the ring R.";
 	);
-    A.cache#"PresentationRing"
-    )
+    makePresRing(R, first entries gensR)
+    );
+ 
+makePresRing(Ring, List) := (R, gensR) ->( 
+    
+    if(ring(matrix({gensR})) =!= R) then(
+	error "The generators of the subalgebra must be in the ring R.";
+	);
+    
+    ambR := R;
+    nBaseGens := numgens ambR;
+    nSubalgGens := length gensR;
+    
+    -- Create a ring with combined generators of base and subalgebra.  
+    MonoidAmbient := monoid ambR;
+    CoeffField := coefficientRing ambR;
+    
+    -- Construct the monoid of a ring with variables corresponding to generators of the ambient ring and the subalgebra.
+    -- Has an elimination order that eliminates the generators of the ambient ring.
+    -- The degrees of generators are set so that the SyzygyIdeal is homogeneous.
+    newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
 
-presentationRing (List, Matrix) := (pVars, M) -> (
-    assert (#pVars === numcols M);
-    newRing (ring M, Variables => pVars)
-    )
+    NewVariables := monoid[
+        Variables=>nBaseGens+nSubalgGens,
+        Degrees=>join(degrees source vars ambR, degrees source matrix({gensR})),
+        MonomialOrder => newOrder];
+    
+    TensorRing := CoeffField NewVariables;	    
+    
+    -- ProjectionInclusion sets the variables corresponding to the ambient ring equal to 0.
+    ProjectionInclusion := map(TensorRing, TensorRing,
+        matrix {toList(nBaseGens:0_(TensorRing))} |
+	(vars TensorRing)_{nBaseGens .. nBaseGens+nSubalgGens-1});
+    
+    -- ProjectionBase sets the variables corresponding to the subalgebra generators equal to 0 and maps into the ambient ring.
+    ProjectionBase := map(ambR, TensorRing,
+        (vars ambR) | matrix {toList(nSubalgGens:0_(ambR))});
+    
+    -- InclusionBase is the inclusion map from the ambient ring to the tensor ring.  
+    -- The variables of the ambient ring are mapped to themselves.
+    InclusionBase := map(TensorRing, ambR,
+        (vars TensorRing)_{0..nBaseGens-1});
+    
+    -- Replaces variables corresponing to generators of the subalgebra with their formulas in the ambient ring.
+    Substitution := map(TensorRing, TensorRing,
+        (vars TensorRing)_{0..nBaseGens-1} | InclusionBase(matrix({gensR})));
+    
+    -- Sends variables of the Subring's ambient ring to their corresponding variables in the tensor ring.
+    BaseEmbed := map(TensorRing, ambR,
+        (vars TensorRing)_{0..nBaseGens-1});
 
-presentationRing Matrix := M -> (
-    n := numcols M;
-    pVars := toList vars (0..n-1);
-    presentationRing (pVars, M)
-    )
+    -- A toric ideal consisting of variables repesenting subalgebra generators minus their leading term.
+    SyzygyIdeal := ideal(
+        (vars TensorRing)_{nBaseGens..nBaseGens+nSubalgGens-1}-
+	InclusionBase(leadTerm matrix({gensR})));
+    
+    -- This is equivalent to the lifted presentation function (which has been deleted)
+    submap := Substitution;
+    genVars := (vars TensorRing)_{numgens ambient R..numgens TensorRing-1};
+    liftedPres := ideal(submap(genVars) - genVars);
+    
+    FullSub :=  ProjectionBase*Substitution;
+    
+    -- Here is where any additional information that we'd like to associate with a Subring can be computed/added.
+    
+    ht := new HashTable from {
+	"MonomialOrder" => newOrder,
+	"TensorRing" => TensorRing,
+	"ProjectionInclusion" => ProjectionInclusion,
+	"ProjectionBase" => ProjectionBase,
+	"InclusionBase" => InclusionBase,
+	"Substitution" => Substitution,
+	"SyzygyIdeal" => SyzygyIdeal,
+	"BaseEmbed" => BaseEmbed,
+	"FullSub" => FullSub,
+	"LiftedPres" => liftedPres
+	};
+    
+    new PresRing from ht
+    );
+makePresRing(Subring) := subR -> (
+    subR#"PresRing"
+    );
 
--*
-    Input:  - matrix with n columns over polynomial ring R
-            - a list of n new variables
-            - optional: a prescribed term order
-    Output: a polynomial ring with with variables coming from R and the list
-    *-
-
-liftedPresentationRing = method (
-    TypicalValue => PolynomialRing,
-    Options => {MonomialOrder => null})
-liftedPresentationRing (List, Matrix) := PolynomialRing => o -> (pVars, M) -> (
-    assert (#pVars === numcols M);
-    X := (ring M)_*;
-    newVars := X | pVars;
-    liftedPR := if o.MonomialOrder === null then
-    newRing (ring M, Variables => newVars) else
-    newRing (ring M, Variables => newVars, MonomialOrder => o.MonomialOrder);
-    liftedPR
-    )
-liftedPresentationRing Matrix := PolynomialRing => o -> M -> (
-    pVars := (presentationRing M)_*;
-    liftedPresentationRing (pVars, M, MonomialOrder => o.MonomialOrder))
-
-
--- computes the presentation of the subring in the presentation ring
 liftedPresentation = method()
-liftedPresentation Subring := (cacheValue "LiftedPresentation")(A -> (
-    B := ambient A;
-    P := presentationRing A;
-    G := gens A;
-    k := coefficientRing B;
-    (nB, nA) := (numgens B, numgens A);
-    -- introduce nA "tag variables" w/ monomial order that eliminates non-tag variables
-
-    -- e := symbol e;
-    -- C := k[gens B | apply(nA, i -> e_i), MonomialOrder => append(getMO B, Eliminate nB)];
-    C := k[gens B | gens P, MonomialOrder => append(getMonomialOrder B, Eliminate nB)];
-    B2C := map(C,B,(vars C)_{0..nB-1});
-    ideal(B2C G - (vars C)_{nB..numgens C-1})
-    ))
-
+liftedPresentation Subring := R -> (    
+    pres := R#"PresRing";
+    pres#"LiftedPres"
+    );
 
 -- computes relations of presentation using gb
 presentation Subring := A -> (
-    if not A.cache#?"LiftedGB" then (
-	A.cache#"LiftedGB" = gb liftedPresentation A;
+    if not A.cache#?"LiftedPresGB" then (
+	A.cache#"LiftedPresGB" = gb liftedPresentation A;
 	);
     presentationGens := selectInSubring(1, gens A.cache#"LiftedGB");
     P := presentationRing A;
     sub(presentationGens, P)
     )
-
 
 -- quotient ring given by a presentation
 ring Subring := A -> (
@@ -143,40 +169,45 @@ ring Subring := A -> (
     P := ring I;
     P/I
     )
-options Subring := A -> A.cache#"Options"
 
--- output: r in ambient of A such that f = a + r w/ a in A, r "minimal"
+-- input: f in ambient A or TensorRing of A. 
+-- output: r in TensorRing of A such that f = a + r w/ a in A, r "minimal"
 -- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
 RingElement % Subring := (f, A) -> (
     
-    if hasComputedSagbi A then(
-	return subduction(A, f);
+    if ring f === ambient A then(
+	f = (A#"PresRing"#"BaseEmbed")(f);
+	) else if ring f =!= A#"PresRing"#"TensorRing" then(
+	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
     
-    pA := presentationRing A;
-    tagVars := take(gens pA, numgens A);
-    tagSubs := flatten entries sub(gens A, ring liftedPresentation A);
-    subTable := apply(tagVars, tagSubs, (ei, fi) -> ei => fi);
-    nonRemainder := sub(sub(sub(f // A, pA), subTable), ambient A);
-    use ring f;
-    f - nonRemainder
-    )
+    f - (f // A)
+    );
 
--- output: for A=k[g1,..,gk], p(e1,...,ek) st f = p(g1,..,gk) + r
+-- input: f in ambient A or TensorRing of A. 
+-- output: a in TensorRing of A such that f = a + r w/ a in A, r "minimal"
+-- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
 RingElement // Subring := (f, A) -> (
-    I := liftedPresentation A;
-    T := ring I;
-    sub(f, T) % I
-    )
+    
+    if ring f === ambient A then(
+	f = (A#"PresRing"#"BaseEmbed")(f);
+	) else if ring f =!= A#"PresRing"#"TensorRing" then(
+	error "The RingElement f must be in either TensorRing or ambient A.";
+	);
+    
+    I := A#"PresRing"#"LiftedPres";
+    f % I
+    );
 
--- probably needs to change! (why? :P)
+-- Perhaps it is a bug that this will sometimes throw an error when it should return false.
 member (RingElement, Subring) := (f, A) -> (
     r := f%A;
-    R := ambient A;
-    r == 0_R
-    )
+    r == 0_(A#"PresRing"#"TensorRing")
+    );
 
--- 2) experimental valuation type
+-----------------------------------------------------------------
+-- experimental valuation type
+-----------------------------------------------------------------
 
 Valuation = new Type of HashTable
 -- what should a valuation need to know?

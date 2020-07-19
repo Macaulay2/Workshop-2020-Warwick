@@ -4,41 +4,27 @@ export {
     "subalgebraBasis",
     "subduction",
     "sagbi" => "subalgebraBasis",
-    "hasComputedSagbi",
-    "gensSagbi", 
     "PrintLevel",
     "SagbiDegrees",
     "SubalgComputations",
     "SagbiGens",
-    "SagbiDone"
+    "SagbiDone",
+    "appendToBasis" -- temporary
     }
-
--- Returns whether or not the cache of SubR has a completed Sagbi basis.
-hasComputedSagbi = method(TypicalValue => Boolean)
-hasComputedSagbi(Subring) := (subR) -> (   
-    subR.cache.SagbiDone
-    );
-gensSagbi = method(TypicalValue => Matrix)
-gensSagbi(Subring) := (subR) -> (
-    if not (hasComputedSagbi subR) then(
-	error "The given Subring instance does not have a previously computed Sagbi basis.";
-	);
-    subR.cache.SagbiGens
-    );
 
 -- A wrapper around rawSubduction. Intended for internal use only.
    -- M should be a 1-row matrix with entries in the tensor ring of subR.
 subduct = method(TypicalValue => Matrix)
 subduct(Subring, Matrix) := (subR, M) -> (   
-    subalgComp := subR.cache.SubalgComputations;
     ambR := ambient subR;
     
     if entries M === {{}} then (
 	return M;
 	);
-    
+    subalgComp := subR.cache.SubalgComputations;
     -- Substitution encodes the set used as the subalgebra basis.
-    F := subalgComp#"Substitution";
+    sagbiPres := subalgComp#"SagbiPres";
+    F := sagbiPres#"Substitution";
     J := subalgComp#"sagbiGB";
     numblocks := rawMonoidNumberOfBlocks raw monoid ambR;
     rawSubduction(numblocks, raw M, raw F, raw J)
@@ -52,50 +38,39 @@ subduction = method(TypicalValue => RingElement)
 subduction(Matrix, RingElement) := (S, f) -> (
     subR := subring S;
     
-    -- This writes data we need to subR.cache.SubalgComputations.
-    appendToBasis(subR, S);
-    subalgComp := subR.cache.SubalgComputations;
-    F := subalgComp#"Substitution";
-    J := gb(subalgComp#"SyzygyIdeal");
+    presS := makePresRing(S);
+
+    F := presS#"Substitution";
+    J := gb(presS#"SyzygyIdeal");
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
-    fMat := matrix({{subalgComp#"InclusionBase"(f)}});    
+    fMat := matrix({{presS#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), source (subalgComp#"ProjectionBase"));
-    result = subalgComp#"ProjectionBase"(result);
+    result = promote(result_(0,0), source (presS#"ProjectionBase"));
+    result = presS#"ProjectionBase"(result);
     
     result
     );
 
--- Performs subduction relative to a Subring instance that has a previously computed
--- Sagbi basis. If the cache of subR does not have a Sagbi basis, an error is thrown.
-    -- subR - an instance of Subring whose cache contains a Sagbi basis.
-    -- f - an instance of RingElement contained in the ambient ring of subR.
+-- Performs subduction using the generators of subR.
+-- currently does not require the generators to be a Sagbi basis.
 subduction(Subring, RingElement) := (subR, f) -> (
     
-    if not (hasComputedSagbi subR) then(
-	error "The given Subring instance does not have a previously computed Sagbi basis.";
-	);
     if (ring f) =!= (ambient subR) then()(
 	error "The given RingElement must be from the ambient ring of the the given Subring instance."; 
 	);
     
-    subalgComp := subR.cache.SubalgComputations;
+    presSubR := makePresRing(subR);
     
-    F := subalgComp#"Substitution";
-    J := gb(subalgComp#"SyzygyIdeal");
+    F := presSubR#"Substitution";
+    J := gb(presSubR#"SyzygyIdeal");
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
-    fMat := matrix({{subalgComp#"InclusionBase"(f)}});    
+    fMat := matrix({{presSubR#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), source (subalgComp#"ProjectionBase"));
-    result = subalgComp#"ProjectionBase"(result);
+    result = promote(result_(0,0), source (presSubR#"ProjectionBase"));
+    result = presSubR#"ProjectionBase"(result);
     
     result
     );
-
-
-
-
-
 
 subalgebraBasis = method(Options => {
     Strategy => null,
@@ -107,28 +82,11 @@ subalgebraBasis List := o -> L -> (
     );
 
 subalgebraBasis Subring := o -> R -> (
-    -- baseRing is the ring of the input matrix
-    -- semiRing is the free semigroup ring formed from the SAGBI generators
-    -- tensorRing is the ring formed from the tensor of the base ring and semigroup ring
-    -- Pending is a list of lists, sorting elements of the algebra by degree.
-
-    -- ProjectionInclusion is the projection from the tensor ring to the semiRing by sending the base ring generators to 0.
-    -- projectionToBase is the projection from the tensor ring to the baseRing by sending the SAGBI generators to 0.
-    -- inclusionOfBase is the inclusion of the baseRing into the tensorRing
-        
     R.cache.SubalgComputations = new MutableHashTable;
     subalgComp := R.cache.SubalgComputations;
-
+    
     R.cache.SagbiDegrees = {};
-    
-    subalgComp#"TensorRing" = null;  -- RS
-    subalgComp#"SyzygyIdeal" = null; -- J
     subalgComp#"sagbiGB" = null;
-    
-    subalgComp#"ProjectionInclusion" = null; -- RStoS
-    subalgComp#"ProjectionBase" = null;      -- RStoR
-    subalgComp#"InclusionBase" = null;       -- RtoRS
-    subalgComp#"Substitution" = null;        -- Gmap
     
     currDegree := null;     -- d
     nLoops := null;         -- nloops
@@ -149,11 +107,16 @@ subalgebraBasis Subring := o -> R -> (
     (subalgComp#"Pending")#0 = {};
     processPending(R, o.Limit);
     currDegree = subalgComp#"CurrentLowest" + 1;
+    
+    isPartial := false;
+    
         
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
         -- Construct a Groebner basis to eliminiate the base elements generators from the SyzygyIdeal.
 	-- SyzygyIdeal is an ideal consisting of (variables repesenting subalgebra generators) minus (their leading term). 
-	subalgComp#"sagbiGB" = gb(subalgComp#"SyzygyIdeal", DegreeLimit => currDegree);
+	
+	pres := subalgComp#"SagbiPres";
+	subalgComp#"sagbiGB" = gb(pres#"SyzygyIdeal", DegreeLimit => currDegree);
 	
 	-- This will select the entries of sagbiGB that do not involve any of (leadTerms subalgComp#"SyzygyIdeal") and also
 	-- have degree equal to currDegree. So, they will be exclusively in the higher block of variables of TensorRing.
@@ -161,11 +124,11 @@ subalgebraBasis Subring := o -> R -> (
 	    		
 	-- Plug the generators into the degree currDegree polynomials that eliminate the lead terms (I.e. zeroGens.) 
 	-- This changes it from a polynomial in the generators to a polynomial in the variables of the ambient ring.
-       	syzygyPairs = subalgComp#"Substitution"(zeroGens);
+       	syzygyPairs = pres#"Substitution"(zeroGens);
 
 	-- Have we previously found any syzygies of degree currDegree?
         if subalgComp#"Pending"#currDegree != {} then (
-            syzygyPairs = syzygyPairs | subalgComp#"InclusionBase"(matrix{subalgComp#"Pending"#currDegree});
+            syzygyPairs = syzygyPairs | pres#"InclusionBase"(matrix{subalgComp#"Pending"#currDegree});
             subalgComp#"Pending"#currDegree = {};
             );
 	
@@ -173,7 +136,7 @@ subalgebraBasis Subring := o -> R -> (
 	
        	if entries subd != {{}} then (
 	    -- converts back to the variables of the ambient ring.
-	    subducted := (subalgComp#"ProjectionBase")(map(subalgComp#"TensorRing",subd));
+	    subducted := (pres#"ProjectionBase")(map(pres#"TensorRing",subd));
 	    newElems = compress subducted;
             ) else (
 	    newElems = subd;
@@ -195,13 +158,55 @@ subalgebraBasis Subring := o -> R -> (
             );
 	currDegree = currDegree + 1;
     	);
+    
+    if currDegree > o.Limit then(
+	isPartial = true;
+	);
+    -- Possibly, it could finish on the same run that it successfully terminates.
+    if R.cache.SagbiDone == true then(
+	isPartial = false;
+	);
+    
     if currDegree > o.Limit and o.PrintLevel > 0 then (
-	print("Limit was reached before a finite SAGBI basis was detected");
+	print("Limit was reached before a finite SAGBI basis was found.");
     	);
-    R.cache.SagbiGens
-)
+    
+
+    -- We return a new instance of subring instead of the generators themselves so that we can say whether or not a Subring instance
+    -- IS a Sagbi basis, not whether or not it HAS a Sagbi basis. (The latter is unacceptable because the cache should not effect 
+    -- the value of a function.)
+        
+    -- If subalgebraBasis is called on a Subring instance with a previously computed Sagbi basis that is not itself a Sagbi basis,
+    -- a new subring instance will be constructed from its cached SagbiGens. This is OK because different instances of the same 
+    -- subring will still be equal if we calculate equality based on the mathematical equality of the subalgebras they generate.
+    -----------------------------------------------------------------------------------------------------
+    -- subR.cache.SagbiDone: Indicates whether or not the Subring instance has a cached Sagbi basis. 
+    -- subR.isSagbi        : Indicates whether or not (gens subR) itself is a Sagbi basis.
+    -----------------------------------------------------------------------------------------------------
+    -- The correct way to implement a function that requires a Subring instance that is a Sagbi basis is to check that 
+    -- (subR.isSagbi == true). If (subR.isSagbi == false) and (subR.cache.SagbiDone == true), an error should be thrown.
+    
+    M := R.cache.SagbiGens;
+    
+    -- We shouldn't directly set (cache => R.cache) because there is the possibility of inhereting outdated information. 
+    cTable := new CacheTable from{
+	SubalgComputations => new MutableHashTable from {},
+	SagbiGens => M,
+	SagbiDegrees => R.cache.SagbiDegrees,
+	SagbiDone => R.cache.SagbiDone
+	}; 
+    new Subring from {
+    	"AmbientRing" => ambient R,
+    	"Generators" => M,
+	"PresRing" => makePresRing(ambient R, M),
+    	"isSagbi" => R.cache.SagbiDone,
+	"isPartialSagbi" => isPartial,
+	"partialDegree" => currDegree-1,
+	cache => cTable
+	} 
+    );
 
 subalgebraBasis Matrix := o -> gensMatrix -> (
     R := subring gensMatrix;
     subalgebraBasis(R,o)
-    )
+    );

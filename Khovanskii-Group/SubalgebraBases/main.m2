@@ -53,22 +53,34 @@ subduction(Matrix, RingElement) := (S, f) -> (
 
 -- Performs subduction using the generators of subR.
 -- currently does not require the generators to be a Sagbi basis.
+-- Returns an element of ambient subR.
 subduction(Subring, RingElement) := (subR, f) -> (
-    
-    if (ring f) =!= (ambient subR) then()(
-	error "The given RingElement must be from the ambient ring of the the given Subring instance."; 
+    pres := subR#"PresRing";
+
+    if ring f === pres#"TensorRing" then (
+	f = (pres#"FullSub")(f);
+	)else if ring f =!= ambient subR then (
+	error "f must be from the (ambient subR) or subR's TensorRing.";
 	);
+        
+    -- It is possible for ring f === ambient to be true but f is still from a different ring 
+    -- than pres#"TensorRing". In this case, we don't try to prevent an error by using "sub"
+    -- or something. Instead, the following line will deliberately throw an error:
+    -- (This is done because otherwise there is potential for a segfault.)
+    throwError := f - 1_(ambient subR);   
     
-    presSubR := makePresRing(subR);
+    F := pres#"Substitution";
+    --J := gb(pres#"LiftedPres");
+    if not subR.cache#?"LiftedPresGB" then (
+	subR.cache#"LiftedPresGB" = gb (pres#"LiftedPres");
+	);
+    J := subR.cache#"LiftedPresGB";
     
-    F := presSubR#"Substitution";
-    J := gb(presSubR#"SyzygyIdeal");
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
-    fMat := matrix({{presSubR#"InclusionBase"(f)}});    
+    fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), source (presSubR#"ProjectionBase"));
-    result = presSubR#"ProjectionBase"(result);
-    
+    result = promote(result_(0,0), source (pres#"ProjectionBase"));
+    result = pres#"ProjectionBase"(result);
     result
     );
 
@@ -184,9 +196,12 @@ subalgebraBasis Subring := o -> R -> (
     -- subR.isSagbi        : Indicates whether or not (gens subR) itself is a Sagbi basis.
     -----------------------------------------------------------------------------------------------------
     -- The correct way to implement a function that requires a Subring instance that is a Sagbi basis is to check that 
-    -- (subR.isSagbi == true). If (subR.isSagbi == false) and (subR.cache.SagbiDone == true), an error should be thrown.
+    -- (subR.isSagbi == true). If (subR.isSagbi == false) and (subR.cache.SagbiDone == true), an error should still be thrown.
     
+    
+    resultR := ambient R;
     M := R.cache.SagbiGens;
+    presRing := makePresRing(resultR, M);
     
     -- We shouldn't directly set (cache => R.cache) because there is the possibility of inhereting outdated information. 
     cTable := new CacheTable from{
@@ -196,9 +211,9 @@ subalgebraBasis Subring := o -> R -> (
 	SagbiDone => R.cache.SagbiDone
 	}; 
     new Subring from {
-    	"AmbientRing" => ambient R,
+    	"AmbientRing" => resultR,
     	"Generators" => M,
-	"PresRing" => makePresRing(ambient R, M),
+	"PresRing" => presRing,
     	"isSagbi" => R.cache.SagbiDone,
 	"isPartialSagbi" => isPartial,
 	"partialDegree" => currDegree-1,

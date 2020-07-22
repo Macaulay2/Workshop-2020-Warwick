@@ -110,10 +110,6 @@ makePresRing(Ring, List) := (R, gensR) ->(
     Substitution := map(TensorRing, TensorRing,
         (vars TensorRing)_{0..nBaseGens-1} | InclusionBase(matrix({gensR})));
     
-    -- Sends variables of the Subring's ambient ring to their corresponding variables in the tensor ring.
-    BaseEmbed := map(TensorRing, ambR,
-        (vars TensorRing)_{0..nBaseGens-1});
-
     -- A toric ideal consisting of variables repesenting subalgebra generators minus their leading term.
     SyzygyIdeal := ideal(
         (vars TensorRing)_{nBaseGens..nBaseGens+nSubalgGens-1}-
@@ -136,7 +132,6 @@ makePresRing(Ring, List) := (R, gensR) ->(
 	"InclusionBase" => InclusionBase,
 	"Substitution" => Substitution,
 	"SyzygyIdeal" => SyzygyIdeal,
-	"BaseEmbed" => BaseEmbed,
 	"FullSub" => FullSub,
 	"LiftedPres" => liftedPres
 	};
@@ -147,20 +142,13 @@ makePresRing(Subring) := subR -> (
     subR#"PresRing"
     );
 
-liftedPresentation = method()
-liftedPresentation Subring := R -> (    
-    pres := R#"PresRing";
-    pres#"LiftedPres"
-    );
-
 -- computes relations of presentation using gb
 presentation Subring := A -> (
     if not A.cache#?"LiftedPresGB" then (
-	A.cache#"LiftedPresGB" = gb liftedPresentation A;
+	pres := A#"PresRing";
+	A.cache#"LiftedPresGB" = gb (pres#"LiftedPres");
 	);
-    presentationGens := selectInSubring(1, gens A.cache#"LiftedGB");
-    P := presentationRing A;
-    sub(presentationGens, P)
+    selectInSubring(1, gens A.cache#"LiftedGB");
     )
 
 -- quotient ring given by a presentation
@@ -170,33 +158,39 @@ ring Subring := A -> (
     P/I
     )
 
+-- TODO: be consistent about what ring the results of these functions are in.
+
 -- input: f in ambient A or TensorRing of A. 
 -- output: r in TensorRing of A such that f = a + r w/ a in A, r "minimal"
--- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
 RingElement % Subring := (f, A) -> (
-    
+    pres := A#"PresRing";
     if ring f === ambient A then(
-	f = (A#"PresRing"#"BaseEmbed")(f);
-	) else if ring f =!= A#"PresRing"#"TensorRing" then(
+	f = (pres#"InclusionBase")(f);
+	) else if ring f =!= pres#"TensorRing" then(
 	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
-    
-    f - (f // A)
+   
+    (pres#"FullSub"(f)) - (f // A)
     );
 
 -- input: f in ambient A or TensorRing of A. 
 -- output: a in TensorRing of A such that f = a + r w/ a in A, r "minimal"
 -- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
 RingElement // Subring := (f, A) -> (
-    
+    pres := A#"PresRing";
+    tense := pres#"TensorRing";
     if ring f === ambient A then(
-	f = (A#"PresRing"#"BaseEmbed")(f);
-	) else if ring f =!= A#"PresRing"#"TensorRing" then(
-	error "The RingElement f must be in either TensorRing or ambient A.";
+	f = (pres#"InclusionBase")(f);
+	) else if ring f =!= tense then(
+	error "The RingElement f must be in either the TensorRing or ambient ring of A.";
 	);
     
-    I := A#"PresRing"#"LiftedPres";
-    f % I
+    if A#"isSagbi" then(
+	return subduction(A, f);	
+	);
+    
+    I := pres#"LiftedPres";
+    (pres#"FullSub")(f % I)
     );
 
 -- Perhaps it is a bug that this will sometimes throw an error when it should return false.

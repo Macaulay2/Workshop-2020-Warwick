@@ -1051,12 +1051,6 @@ trekSeparation MixedGraph := List => (g) -> (
               if appendnS then statements = append(statements, nS);););););););
     statements)
 
--*
-Input: graph g, integer k
-Output: list of seperation statements
-Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such that it is separated:
-a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
-*-
 -*multiTrekSeparation = method()
 multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
     print "1";
@@ -1088,45 +1082,29 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
 	);
     statements)*-
 
--*
-Input: graph g, integer k, Slist and Alist k-tuples of vertices
-Output: a list of vertices t for which there exists a k-trek with top t, where the i'th leg ends in Slist#i and doesn't pass through Alist#i
-*-
 tops = method()
 tops (Digraph,ZZ,List,List) := List => (g,k,Slist,Alist) ->(   
     topList := {};
     Glist:=apply(Alist,A->deleteVertices(g,A));
     vert := sort vertices g;
-    for v in vert do( --v not in union of Alist
+    for v in vert do(
 	isTop := true;
 	i:=0;
-	descd := {};
 	while (isTop and i<k) do(
-	    print "aa";
 	    pathExists := false;
-	    print Glist;
-	    descd = toList(descendants(Glist#i,v));
-	    print descd;
-	    ddd := 0;
-	    print "a";
-	    while ((not pathExists) and ddd<length(descd)) do(
-		if member(descd#ddd,Slist#i) then(pathExists=true;);
-		ddd=ddd+1;
+	    desc := toList(descendants(Glist#i,v));
+	    d := 0;
+	    while ((not pathExists) and d<length(desc)) do(
+		if member(desc#d,Slist#i) then(pathExists=true;);
+		d=d+1;
 		);
-	    print "b";
 	    if not pathExists then (isTop=false;);
-	    print isTop;
 	    i=i+1;
-	    print k;
-	    print i;
-	    print "c";
 	    );
-	print "d";
 	if isTop then(topList=append(topList,v););
 	print "hi";	
 	);
-    print topList;
-    return topList;)
+    topList)
 
 ------------------------------------------------------------------
 -- trekIdeal (Ring,MixedGraph)

@@ -160,6 +160,8 @@ ring Subring := A -> (
 
 -- TODO: be consistent about what ring the results of these functions are in.
 
+-- f % Subring is never going to be an element of the subalgebra, hence the ouput
+-- is in the lower variables of TensorRing.
 -- input: f in ambient A or TensorRing of A. 
 -- output: r in TensorRing of A such that f = a + r w/ a in A, r "minimal"
 RingElement % Subring := (f, A) -> (
@@ -169,13 +171,20 @@ RingElement % Subring := (f, A) -> (
 	) else if ring f =!= pres#"TensorRing" then(
 	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
-   
-    (pres#"FullSub"(f)) - (f // A)
+    ans := (subduction(A, f));
+    print("----------------------");
+    print("-- input:");
+    print(f);
+    print("-- output:");
+    print(ans);
+    print("----------------------");    
+    ans    
     );
 
+-- f // Subring is always going to be inside of the subalgebra, hence the output
+-- should be in the upper variables of TensorRing.
 -- input: f in ambient A or TensorRing of A. 
--- output: a in TensorRing of A such that f = a + r w/ a in A, r "minimal"
--- See proposition 3.6.1 in "Computational Commutative Algebra" book 1 by Kreuzer and Robbiano.
+-- output: a in TensorRing of A such that f = a + r w/ a in A, r "minimal."
 RingElement // Subring := (f, A) -> (
     pres := A#"PresRing";
     tense := pres#"TensorRing";
@@ -184,13 +193,24 @@ RingElement // Subring := (f, A) -> (
 	) else if ring f =!= tense then(
 	error "The RingElement f must be in either the TensorRing or ambient ring of A.";
 	);
-    
-    if A#"isSagbi" then(
-	return subduction(A, f);	
-	);
+    result := f - (f % A);
     
     I := pres#"LiftedPres";
-    (pres#"FullSub")(f % I)
+    result % I
+    );
+
+Matrix % Subring := (M, A) -> (
+    ents := for i from 0 to numrows M - 1 list(
+	for j from 0 to numcols M - 1 list(M_(i,j) % A)
+	);
+    matrix(A#"PresRing"#"TensorRing", ents)
+    );
+Matrix // Subring := (M, A) -> (
+    pres := A#"PresRing";
+    ents := for i from 0 to numrows M - 1 list(
+	for j from 0 to numcols M - 1 list(M_(i,j) // A)
+	);
+    matrix(pres#"TensorRing", ents)
     );
 
 -- Perhaps it is a bug that this will sometimes throw an error when it should return false.

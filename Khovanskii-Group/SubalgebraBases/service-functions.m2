@@ -29,7 +29,6 @@ insertPending = (R, candidates, maxDegree) -> (
     -- maxDegree is an integer
 lowestDegree = (R, maxDegree) -> (
     subalgComp := R.cache.SubalgComputations;
-    -- i steps through the lists of Pending
     i := 0;
     while i <= maxDegree and (subalgComp#"Pending")#i === {} do i=i+1;
     i
@@ -42,7 +41,7 @@ appendToBasis = (R, newGens) -> (
     subalgComp := R.cache.SubalgComputations;
     R.cache.SagbiGens = R.cache.SagbiGens | newGens;
     R.cache.SagbiDegrees = R.cache.SagbiDegrees | flatten degrees source newGens;
-    subalgComp#"SagbiPres" = makePresRing(ambient R, first entries R.cache.SagbiGens);
+    subalgComp#"PartialSagbi" = subring(R.cache.SagbiGens);
     )
 
 --Accepts a 1-row matrix inputMatrix and returns a matrix of columns of inputMatrix whose entries all have total degree less than maxDegree

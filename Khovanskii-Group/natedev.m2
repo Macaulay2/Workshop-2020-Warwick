@@ -1,5 +1,4 @@
 -- This file contains:
--- - unfinished code (intrinsicReduce)
 -- - useful debugging functions (debugPrintMap and debugPrintAllMaps) 
 -- - A new example from Sturmfels chapter 11
 -- - Usage of new features
@@ -95,12 +94,18 @@ assert(ambient subRSagbi === ambient subR);
 -- This is a feature not a bug. It forces users to never assume subalgebraBasis will leave the generators unchanged. 
 assert(tenseSagbi =!= tense);
 
--- Once Subring equality is implemented, this should work:
--- assert(subR == subRSagbi);
+-- subR and subRSagbi generate the same set.
+assert(subR == subRSagbi);
+
 print("-- assertions complete.");
+
+error "done";
+
 
 -- We need to put some thought into the tests for this function.
 result = intrinsicReduce(subRSagbi, sub(G, tenseSagbi), sub(f, tenseSagbi))
+error "done";
+result = toricSyz(subRSagbi, sub(G, tenseSagbi))
 
 print("-- result:");
 print(result);

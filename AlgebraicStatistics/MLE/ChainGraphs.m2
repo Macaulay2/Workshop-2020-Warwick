@@ -19,6 +19,10 @@ MLEsolverCG(List, Digraph, Matrix):= (L,D,U) -> (
     -- count the total number of vertices
     n:=# flatten vert;
     
+    --combine all edges (undirected and directed)
+    edg:={}
+    for l in L do edg=append(edg, edges  l);
+    edg=append(edg, edges D)
     ------------------------------------------------------
     -- confirm input is compatible
     ------------------------------------------------------

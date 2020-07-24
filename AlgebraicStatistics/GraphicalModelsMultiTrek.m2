@@ -1053,41 +1053,84 @@ trekSeparation MixedGraph := List => (g) -> (
 
 -*
 Input: graph g, integer k
-Output: list of seperation statements
+Output: list of separation statements: in format {Slist,Alist}, where Slist={S1..Sk}, Alist={A1..Ak}
 Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such that it is separated:
 a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
 *-
--*multiTrekSeparation = method()
+multiTrekSeparation = method()
 multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
-    print "1";
+    --print "1";
     G := graph collateVertices g;
-    print "2";
+    --print "2";
     statements := {};
     v := sort vertices g;
-    print v;
+    --print v;
     DG := graph G#Digraph;
-    print "3";
+    --print "3";
     DGhash := new MutableHashTable from apply(v,i->{i,DG#i});
-    print DGhash#(v#1);
-    for A in toList(((set subsets v)^**k)/deepSplice) do(
-	SS := apply(k-1,i->delete({},subsetsBetween(A#i,v)));
-	Slist := (set (SS#0));
+    --print DGhash#(v#1); --returns children of the vertex v#1
+    for Alist in toList(((set subsets v)^**k)/deepSplice) do(
+	--print Alist;
+	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v))); --assume A_i \subset S_i
+	--print SS;
+	--Want: Slist' is the collection of all possible Slists, where Slist=(S_1..S_(k-1)), with S_i \in SS_i
+	--Slist' := (set (SS#0));
+	Slist' := set(apply(SS#0,j->toSequence({j})));
+	--print "---";
+	--Want to loop over all Slist = {S1..}
 	for i from 1 to k-2 do(
-	    Slist = (Slist ** (set (SS#i)))/splice; 
+	    Slist' = (Slist' ** (set (SS#i)))/splice; 
+	    	    );
+	--print Slist';
+	--print "---";
+        for Slist in toList(Slist') do(
+	    --print "hi";
+	    --print (toList (drop(Alist,-1)));
+	    toplist := tops(G#Digraph,k-1,toList Slist,toList (drop(Alist,-1)));
+	    --print toplist;
+	    --Find all descendants of all tops in the graph G \ A_k, remove them from v. That is our S_k
+	    --print "aaa";
+	    G':=deleteVertices(G#Digraph,Alist_(k-1));
+	    --print "ccc";
+	    Sk:=v;
+	    --print "ddd";
+	    --print Alist_(k-1);
+	    --print G';
+	    --print toplist;
+	    for w in Alist_(k-1) do(
+		toplist=delete(w,toplist);
+		);
+	    for w in reachable(G',toplist) do(
+		--print w;
+		delete(w,Sk);
+		);
+	    ---print "eee";
+	    --print Sk;
+	    statements=append(statements,{append(Slist,Sk),Alist});
+	    --print "ff";
 	    );
-        for S in toList(Slist) do(
-	    print "hi";
-	    --toplist := tops(g,A,S,k);
+	);
+    statements)
+
+	    -*
 	    scan(v,i->DGhash#i=DG#i);
 	    print "hi2";
-	    scan(A#(k-1), i->scan(v, j->(
+	    scan(Alist#(k-1), i->scan(v, j->(
 	    DGhash#i=DGhash#i-{j};
 	    DGhash#j=DGhash#j-{i};)));
             print DGhash#(v#1);
-            );
-	);
-    statements)*-
-
+	    *-
+	    
+      -*	Slist' := (set (SS#0));
+	print "---";
+	print Slist';
+	--Want to loop over all Slist = {S1..}
+	for i from 1 to k-2 do(
+	    Slist' = (Slist' ** (set (SS#i)))/splice; 
+	    print Slist';
+	    );
+	    
+            
 -*
 Input: graph g, integer k, Slist and Alist k-tuples of vertices
 Output: a list of vertices t for which there exists a k-trek with top t, where the i'th leg ends in Slist#i and doesn't pass through Alist#i
@@ -1095,37 +1138,36 @@ Output: a list of vertices t for which there exists a k-trek with top t, where t
 tops = method()
 tops (Digraph,ZZ,List,List) := List => (g,k,Slist,Alist) ->(   
     topList := {};
+    --print "bbb";
+    --print g;
+    --print k;
+    --print Slist;
+    --print Alist;
     Glist:=apply(Alist,A->deleteVertices(g,A));
     vert := sort vertices g;
+    --make a list of all v that are not in any Alist
+    for A in Alist do(
+	for a in A do(
+	    vert=delete(a,vert);
+	    );
+	);
     for v in vert do( --v not in union of Alist
 	isTop := true;
 	i:=0;
 	descd := {};
 	while (isTop and i<k) do(
-	    print "aa";
 	    pathExists := false;
-	    print Glist;
 	    descd = toList(descendants(Glist#i,v));
-	    print descd;
 	    ddd := 0;
-	    print "a";
 	    while ((not pathExists) and ddd<length(descd)) do(
 		if member(descd#ddd,Slist#i) then(pathExists=true;);
 		ddd=ddd+1;
 		);
-	    print "b";
 	    if not pathExists then (isTop=false;);
-	    print isTop;
 	    i=i+1;
-	    print k;
-	    print i;
-	    print "c";
 	    );
-	print "d";
-	if isTop then(topList=append(topList,v););
-	print "hi";	
+	if isTop then(topList=append(topList,v););	
 	);
-    print topList;
     return topList;)
 
 ------------------------------------------------------------------

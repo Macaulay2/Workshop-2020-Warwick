@@ -28,7 +28,7 @@ subduction(Subring, RingElement) := (subR, f) -> (
 	);
         
     -- It is possible for ring f === ambient to be true but f is still from a different ring 
-    -- than pres#"TensorRing". In this case, we don't try to prevent an error by using "sub"
+    -- than pres#"TensorRing". In this case, it shouldn't try to prevent an error by using "sub"
     -- or something. Instead, the following line will deliberately throw an error:
     -- (This is done because otherwise there is potential for a segfault.)
     throwError := f - 1_(ambient subR);   

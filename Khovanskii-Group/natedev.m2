@@ -72,8 +72,9 @@ g1 = ((p_10-p_12)*(p_12-p_15))_tense;
 g2 = ((p_15 + p_13 + p_16)*(p_16 + p_17 + p_18))_tense
 G = matrix({{g1, g2}})
 
-print("-- lead terms of G:");
-print(leadTerm G)
+-- These agree with what Sturmfels says they should be
+--print("-- lead terms of G:");
+--print(leadTerm G)
 
 -- g_3 in Sturmfels.
 f = ((p_16*p_18*g1) - (p_12*p_15*g2))_tense
@@ -99,13 +100,11 @@ assert(subR == subRSagbi);
 
 print("-- assertions complete.");
 
-error "done";
-
 
 -- We need to put some thought into the tests for this function.
-result = intrinsicReduce(subRSagbi, sub(G, tenseSagbi), sub(f, tenseSagbi))
-error "done";
+--result = intrinsicReduce(subRSagbi, sub(G, tenseSagbi), sub(f, tenseSagbi))
 result = toricSyz(subRSagbi, sub(G, tenseSagbi))
+error "done";
 
 print("-- result:");
 print(result);

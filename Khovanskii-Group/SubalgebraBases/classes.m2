@@ -172,12 +172,6 @@ RingElement % Subring := (f, A) -> (
 	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
     ans := (subduction(A, f));
-    print("----------------------");
-    print("-- input:");
-    print(f);
-    print("-- output:");
-    print(ans);
-    print("----------------------");    
     ans    
     );
 
@@ -200,10 +194,11 @@ RingElement // Subring := (f, A) -> (
     );
 
 Matrix % Subring := (M, A) -> (
+    pres := A#"PresRing";
     ents := for i from 0 to numrows M - 1 list(
 	for j from 0 to numcols M - 1 list(M_(i,j) % A)
 	);
-    matrix(A#"PresRing"#"TensorRing", ents)
+    matrix(pres#"TensorRing", ents)
     );
 Matrix // Subring := (M, A) -> (
     pres := A#"PresRing";

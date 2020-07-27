@@ -2,6 +2,7 @@
 -- - useful debugging functions (debugPrintMap and debugPrintAllMaps) 
 -- - A new example from Sturmfels chapter 11
 -- - Usage of new features
+compactMatrixForm = true;
 
 pathToPackage = "./SubalgebraBases.m2"
 installPackage(

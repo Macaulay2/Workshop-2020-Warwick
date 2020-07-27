@@ -10,7 +10,12 @@ installPackage(
     RunExamples => false,
     RerunExamples => false
     )
-
+export {
+    "debugPrintMap",
+    "debugPrintAllMaps"
+    
+    
+    }
 debugPrintMap := f -> (
     a := gens source f;
     for i from 0 to (length a)-1 do(
@@ -101,10 +106,28 @@ assert(subR == subRSagbi);
 print("-- assertions complete.");
 
 
--- We need to put some thought into the tests for this function.
+print("toricSyz test (Sturmfels example 11.19)");
+t = symbol t;
+R = kk[symbol t_1, symbol t_2]
+subR = subalgebraBasis subring matrix(R, {{t_1^2, t_1*t_2, t_2^2}});
+M = matrix(R, {{t_1^2, t_1*t_2}});
+ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
+time assert (toricSyz(subR, M//subR) == ans);
+print("---------------------------------------------------------");
+print("---------------------------------------------------------");
+print("---------------------------------------------------------");
+print("---------------------------------------------------------");
+print("---------------------------------------------------------");
+print("---------------------------------------------------------");
+
+
+
+-- We need to put some thought into the tests for these functions.
 --result = intrinsicReduce(subRSagbi, sub(G, tenseSagbi), sub(f, tenseSagbi))
-result = toricSyz(subRSagbi, sub(G, tenseSagbi))
-error "done";
+m1 := map(tenseSagbi, tense, gens tenseSagbi);
+
+result = intrinsicBuchberger(subRSagbi, m1 G)
+error "finished";
 
 print("-- result:");
 print(result);

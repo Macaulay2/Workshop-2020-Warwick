@@ -173,3 +173,22 @@ R = QQ[a..d]
 subR = subring(matrix({{a^2+b^2,a*b,b^2+c^2-d^2}}))
 result := subduction(subR, a^3*b);
 time assert((subR#"PresRing"#"ProjectionBase")(result) == a*b*c^2-a*b*d^2)
+
+
+print("toricSyz test (Sturmfels example 11.19)");
+t = symbol t;
+R = kk[symbol t_1, symbol t_2]
+subR = subalgebraBasis subring matrix(R, {{t_1^2, t_1*t_2, t_2^2}});
+M = matrix(R, {{t_1^2, t_1*t_2}});
+ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
+time assert (toricSyz(subR, M//subR) == ans);
+
+
+
+
+
+
+
+
+
+

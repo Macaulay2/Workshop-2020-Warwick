@@ -289,8 +289,10 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     -- convert an integer matrix into rational
     if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
-   -- S:=(1/n)*U*transpose(U); do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
-    S:= U*transpose(U);
+   n := numRows U
+   S:=(1/n)*U*transpose(U); 
+   --do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
+    --S:= U*transpose(U);
     --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;

@@ -19,10 +19,12 @@ MLEsolverCG(List, Digraph, Matrix):= (L,D,U) -> (
     -- count the total number of vertices
     n:=# flatten vert;
     
-    --combine all edges (undirected and directed)
-    edg:={}
-    for l in L do edg=append(edg, edges  l);
-    edg=append(edg, edges D)
+    --all undirected edges 
+    edgUndir:={};
+    for l in L do edgUndir=append(edgUndir, edges  l);
+    
+    -- all directed edges
+    edgDir:= edges D;
     ------------------------------------------------------
     -- confirm input is compatible
     ------------------------------------------------------
@@ -80,7 +82,9 @@ MLEsolverCG(List, Digraph, Matrix):= (L,D,U) -> (
 	       for j from 0 to # block - 1 do
 	       (if submatrix(adjD,ind_i,ind_j)=!=0 then adjCCG_(i,j)=1 else adjCCG_(i,j)=0
 	       );
-       if ring adjCCG=!= ZZ then error ("Internal error: mistake in adjCCG computation");    
+       if ring adjCCG=!= ZZ then error ("Internal error: mistake in adjCCG computation"); 
+       
+    -- isCyclic CCG?      
 	        	    
     ----------------------------------------------------
     -- Compute the MLE using (5.52) from Lauritzen, "Graphical Models", 1996 
@@ -99,11 +103,10 @@ MLEsolverCG(List, Digraph, Matrix):= (L,D,U) -> (
 	-- edges between vertices in pa_i
 	G_i:=graph(paV_i, subsets(paV_i, 2), EntryMode => "edges");
 	
-	--undirected edges between a pair $(\alpha,\beta)$ if either both of these are 
-	--in $\text{pa}(\tau)$ or there is an edge, directed or undirected, between them in 
+	--undirected edges between a pair $(\alpha,\beta)$ if there is an edge, directed or undirected, between them in 
 	--the chain graph $G$.
-	
-	
+	edgUndir
+	 edgDir
 	-- estimate K^*for that undirected graph
 	-- estimate the S for pa_i
 	-- check the difference between #Gamma and n

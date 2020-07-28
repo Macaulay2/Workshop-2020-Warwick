@@ -321,9 +321,17 @@ The algorithm is the same as for directed graphical models.
 From~\cite[Section 5.4.1]{lauritzen1996graphical} \textcolor{blue}{this is a copy-paste from the book! paraphrase if used in the publication!}
 
 \begin{equation}
-\hat{K}=\sum\limits_{\tau \in \mathcal{T}}[\hat{K}^*_{\tau*}]^{|\Gamma|}-n[S_{\text{pa}(\tau)}^{-1}]^{|\Gamma|},
+\hat{K}=\sum\limits_{\tau \in \mathcal{T}}[\hat{K}^*_{\tau*}]^{|\Gamma|}-n[ssd_{\text{pa}(\tau)}^{-1}]^{|\Gamma|},
 \end{equation}
-where $\tau$ is a chain component and $\tau*$ denotes an undirected graph that has $\tau \cup \text{pa}(\tau)$ as vertices and undirected edges between a pair $(\alpha,\beta)$ if either both of these are in $\text{pa}(\tau)$ or there is an edge, directed or undirected, between them in the chain graph $G$. The symbol $\hat{K}^*_{\tau*}$ denoted the MLE of the inverse covariance in the \textcolor{blue}{covariance selection model?} with graph $\tau*$.  
+where $\tau$ is a chain component and $\tau*$ denotes an undirected graph that has $\tau \cup \text{pa}(\tau)$ as vertices and undirected edges between a pair $(\alpha,\beta)$ if either both of these are in $\text{pa}(\tau)$ or there is an edge, directed or undirected, between them in the chain graph $G$. The symbol $\hat{K}^*_{\tau*}$ denoted the MLE of the inverse covariance in the Gaussian graphical model (a.k.a  covariance selection model) with graph $\tau*$. The matrix $ssd$ (sample standard deviation) is $ssd=nS$.
+Let $d,e\subseteq Gamma$ and $A=(a_{\gamma,\mu})_{\gamma \in d, \mu \in e}$. Then $[A]^\Gamma \in \mathbb{R}^{|\Gamma|\times |\Gamma|}$ is obtained by entering zeros is the missing entries of $A$
+\[
+([A]^\Gamma)_{\gamma,\mu}:=
+\begin{cases}
+a_{\gamma,\mu} \quad \text{if} \quad \gamma \in d, \mu \in e,\\
+0 \quad \text{otherwise.}
+\end{cases}
+\] 
 \bibliographystyle{plain}
 \bibliography{references}
 

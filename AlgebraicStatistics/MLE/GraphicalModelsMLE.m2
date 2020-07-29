@@ -59,6 +59,63 @@ export {"sampleCovarianceMatrix",
 --*************************************--
 
 
+--functions used to be in graphs package but writing here to make this package more independent from Graphs
+
+
+Bigraph = new Type of Graph
+
+bigraph = method(Options => {Singletons => null})
+bigraph HashTable := opts -> g -> new Bigraph from graph(g, opts)
+bigraph List := opts -> g -> new Bigraph from graph(g, opts)
+
+
+MixedGraph = new Type of HashTable
+
+mixedGraph = method()
+mixedGraph (Graph, Digraph, Bigraph) := (g,d,b) -> (
+    C := new MutableHashTable;
+    C#cache = new CacheTable from {};
+    h := new MutableHashTable;
+    h#Graph = g;
+    h#Digraph = d;
+    h#Bigraph = b;
+    C#graph = new HashTable from h;
+    new MixedGraph from C)
+mixedGraph (Digraph, Bigraph) := (d,b) -> mixedGraph(graph {},d,b)
+mixedGraph (Graph, Digraph) := (g,d) -> mixedGraph(g,d,bigraph {})
+mixedGraph Digraph := d -> mixedGraph(graph {},d, bigraph {})
+
+net MixedGraph := g -> horizontalJoin flatten (
+     net class g,
+    "{",
+    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
+    "}"
+    )
+
+toString MixedGraph := g -> concatenate(
+    "new ", toString class g#graph,
+    if parent g#graph =!= Nothing then (" of ", toString parent g),
+    " from {",
+    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
+    "}"
+    )
+
+graph MixedGraph := opts -> g -> g#graph
+digraph MixedGraph := opts -> g -> g#graph#Digraph
+bigraph MixedGraph := opts -> g -> g#graph#Bigraph
+vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))
+
+descendents (MixedGraph, Thing) := (G,v) -> descendents(digraph G, v)
+nondescendents (MixedGraph, Thing) := (G,v) -> nondescendents(digraph G, v)
+parents (MixedGraph, Thing) := (G,v) -> parents(digraph G, v)
+foreFathers (MixedGraph, Thing) := (G,v) -> foreFathers(digraph G, v)
+children (MixedGraph, Thing) := (G,v) -> children(digraph G, v)
+neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
+nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
+
+
+
+
 
 
 --------------------------------------------
@@ -232,8 +289,10 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     -- convert an integer matrix into rational
     if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
-   -- S:=(1/n)*U*transpose(U); do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
-    S:= U*transpose(U);
+   n := numRows U
+   S:=(1/n)*U*transpose(U); 
+   --do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
+    --S:= U*transpose(U);
     --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;

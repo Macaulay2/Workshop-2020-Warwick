@@ -107,6 +107,10 @@ assert(subR == subRSagbi);
 print("-- assertions complete.");
 
 
+
+
+
+
 print("toricSyz test (Sturmfels example 11.19)");
 t = symbol t;
 R = kk[symbol t_1, symbol t_2]
@@ -121,14 +125,35 @@ print("---------------------------------------------------------");
 print("---------------------------------------------------------");
 print("---------------------------------------------------------");
 
-
-
--- We need to put some thought into the tests for these functions.
---result = intrinsicReduce(subRSagbi, sub(G, tenseSagbi), sub(f, tenseSagbi))
 m1 := map(tenseSagbi, tense, gens tenseSagbi);
+G = m1 G;
+f = m1 f;
+-- G must be an ideal within subRSagbi.
+assert(G%subRSagbi == 0);
+f = G_(0,0)*G_(0,1);
+
+h = intrinsicReduce(subRSagbi, G, f);
+-- if h is not zero, it's because G isn't a GB.
+assert(h != 0);
+-- if G isn't a GB, it has toric syzygies.
+toricSyz(subRSagbi, leadTerm(subRSagbi, G));
+
+
+
+error "finished";
+
+
+
+
 
 result = intrinsicBuchberger(subRSagbi, m1 G)
 error "finished";
+
+
+
+
+
+
 
 print("-- result:");
 print(result);

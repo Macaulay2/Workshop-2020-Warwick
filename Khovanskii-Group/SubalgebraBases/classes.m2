@@ -188,7 +188,6 @@ RingElement // Subring := (f, A) -> (
 	error "The RingElement f must be in either the TensorRing or ambient ring of A.";
 	);
     result := f - (f % A);
-    
     I := pres#"LiftedPres";
     result % I
     );

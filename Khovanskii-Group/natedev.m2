@@ -14,8 +14,6 @@ installPackage(
 export {
     "debugPrintMap",
     "debugPrintAllMaps"
-    
-    
     }
 debugPrintMap := f -> (
     a := gens source f;
@@ -65,6 +63,30 @@ genericminors = (minorsize,rowsize,colsize) -> (
     );
 
 
+print("toricSyz test (Sturmfels example 11.19)");
+t = symbol t;
+R = kk[symbol t_1, symbol t_2]
+subR = subalgebraBasis subring matrix(R, {{t_1^2, t_1*t_2, t_2^2}});
+M = matrix(R, {{t_1^2, t_1*t_2}});
+M = subR#"PresRing"#"InclusionBase"(M);
+ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
+--ans = subR#"PresRing"#"InclusionBase"(ans);
+time assert (toricSyz(subR, M) == ans);
+
+
+-- Sturmfels example 11.22
+i = 2;
+R = kk[symbol t_1, symbol t_2, symbol t_3];
+A := {t_1*t_2*t_3, t_1^2*t_2, t_1*t_2^2, t_1^2*t_3, t_1*t_3^2, t_2^2*t_3, t_2*t_3^2};
+B := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
+subR = subalgebraBasis subring A;
+assert((set first entries gens subR) === (set A)); 
+-- The algorithm was never guarenteed to generate a minimal set of generators.
+-- In this case, the generators are redundant 
+result := toricSyz(subR, B)
+
+
+
 -- Sturmfels chapter 11 example 11.25.
 M = genericminors(2, 2, 5)
 -- (I don't understand where that weight vector comes from.)
@@ -77,17 +99,16 @@ tense = pres#"TensorRing";
 g1 = ((p_10-p_12)*(p_12-p_15))_tense;
 g2 = ((p_15 + p_13 + p_16)*(p_16 + p_17 + p_18))_tense
 G = matrix({{g1, g2}})
-
 -- These agree with what Sturmfels says they should be
---print("-- lead terms of G:");
---print(leadTerm G)
-
+print("-- lead terms of G:");
+print(leadTerm G)
 -- g_3 in Sturmfels.
 f = ((p_16*p_18*g1) - (p_12*p_15*g2))_tense
 
+
 -- At this point, subR is a Subring instance whose generators happen to be a Sagbi basis.
--- The problem is that its isSagbi flag is not set. What we can do is call subalgebraBasis 
--- on it in order to get a new Subring instance that is a "certified" Sagbi basis.
+-- The problem is that its isSagbi flag is not set. 
+-- Call subalgebraBasis on it in order to get a new Subring instance that has the correct flags.
 
 subRSagbi = subalgebraBasis subR;
 presSagbi = subRSagbi#"PresRing";
@@ -98,65 +119,52 @@ assert(ambient subRSagbi === ambient subR);
 
 -- We can't, however, expect their TensorRings to be the same.
 -- In this case, the TensorRings are distinct instances that represent mathematically equivalent rings.
--- This is a feature not a bug. It forces users to never assume subalgebraBasis will leave the generators unchanged. 
+-- This is a feature not a bug. It forces users to never assume subalgebraBasis will leave the generators'
+-- unchanged. 
 assert(tenseSagbi =!= tense);
 
 -- subR and subRSagbi generate the same set.
 assert(subR == subRSagbi);
 
-print("-- assertions complete.");
 
 
-
-
-
-
-print("toricSyz test (Sturmfels example 11.19)");
-t = symbol t;
-R = kk[symbol t_1, symbol t_2]
-subR = subalgebraBasis subring matrix(R, {{t_1^2, t_1*t_2, t_2^2}});
-M = matrix(R, {{t_1^2, t_1*t_2}});
-ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
-time assert (toricSyz(subR, M//subR) == ans);
-print("---------------------------------------------------------");
-print("---------------------------------------------------------");
-print("---------------------------------------------------------");
-print("---------------------------------------------------------");
-print("---------------------------------------------------------");
-print("---------------------------------------------------------");
-
+------------------------------------------
+------------------------------------------
+-- intrinsicBuchberger test
+------------------------------------------
+------------------------------------------
 m1 := map(tenseSagbi, tense, gens tenseSagbi);
 G = m1 G;
 f = m1 f;
 -- G must be an ideal within subRSagbi.
 assert(G%subRSagbi == 0);
+
+-- construct some element of this ideal.
 f = G_(0,0)*G_(0,1);
 
+
+-- We know f is in G. If h is not zero, it's because G isn't a GB.
 h = intrinsicReduce(subRSagbi, G, f);
--- if h is not zero, it's because G isn't a GB.
 assert(h != 0);
--- if G isn't a GB, it has toric syzygies.
-toricSyz(subRSagbi, leadTerm(subRSagbi, G));
+-- This does seem to be working, but it turns out that this GB is huge.
+-- It finishes on the 53rd iteration, which takes approximately 10 minutes.
+result = intrinsicBuchberger(subRSagbi, G)
+
+result = result // subRSagbi;
+h = intrinsicReduce(subRSagbi, result, f);
+
+ltH = leadTerm(subRSagbi,h);
+ltResult = leadTerm(subRSagbi, result);
+print("is h zero? - "|toString(h == 0));
+
+------------------------------------------
+------------------------------------------
+-- end intrinsicBuchberger test
+------------------------------------------
+------------------------------------------
 
 
-
-error "finished";
-
-
-
-
-
-result = intrinsicBuchberger(subRSagbi, m1 G)
-error "finished";
-
-
-
-
-
-
-
-print("-- result:");
-print(result);
+-- Normal form demo
  
 f = f_tense;
 print("-- f:");
@@ -167,8 +175,6 @@ print(output1);
 print("-- f // subR:");
 output2 := f // subR;
 print(output2);
-
--- An unrelated example:
 
 -- Notice how the flags are set when subalgebraBasis fails.
 R = kk[x, y]

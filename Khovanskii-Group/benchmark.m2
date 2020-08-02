@@ -41,6 +41,7 @@ print("generic minors(2,2,10)");
 F = genericminors(2,2,10)
 time (assert(gens subalgebraBasis(F,Limit=>100) == matrix {{x_17*x_18-x_16*x_19, x_15*x_18-x_14*x_19, x_13*x_18-x_12*x_19, x_11*x_18-x_10*x_19, x_9*x_18-x_8*x_19, x_7*x_18-x_6*x_19, x_5*x_18-x_4*x_19, x_3*x_18-x_2*x_19, x_1*x_18-x_0*x_19, x_15*x_16-x_14*x_17, x_13*x_16-x_12*x_17, x_11*x_16-x_10*x_17, x_9*x_16-x_8*x_17, x_7*x_16-x_6*x_17, x_5*x_16-x_4*x_17, x_3*x_16-x_2*x_17, x_1*x_16-x_0*x_17, x_13*x_14-x_12*x_15, x_11*x_14-x_10*x_15, x_9*x_14-x_8*x_15, x_7*x_14-x_6*x_15, x_5*x_14-x_4*x_15, x_3*x_14-x_2*x_15, x_1*x_14-x_0*x_15, x_11*x_12-x_10*x_13, x_9*x_12-x_8*x_13, x_7*x_12-x_6*x_13, x_5*x_12-x_4*x_13, x_3*x_12-x_2*x_13, x_1*x_12-x_0*x_13, x_9*x_10-x_8*x_11, x_7*x_10-x_6*x_11, x_5*x_10-x_4*x_11, x_3*x_10-x_2*x_11, x_1*x_10-x_0*x_11, x_7*x_8-x_6*x_9, x_5*x_8-x_4*x_9, x_3*x_8-x_2*x_9, x_1*x_8-x_0*x_9, x_5*x_6-x_4*x_7, x_3*x_6-x_2*x_7, x_1*x_6-x_0*x_7, x_3*x_4-x_2*x_5, x_1*x_4-x_0*x_5, x_1*x_2-x_0*x_3}}))
 
+-- Sturmfels example 11.7
 print("generic minors(2,3,3)");
 F = genericminors(2,3,3)
 time (assert(gens subalgebraBasis(F,Limit=>100) == matrix {{x_5*x_7-x_4*x_8, x_2*x_7-x_1*x_8, x_5*x_6-x_3*x_8, x_4*x_6-x_3*x_7, x_2*x_6-x_0*x_8, x_1*x_6-x_0*x_7, x_2*x_4-x_1*x_5, x_2*x_3-x_0*x_5, x_1*x_3-x_0*x_4, x_2*x_4*x_6*x_8-x_1*x_5*x_6*x_8-x_2*x_3*x_7*x_8+x_0*x_5*x_7*x_8+x_1*x_3*x_8^2-x_0*x_4*x_8^2, x_0*x_2*x_4*x_6-x_0*x_1*x_5*x_6-x_0*x_2*x_3*x_7+x_0^2*x_5*x_7+x_0*x_1*x_3*x_8-x_0^2*x_4*x_8}}))

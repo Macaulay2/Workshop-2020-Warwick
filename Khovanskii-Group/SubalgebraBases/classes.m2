@@ -85,59 +85,70 @@ makePresRing(Ring, List) := (R, gensR) ->(
     -- The degrees of generators are set so that the SyzygyIdeal is homogeneous.
     newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
 
+
+    -- TODO: It would be nice if the variables had better names    
+    --sym1 := getSymbol "x";
+    --sym2 := getSymbol "y";
     NewVariables := monoid[
         Variables=>nBaseGens+nSubalgGens,
-        Degrees=>join(degrees source vars ambR, degrees source matrix({gensR})),
+	--Variables => (sym1_1..sym1_nBaseGens)|(sym2_1..sym2_nSubalgGens),
+	Degrees=>join(degrees source vars ambR, degrees source matrix({gensR})),
         MonomialOrder => newOrder];
-    
+        
     TensorRing := CoeffField NewVariables;	    
     
-    -- ProjectionInclusion sets the variables corresponding to the ambient ring equal to 0.
+    presVars := monoid[
+        Variables=>nSubalgGens,
+        Degrees=> degrees source matrix({gensR})
+        ];
+    
+    (pres, InclusionPres) := selectVariables(toList (nBaseGens..(nBaseGens+nSubalgGens-1)),TensorRing);
+    
+    ProjectionPres := map(pres, TensorRing,
+        matrix {toList (nBaseGens:(0_pres))} | (vars pres));
+    
     ProjectionInclusion := map(TensorRing, TensorRing,
-        matrix {toList(nBaseGens:0_(TensorRing))} |
+        (matrix {toList(nBaseGens:0_(TensorRing))}) |
 	(vars TensorRing)_{nBaseGens .. nBaseGens+nSubalgGens-1});
     
-    -- ProjectionBase sets the variables corresponding to the subalgebra generators equal to 0 and maps into the ambient ring.
     ProjectionBase := map(ambR, TensorRing,
         (vars ambR) | matrix {toList(nSubalgGens:0_(ambR))});
     
-    -- InclusionBase is the inclusion map from the ambient ring to the tensor ring.  
-    -- The variables of the ambient ring are mapped to themselves.
     InclusionBase := map(TensorRing, ambR,
         (vars TensorRing)_{0..nBaseGens-1});
     
-    -- Replaces variables corresponing to generators of the subalgebra with their formulas in the ambient ring.
+    SubstitutionPres := map(ambR, pres, matrix({gensR}));
+
     Substitution := map(TensorRing, TensorRing,
         (vars TensorRing)_{0..nBaseGens-1} | InclusionBase(matrix({gensR})));
     
-    -- A toric ideal consisting of variables repesenting subalgebra generators minus their leading term.
     SyzygyIdeal := ideal(
         (vars TensorRing)_{nBaseGens..nBaseGens+nSubalgGens-1}-
 	InclusionBase(leadTerm matrix({gensR})));
     
-    -- This is equivalent to the lifted presentation function (which has been deleted)
     submap := Substitution;
     genVars := (vars TensorRing)_{numgens ambient R..numgens TensorRing-1};
     liftedPres := ideal(submap(genVars) - genVars);
-    
-    FullSub :=  ProjectionBase*Substitution;
-    
-    -- Here is where any additional information that we'd like to associate with a Subring can be computed/added.
-    
+    FullSub := ProjectionBase*Substitution;
+     
     ht := new HashTable from {
-	"MonomialOrder" => newOrder,
 	"TensorRing" => TensorRing,
 	"ProjectionInclusion" => ProjectionInclusion,
 	"ProjectionBase" => ProjectionBase,
 	"InclusionBase" => InclusionBase,
 	"Substitution" => Substitution,
-	"SyzygyIdeal" => SyzygyIdeal,
 	"FullSub" => FullSub,
+	"PresentRing" => pres,
+	"ProjectionPres"=> ProjectionPres,
+	"InclusionPres" => InclusionPres,
+	"SubstitutionPres" => SubstitutionPres,
+	"SyzygyIdeal" => SyzygyIdeal,
 	"LiftedPres" => liftedPres
 	};
     
     new PresRing from ht
     );
+
 makePresRing(Subring) := subR -> (
     subR#"PresRing"
     );
@@ -149,17 +160,14 @@ presentation Subring := A -> (
 	A.cache#"LiftedPresGB" = gb (pres#"LiftedPres");
 	);
     selectInSubring(1, gens A.cache#"LiftedGB");
-    )
+    );
 
 -- quotient ring given by a presentation
 ring Subring := A -> (
     I := ideal presentation A;
     P := ring I;
     P/I
-    )
-
--- TODO: be consistent about what ring the results of these functions are in.
-
+    );
 -- f % Subring is never going to be an element of the subalgebra, hence the ouput
 -- is in the lower variables of TensorRing.
 -- input: f in ambient A or TensorRing of A. 

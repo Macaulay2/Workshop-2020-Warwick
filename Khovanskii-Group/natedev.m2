@@ -26,7 +26,7 @@ debugPrintMap := f -> (
 debugPrintAllMaps := subR -> (
     pres := makePresRing(subR);
     print("--------------------------------");
-    print("-- PresRing info dump:");
+    print("-- PresRing map info dump:");
     print("--------------------------------");
     print("-- ProjectionInclusion:");
     debugPrintMap (pres#"ProjectionInclusion");
@@ -38,10 +38,14 @@ debugPrintAllMaps := subR -> (
     debugPrintMap (pres#"Substitution");
     print("-- FullSub:");
     debugPrintMap (pres#"FullSub");
-    print("-- SyzygyIdeal:");
-    print(pres#"SyzygyIdeal");
+    print("-- ProjectionPres:");
+    debugPrintMap (pres#"ProjectionPres");
+    print("-- InclusionPres:");
+    debugPrintMap (pres#"InclusionPres");
+    print("-- SubstitutionPres:");
+    debugPrintMap (pres#"SubstitutionPres");
     print("--------------------------------");
-    print("-- End PresRing info dump.");
+    print("-- End PresRing map info dump.");
     print("--------------------------------");
     );
 
@@ -82,18 +86,30 @@ B := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
 subR = subalgebraBasis subring A;
 assert((set first entries gens subR) === (set A)); 
 -- The algorithm was never guarenteed to generate a minimal set of generators.
--- In this case, the generators are redundant 
-result := toricSyz(subR, B)
+-- In this case, the generators are redundant.
+result := transpose toricSyz(subR, B)
+
+tense := subR#"PresRing"#"TensorRing";
+subst := subR#"PresRing"#"Substitution";
+proj := subR#"PresRing"#"ProjectionBase";
+pres := subR#"PresRing"#"PresentRing";
+
+result2 := gens gb result;
+
+debugPrintAllMaps subR;
+error "stop";
 
 
 
--- Sturmfels chapter 11 example 11.25.
+
+
+
+print("Sturmfels chapter 11 example 11.25.");
 M = genericminors(2, 2, 5)
 -- (I don't understand where that weight vector comes from.)
 BaseRing := kk[x_1..x_10, MonomialOrder => {Weights=> {1,1,2,4,3,9,4,16,5,25}}]
 N = sub(M, BaseRing);
 subR := subring(N);
-debugPrintAllMaps subR;
 pres := subR#"PresRing";
 tense = pres#"TensorRing";
 g1 = ((p_10-p_12)*(p_12-p_15))_tense;
@@ -105,26 +121,14 @@ print(leadTerm G)
 -- g_3 in Sturmfels.
 f = ((p_16*p_18*g1) - (p_12*p_15*g2))_tense
 
-
--- At this point, subR is a Subring instance whose generators happen to be a Sagbi basis.
--- The problem is that its isSagbi flag is not set. 
--- Call subalgebraBasis on it in order to get a new Subring instance that has the correct flags.
-
 subRSagbi = subalgebraBasis subR;
 presSagbi = subRSagbi#"PresRing";
 tenseSagbi = presSagbi#"TensorRing";
 
--- subR and subalgebraBasis subR will always have the same ambient ring, even if the generators change.
 assert(ambient subRSagbi === ambient subR);
-
--- We can't, however, expect their TensorRings to be the same.
--- In this case, the TensorRings are distinct instances that represent mathematically equivalent rings.
--- This is a feature not a bug. It forces users to never assume subalgebraBasis will leave the generators'
--- unchanged. 
 assert(tenseSagbi =!= tense);
-
--- subR and subRSagbi generate the same set.
 assert(subR == subRSagbi);
+assert(G%subRSagbi == 0);
 
 
 
@@ -135,19 +139,7 @@ assert(subR == subRSagbi);
 ------------------------------------------
 m1 := map(tenseSagbi, tense, gens tenseSagbi);
 G = m1 G;
-f = m1 f;
--- G must be an ideal within subRSagbi.
-assert(G%subRSagbi == 0);
 
--- construct some element of this ideal.
-f = G_(0,0)*G_(0,1);
-
-
--- We know f is in G. If h is not zero, it's because G isn't a GB.
-h = intrinsicReduce(subRSagbi, G, f);
-assert(h != 0);
--- This does seem to be working, but it turns out that this GB is huge.
--- It finishes on the 53rd iteration, which takes approximately 10 minutes.
 result = intrinsicBuchberger(subRSagbi, G)
 
 result = result // subRSagbi;

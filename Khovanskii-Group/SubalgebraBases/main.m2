@@ -107,8 +107,6 @@ subalgebraBasis Subring := o -> R -> (
 	partialSagbi.cache#"SyzygyIdealGB" = gb(pres#"SyzygyIdeal", DegreeLimit => currDegree);
 	sagbiGB := partialSagbi.cache#"SyzygyIdealGB";
 	
-	
-	
 	-- This will select the entries of partialSagbi.cache#"SyzygyIdealGB" that do not involve any of (leadTerms subalgComp#"SyzygyIdeal") and 
 	-- also have degree equal to currDegree. So, they will be exclusively in the higher block of variables of TensorRing.
 	zeroGens := submatByDegree(mingens ideal selectInSubring(1, gens sagbiGB), currDegree);
@@ -160,7 +158,7 @@ subalgebraBasis Subring := o -> R -> (
     
     if currDegree > o.Limit and o.PrintLevel > 0 then (
 	print("Limit was reached before a finite SAGBI basis was found.");
-    	);
+    	);    
 
     -- We return a new instance of subring instead of the generators themselves so that we can say whether or not a Subring instance
     -- IS a Sagbi basis, not whether or not it HAS a Sagbi basis. (The latter is unacceptable because the cache should not effect 

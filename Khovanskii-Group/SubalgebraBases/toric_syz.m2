@@ -1,11 +1,19 @@
-
 export {
     "intrinsicReduce",
     "intrinsicBuchberger",
     "toricSyz",
     "subalgEquals",
+    "genVars",
     "isSubalg"
     }
+
+-- Returns the variables corresponding to the subalgebra generators in the 
+-- tensor ring of a subring instance,
+    -- subR is any Subring instance.
+genVars = method(TypicalValue => Matrix)
+genVars(Subring) := subR ->(
+    selectInSubring(1, vars subR#"PresRing"#"TensorRing")    
+    );
 
 -- This function allows you to compute the lead term with respect to the ordering
 -- on the upper variables induced from the ordering on the variables of the ambient
@@ -30,13 +38,13 @@ leadTerm(Subring, List) := (subR, L) -> (
 	    )
 	)
     );
+
 -- This is a bit different than the implementation of leadTerm(Matrix).
 -- leadTerm(Matrix) only operates on the first nonzero entry of every column and sets
 -- the entries below to zero. This operates on every single entry.  
 leadTerm(Subring, Matrix) := (subR, M) -> (
     matrix (apply(entries M, row -> leadTerm(subR, row)))
     );
-
 
 isSubalg = method(TypicalValue => Boolean)
 isSubalg(Subring, Subring) := (A, B) -> (
@@ -61,8 +69,6 @@ toMonomial = (R, L) ->(
 leadCoef = f ->(
     coefficient(leadMonomial f, f)
     );
-
-
 
 -- This is subroutine 11.14 of Sturmfels.
 -- There are many simillarities between this calculation and the subduction algorithm.
@@ -267,7 +273,8 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
 	error "The entries of M must be in either the TensorRing or ambient ring of A.";
 	);
     KA := subring leadTerm gens subR;
-    M = sub(M, KA#"PresRing"#"TensorRing");    
+    tenseKA := KA#"PresRing"#"TensorRing";
+    M = sub(M, tenseKA);    
     M = (KA#"PresRing"#"Substitution")(M);
     if leadTerm M != M then(
 	error "Expected a 1-row matrix of monomials."; 
@@ -287,6 +294,7 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
     intersection := selectInSubring(1, gens gb intersect(ideal U, KA#"PresRing"#"LiftedPres"));    
     
     ---------------------------- The rest of this function is a hack. Is there a better solution? ------------------------------------
+    -- How about this: change the monomial order so that the leading terms are always the e_i?    
     
     -- In terms of the Sturmfels description, subRU is such that the upper variables of subRU are the e_i.
     -- We want to extract the coefficients of each e_i. The problem is that these upper variables are not
@@ -328,11 +336,12 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
 		e := upperSubRU#pos;
 		--print("has factor: "|toString(e)|"="|toString(leadDivisor));
 		-- It intentionally doesn't use the full multiplicity of the generator.
-		mono := first ((exponents term) - (exponents leadDivisor));
+		mono := first ((exponents term) - (exponents leadDivisor));		
 		mono = apply(mono, mult -> if mult > 0 then mult else 0);
 		mono = toMonomial(tenseU, mono);
 		mono = mono*(upperSubRU#pos);
 		mono = mono * ((leadCoef term) / (leadCoef subU e));
+		--error "stop";
 		--print("final monomial: "|toString(mono));
 
 		mono
@@ -340,13 +349,15 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
 	--print("----------------------------");
 	--print("Result:"|toString(result));
 	--print("----------------------------");
+	
 	assert(subU result == subU elt);
+	
 	--assert(subU cheat == subU elt);
 	--assert((presRU#"FullSub")(result) == (presRU#"FullSub")(cheat));
 	result
 	);
     inter = matrix({inter});
-    magicRing := (KA#"PresRing"#"TensorRing")[upperSubRU];
+    magicRing := (tenseKA)[upperSubRU];
     upperSubRU = gens magicRing; 
     --print("-- num syzygies:"|toString(numcols inter));
     ans := for i from 0 to (numcols inter)-1 list(
@@ -359,17 +370,12 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
 	);
     ans = (matrix ans) || special;
     
-    tenseKA := KA#"PresRing"#"TensorRing";
     fullSubKA := KA#"PresRing"#"FullSub";
     ans = sub(ans, tenseKA);
     ans = transpose compress transpose ans;
     assert(fullSubKA(ans * (transpose M))== 0);
-
     ans = transpose compress transpose fullSubKA(ans);
     -- Discard the degree information because it breaks the matrix equality operator...
     -- Not really sure what the degrees of a matrix (the numbers in the brackets) are for.
     matrix entries ans
     );
-
-
-

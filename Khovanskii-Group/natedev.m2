@@ -2,7 +2,6 @@
 -- - useful debugging functions (debugPrintMap and debugPrintAllMaps) 
 -- - A new example from Sturmfels chapter 11
 -- - Usage of new features
-compactMatrixForm = true;
 
 pathToPackage = "./SubalgebraBases.m2"
 installPackage(
@@ -15,6 +14,52 @@ export {
     "debugPrintMap",
     "debugPrintAllMaps"
     }
+
+--setRandomSeed("randseed1");
+
+moTest := (subR, n, maxDeg) -> (
+    subMap := subR#"PresRing"#"Substitution";
+    fullSub := subR#"PresRing"#"FullSub";
+    incBase := subR#"PresRing"#"InclusionBase";
+
+    print("-------------------------------------------"); 
+    print("-- moTest:");
+
+    for i from 1 to n do(
+	
+    	testElt :=  sum for deg from 0 to maxDeg list(
+	    random(deg, ambient subR)
+	    )//subR;
+    	print("-------------------------------------------");
+    	-- Possible ways to choose a lead term.
+    	A := leadTerm testElt;	 
+    	B := leadTerm(subR, testElt);
+    	C := leadTerm subMap testElt;
+    	D := leadTerm fullSub testElt;
+	
+    	print("LHS:");
+    	print(leadTerm fullSub A);
+    	print("RHS:");
+    	print(leadTerm fullSub B);
+	
+	-- MO of the upper variables == MO induced by substitution map. 
+    	--assert(leadTerm fullSub A == leadTerm fullSub B);
+	
+	-- If two terms of testElt have the same lead term under the substitution map
+	-- and that term happens to be D, this will fail if they happen to cancel out.
+	-- The chances of this happening seem to be very low, but we could cherry pick 
+	-- examples using the function toricSyz.
+	assert(leadTerm fullSub B == D);
+    	-- MO of the lower variables == MO of the ambient ring.
+    	assert(fullSub C == D);
+    	);
+    print("-------------------------------------------"); 
+    print("-- End moTest"); 
+    print("-------------------------------------------"); 
+
+);
+
+ 
 debugPrintMap := f -> (
     a := gens source f;
     for i from 0 to (length a)-1 do(
@@ -38,12 +83,6 @@ debugPrintAllMaps := subR -> (
     debugPrintMap (pres#"Substitution");
     print("-- FullSub:");
     debugPrintMap (pres#"FullSub");
-    print("-- ProjectionPres:");
-    debugPrintMap (pres#"ProjectionPres");
-    print("-- InclusionPres:");
-    debugPrintMap (pres#"InclusionPres");
-    print("-- SubstitutionPres:");
-    debugPrintMap (pres#"SubstitutionPres");
     print("--------------------------------");
     print("-- End PresRing map info dump.");
     print("--------------------------------");
@@ -77,8 +116,11 @@ ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
 --ans = subR#"PresRing"#"InclusionBase"(ans);
 time assert (toricSyz(subR, M) == ans);
 
-
+------------------------------------------
+------------------------------------------
 -- Sturmfels example 11.22
+------------------------------------------
+------------------------------------------
 i = 2;
 R = kk[symbol t_1, symbol t_2, symbol t_3];
 A := {t_1*t_2*t_3, t_1^2*t_2, t_1*t_2^2, t_1^2*t_3, t_1*t_3^2, t_2^2*t_3, t_2*t_3^2};
@@ -87,22 +129,40 @@ subR = subalgebraBasis subring A;
 assert((set first entries gens subR) === (set A)); 
 -- The algorithm was never guarenteed to generate a minimal set of generators.
 -- In this case, the generators are redundant.
-result := transpose toricSyz(subR, B)
+-- Can we find minimal generators of the syzygy module? There are supposed to be 7 when i=2.
 
+result := toricSyz(subR, B)
+assert(fullSubKA(result * (transpose B))== 0);
+
+debugPrintAllMaps subR;
 tense := subR#"PresRing"#"TensorRing";
 subst := subR#"PresRing"#"Substitution";
 proj := subR#"PresRing"#"ProjectionBase";
-pres := subR#"PresRing"#"PresentRing";
 
-result2 := gens gb result;
+KA := subring(leadTerm gens subR);
 
-debugPrintAllMaps subR;
+monoRing := subring(B//KA);
+gVars := genVars(monoRing);
+result2 := (KA#"PresRing"#"InclusionBase")(result);
+result2 = (monoRing#"PresRing"#"InclusionBase")(result2);
+result2 = result2 * (transpose gVars);
+
+testSagbi := subring(transpose result2)
+testSagbi = subalgebraBasis(testSagbi, Limit => 200)
+assert(testSagbi#"isSagbi" == true)
+
+
+--moTest(subR, 10, 10);
+
+
 error "stop";
 
 
-
-
-
+------------------------------------------
+------------------------------------------
+-- Other Sturmfels example
+------------------------------------------
+------------------------------------------
 
 print("Sturmfels chapter 11 example 11.25.");
 M = genericminors(2, 2, 5)

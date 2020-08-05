@@ -12,7 +12,6 @@ export {
 -- but inheriting from "Ring" is not straightforward, so HashTable for now
 Subring = new Type of HashTable
 
-
 subring = method()
 subring Matrix := M -> (
     R := ring M;
@@ -66,7 +65,88 @@ makePresRing(Ring, Matrix) := (R, gensR) ->(
     makePresRing(R, first entries gensR)
     );
  
+------------------------------------------------------------------------------------------
+-- This is how the function selectVariables creates an induced monomial order:
+-- It "emulates" the monomial order "program" to determine what order applies to each variable.
+
+-- From: https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/m2/orderedmonoidrings.m2
+------------------------------------------------------------------------------------------
+
+-- "Offset." It's a "pointer" to the last variable whose order is not accounted for.
+off := 0
+
+-- Does not change off. 
+-- This function basically drops the entries of wts corresponding to variables we don't care about.
+pw := (v,wts) -> (
+    -- "wts" applies to the next #wts variables, starting at "off."
+    for i in v list(
+	if i<off then(
+	    continue; 
+	    )else(
+	    if i >= off+(#wts) then (
+		break; 
+		) else (
+		wts#(i-off)
+		)
+	    )
+     )
+ );
+
+-- Side effect: adds #wts to off.
+-- because each entry in wts is a degree, so it effects the next #wts variables.
+pg := (v,wts) -> (
+    first(pw(v,wts), off = off + #wts)
+    );
+
+-- Side effect: adds nw to off.
+-- Returns the amount of entries in v it actually applies to.
+pn := (v,nw) -> (
+     off = off + nw;
+     n := 0;
+     for i in v do (
+	 if i<off then (
+	     continue;
+	     ) else (
+	     if i >= off + nw then(
+	     	 break;
+		 )else (
+		 n=n+1;
+	     	 )
+	     )
+	 );
+     n
+     );
+ 
+-- select option
+selop = new HashTable from { GRevLex => pg, Weights => pw, Lex => pn, RevLex => pn, GroupLex => pn, GroupRevLex => pn, NCLex => pn }
+-- select monomial order
+selmo = (v,mo) -> (
+     off = 0;
+     apply(mo, x -> ( 
+	     if instance(x,Option) and selop#?(x#0) then (
+		 -- call the corresponding function in the hash table selop 
+	     	 x#0 => selop#(x#0)(v,x#1) 
+	     	 )else (
+	     	 x
+	     	 )
+	     )
+     	 )
+     );
+selectVars = method()
+selectVars(List,PolynomialRing) := (v,R) -> (
+     v = splice v;
+     o := new MutableHashTable from options R;
+     o.MonomialOrder = selmo(v,o.MonomialOrder);
+     o.Variables = o.Variables_v;
+     o.Degrees = o.Degrees_v;
+     o = new OptionTable from o;
+     (S := (coefficientRing R)(monoid [o]),map(R,S,(generators R)_v))
+     ); 
+ 
+------------------------------------------------------------------------------------------
+ 
 makePresRing(Ring, List) := (R, gensR) ->( 
+    gensR = sort gensR;
     
     if(ring(matrix({gensR})) =!= R) then(
 	error "The generators of the subalgebra must be in the ring R.";
@@ -86,7 +166,8 @@ makePresRing(Ring, List) := (R, gensR) ->(
     newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
 
 
-    -- TODO: It would be nice if the variables had better names    
+    -- TODO: It would be nice if the variables had better names.
+    -- Also, it may be possible to give the upper variables the order induced by the substitution map
     --sym1 := getSymbol "x";
     --sym2 := getSymbol "y";
     NewVariables := monoid[
@@ -96,17 +177,7 @@ makePresRing(Ring, List) := (R, gensR) ->(
         MonomialOrder => newOrder];
         
     TensorRing := CoeffField NewVariables;	    
-    
-    presVars := monoid[
-        Variables=>nSubalgGens,
-        Degrees=> degrees source matrix({gensR})
-        ];
-    
-    (pres, InclusionPres) := selectVariables(toList (nBaseGens..(nBaseGens+nSubalgGens-1)),TensorRing);
-    
-    ProjectionPres := map(pres, TensorRing,
-        matrix {toList (nBaseGens:(0_pres))} | (vars pres));
-    
+        
     ProjectionInclusion := map(TensorRing, TensorRing,
         (matrix {toList(nBaseGens:0_(TensorRing))}) |
 	(vars TensorRing)_{nBaseGens .. nBaseGens+nSubalgGens-1});
@@ -117,8 +188,6 @@ makePresRing(Ring, List) := (R, gensR) ->(
     InclusionBase := map(TensorRing, ambR,
         (vars TensorRing)_{0..nBaseGens-1});
     
-    SubstitutionPres := map(ambR, pres, matrix({gensR}));
-
     Substitution := map(TensorRing, TensorRing,
         (vars TensorRing)_{0..nBaseGens-1} | InclusionBase(matrix({gensR})));
     
@@ -138,10 +207,6 @@ makePresRing(Ring, List) := (R, gensR) ->(
 	"InclusionBase" => InclusionBase,
 	"Substitution" => Substitution,
 	"FullSub" => FullSub,
-	"PresentRing" => pres,
-	"ProjectionPres"=> ProjectionPres,
-	"InclusionPres" => InclusionPres,
-	"SubstitutionPres" => SubstitutionPres,
 	"SyzygyIdeal" => SyzygyIdeal,
 	"LiftedPres" => liftedPres
 	};

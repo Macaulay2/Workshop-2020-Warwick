@@ -528,9 +528,10 @@ isLocallyFree ToricReflexiveSheaf := Boolean => E -> (
     if E == 0 then return true;
     X := variety E;
     all(max X, sigma -> (
-      	    U := normalToricVariety( (rays X)_sigma, {sigma});
+      	    U := normalToricVariety( (rays X)_sigma, {toList(0..#sigma-1)});
       	    EU := toricReflexiveSheaf( apply(sigma, i -> pairs E#i), U);
-      	    isArithmeticallyFree EU
+      	    if not isArithmeticallyFree EU then return false;
+            all(components cover EU, L -> isCartier toricDivisor L)
 	    )
 	)
     )

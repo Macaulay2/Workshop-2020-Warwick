@@ -84,8 +84,9 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
     if subR#"isSagbi" == false then(
 	error "Can only use IntrinsicReduce on a Subring instance that is a Sagbi basis.";
 	);
+    
     if projInc G != G then(
-	error "G must contain entries that are polynomials in the generators of subR."
+	--error "G must contain entries that are polynomials in the generators of subR."
 	);
     
     -- This is one way to guarentee that p is actually an element of subR,
@@ -100,7 +101,6 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 
     fullSub := pres#"FullSub";
     result := fullSub p;
-
 
     KA := subring(leadTerm gens subR);
     ringG := subring(fullSub G);

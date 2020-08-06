@@ -1,9 +1,9 @@
 debug Core -- gets rid of "raw" error during installation. probably a better way...
 
 export {
-    "subalgebraBasis",
     "subduction",
-    "sagbi" => "subalgebraBasis",
+    "subalgebraBasis",
+    "sagbi",
     "PrintLevel",
     "SagbiDegrees",
     "SubalgComputations",
@@ -58,18 +58,52 @@ subduction(Subring, Matrix) := (subR, M) -> (
     matrix({ents})
     );
 
+---------------------------------------------------------------------------------------
+-- subalgebraBasis is needed for legacy purposes. It should not be changed or deleted. 
+-- New code should use the function "sagbi." 
+---------------------------------------------------------------------------------------
 
-
-subalgebraBasis = method(Options => {
-    Strategy => null,
-    Limit => 100,
-    PrintLevel => 0})
-
-subalgebraBasis List := o -> L -> (
-    subalgebraBasis(o, subring L)
+subalgebraBasis = method(
+    TypicalValue => Matrix, 
+    Options => {
+	Strategy => null,
+    	Limit => 100,
+    	PrintLevel => 0
+	}
     );
 
-subalgebraBasis Subring := o -> R -> (
+subalgebraBasis(Matrix) := o -> gensMatrix -> (
+    R := subring gensMatrix;
+    gens sagbi(R,o)
+    );
+
+subalgebraBasis(List) := o -> L -> (
+    gens sagbi(o, subring L)
+    );
+
+subalgebraBasis(Subring) := o -> subR -> (
+    gens sagbi subR
+    );
+
+
+sagbi = method(
+    TypicalValue => Subring, 
+    Options => {
+    	Strategy => null,
+    	Limit => 100,
+    	PrintLevel => 0
+    	}
+    );
+
+sagbi(Matrix) := o -> gensMatrix -> (
+    sagbi(o, subring gensMatrix)
+    );
+
+sagbi(List) := o -> L -> (
+    sagbi(o, subring L)
+    );
+
+sagbi(Subring) := o -> R -> (
     R.cache.SubalgComputations = new MutableHashTable;
     subalgComp := R.cache.SubalgComputations;
     
@@ -179,7 +213,7 @@ subalgebraBasis Subring := o -> R -> (
     M := R.cache.SagbiGens;
     presRing := makePresRing(resultR, M);
     
-    -- We shouldn't directly set (cache => R.cache) because there is the possibility of inhereting outdated information. 
+    -- It shouldn't directly set (cache => R.cache) because there is a possibility of inhereting outdated information. 
     cTable := new CacheTable from{
 	SubalgComputations => new MutableHashTable from {},
 	SagbiGens => M,
@@ -195,9 +229,4 @@ subalgebraBasis Subring := o -> R -> (
 	"partialDegree" => currDegree-1,
 	cache => cTable
 	} 
-    );
-
-subalgebraBasis Matrix := o -> gensMatrix -> (
-    R := subring gensMatrix;
-    subalgebraBasis(R,o)
     );

@@ -1135,40 +1135,55 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
 Input: graph g, integer k, Slist and Alist k-tuples of vertices
 Output: a list of vertices t for which there exists a k-trek with top t, where the i'th leg ends in Slist#i and doesn't pass through Alist#i
 *-
+
 tops = method()
-tops (Digraph,ZZ,List,List) := List => (g,k,Slist,Alist) ->(   
+tops (Digraph,ZZ,List,List) := List => (g,k,Slist,Alist) ->
+(   
     topList := {};
-    --print "bbb";
-    --print g;
-    --print k;
-    --print Slist;
-    --print Alist;
+    
     Glist:=apply(Alist,A->deleteVertices(g,A));
+    -- Glist is a list of graphs after deleting vertices from Alist
+     
     vert := sort vertices g;
+    
     --make a list of all v that are not in any Alist
-    for A in Alist do(
-	for a in A do(
+    for A in Alist do
+    (
+	for a in A do
+	(
 	    vert=delete(a,vert);
-	    );
 	);
-    for v in vert do( --v not in union of Alist
-	isTop := true;
-	i:=0;
+    );
+    -- vert is a list of all vertices not in any Alist
+    
+    for v in vert do
+    ( --v not in union of Alist
+	isTop := true;	      	      --flag variable
+	i:=0;	     	     	     	--counter variable
 	descd := {};
-	while (isTop and i<k) do(
+	
+	while (isTop and i<k) do
+	(    	 -- we will stop when we find all the k paths P_i such that none of them intersects A_i respectively for all i
+	    
 	    pathExists := false;
-	    descd = toList(descendants(Glist#i,v));
-	    ddd := 0;
-	    while ((not pathExists) and ddd<length(descd)) do(
+	    descd = toList(descendants(Glist#i,v)); 	-- list of all descendants of v in the induced graph Glist_i after deleting all the vertices Alist_i from G
+	    ddd := 0;	  --used for indexing elements of descd
+	    
+	    while ((not pathExists) and ddd<length(descd)) do
+	    (
 		if member(descd#ddd,Slist#i) then(pathExists=true;);
 		ddd=ddd+1;
-		);
-	    if not pathExists then (isTop=false;);
-	    i=i+1;
 	    );
-	if isTop then(topList=append(topList,v););	
-	);
-    return topList;)
+	    
+	    if not pathExists then (isTop=false;);    	  -- if there doen't exist any path from v to S_i without intersecting A_i then v is not a top
+	    i=i+1;
+        );
+	
+	if isTop then(topList=append(topList,v););	-- topList is a list of all posiible tops
+    );
+    
+    return topList;
+)
 
 ------------------------------------------------------------------
 -- trekIdeal (Ring,MixedGraph)

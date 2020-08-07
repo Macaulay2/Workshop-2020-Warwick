@@ -1058,59 +1058,63 @@ Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such
 a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
 *-
 multiTrekSeparation = method()
-multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> (
-    --print "1";
-    G := graph collateVertices g;
-    --print "2";
+multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> 
+(
+ 
+    G := graph collateVertices g;    	 --outputs the hash table after collating vertices 
+    
     statements := {};
     v := sort vertices g;
-    --print v;
-    DG := graph G#Digraph;
-    --print "3";
-    DGhash := new MutableHashTable from apply(v,i->{i,DG#i});
-    --print DGhash#(v#1); --returns children of the vertex v#1
-    for Alist in toList(((set subsets v)^**k)/deepSplice) do(
-	--print Alist;
-	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v))); --assume A_i \subset S_i
-	--print SS;
+    
+    DG := graph G#Digraph;    	  --outputs Directed graph as a hash table
+    
+    DGhash := new MutableHashTable from apply(v,i->{i,DG#i});	     	 -- creating a mutable hash table from DG
+                                                                         --DGhash#(v#1) --returns children of the vertex v#1
+    
+    for Alist in toList(((set subsets v)^**k)/deepSplice) do	    	--making k-cartesian product of subsets of v
+    (	     	     	     	     	     	     	     	     	-- Alist is one of the k-cartesian product of subsets of v
+	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v)));       --assume A_i \subset S_i
+	                                                                --subsetsBetween returns all subsets of v containing Alist#i
+	    	    	    	    	    	    	    	        -- #SS  = k-1, indexed from 0 to k-2
+									-- SS_i is all possible subsets of v which contains Alist_i
 	--Want: Slist' is the collection of all possible Slists, where Slist=(S_1..S_(k-1)), with S_i \in SS_i
-	--Slist' := (set (SS#0));
+	
+	--remember Alist_0 is actually A_1 and Alist_(k-1) is A_k.
+	
 	Slist' := set(apply(SS#0,j->toSequence({j})));
-	--print "---";
+        
 	--Want to loop over all Slist = {S1..}
-	for i from 1 to k-2 do(
+	for i from 1 to k-2 do	      	      	      	      	      	   --making k-1 cartesian product of SS_0xSS_1..XSS_(k-2)
+	(    	     	     	     	     	     	     	     	 
 	    Slist' = (Slist' ** (set (SS#i)))/splice; 
-	    	    );
-	--print Slist';
-	--print "---";
-        for Slist in toList(Slist') do(
-	    --print "hi";
-	    --print (toList (drop(Alist,-1)));
-	    toplist := tops(G#Digraph,k-1,toList Slist,toList (drop(Alist,-1)));
-	    --print toplist;
-	    --Find all descendants of all tops in the graph G \ A_k, remove them from v. That is our S_k
-	    --print "aaa";
-	    G':=deleteVertices(G#Digraph,Alist_(k-1));
-	    --print "ccc";
-	    Sk:=v;
-	    --print "ddd";
-	    --print Alist_(k-1);
-	    --print G';
-	    --print toplist;
-	    for w in Alist_(k-1) do(
-		toplist=delete(w,toplist);
-		);
-	    for w in reachable(G',toplist) do(
-		--print w;
-		delete(w,Sk);
-		);
-	    ---print "eee";
-	    --print Sk;
-	    statements=append(statements,{append(Slist,Sk),Alist});
-	    --print "ff";
-	    );
 	);
-    statements)
+	
+	
+        for Slist in toList(Slist') do
+	(
+	    toplist := tops(G#Digraph,k-1,toList Slist,toList (drop(Alist,-1)));  --find tops of all the treks which ends in S_1,..,S_(k-1) not passing through A_1,..A_(k-1)
+	    
+	    --Find all descendants of all tops in the graph G \ A_k, remove them from v. That is our S_k
+     
+	    G':=deleteVertices(G#Digraph,Alist_(k-1));	      	      	  --G'is the induced digraph after removing vertices from A_k
+	    Sk:=v;
+	    
+	    for w in Alist_(k-1) do
+	    (
+		toplist=delete(w,toplist);    	      	      	      	  -- removing A_k from toplist
+	    );
+	    
+	    for w in reachable(G',toplist) do
+	    (
+		delete(w,Sk);	     	    	    	    	    	 --if w is reachable in G' from any one of the vertices of toplist then it cannot be in S_k
+	    );
+	                                                                 -- we are not removing A_k from S_k. Hence A_k \subset S_k.
+	    statements=append(statements,{append(Slist,Sk),Alist});
+       );
+    
+    );
+    statements
+)
 
 	    -*
 	    scan(v,i->DGhash#i=DG#i);

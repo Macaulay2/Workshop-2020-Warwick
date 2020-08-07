@@ -10,8 +10,26 @@ T = apply(T,s -> {sort s#0, sort s#1, sort s#2, sort s#3})
 L = {{{a}, {b, c}, {}, {}}, {{b, c}, {a, b}, {}, {b}}, {{a, b}, {b, c}, {}, {b}}, {{b, c}, {a, c}, {}, {c}}, {{b, c}, {a, d}, {}, {d}}}
 sort T=== sort L
 
-G
-collateVertices G
+G = mixedGraph(digraph {{b,d},{c,d},{b,c},{a,c},{e,c}})
+Ghash = graph collateVertices G
+DG = graph Ghash#Digraph 
+v = sort vertices G
+v#1
+DG#(b)
+Dghash := new MutableHashTable from apply(v,i->{i,DG#i});
+keys Dghash 
+DG
+Dghash#b
+v = {a,b}
+(set subsets v)^**2
+(set subsets v)^**2/deepSplice
+#set subsets v
+L1 = toList (set subsets v)^**2
+L2 = toList ((set subsets v)^**2)/deepSplice
+L1_1
+L2_1
+
+
 multiTrekSeparation(g,4)
 ((set subsets vertices G)^**3)/splice
 toList(((set subsets vertices G)^**3)/splice)

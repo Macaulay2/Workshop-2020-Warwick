@@ -1106,7 +1106,7 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
 	    
 	    for w in reachable(G',toplist) do
 	    (
-		delete(w,Sk);	     	    	    	    	    	 --if w is reachable in G' from any one of the vertices of toplist then it cannot be in S_k
+		Sk = delete(w,Sk);	     	    	    	    	    	 --if w is reachable in G' from any one of the vertices of toplist then it cannot be in S_k
 	    );
 	                                                                 -- we are not removing A_k from S_k. Hence A_k \subset S_k.
 	    statements=append(statements,{append(Slist,Sk),Alist});

@@ -26,21 +26,119 @@ newPackage(
         )
 
 export {
-    -- data types
-   "Bigraph",
-   "MixedGraph",
-    -- constructors
-   "bigraph",
-   "mixedGraph",
-   -- operations on graphs
-   "collateVertices"
+     "topologicalSort",
+    "topSort",
+    "SortedDigraph",
+    "Bigraph",
+    "bigraph",
+    "LabeledGraph",
+    "labeledGraph",
+    "MixedGraph",
+    "mixedGraph",
+    "collateVertices"
     }
+
+
+--check whats the difference between topologicalSort and topSort
+topologicalSort = method()
+topologicalSort Digraph := List => D -> topologicalSort(D, "")
+topologicalSort (Digraph, String) := List => (D,s) -> (
+    if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
+    s = toLower s;
+    processor := if s == "random" then random
+        else if s == "min" then sort
+        else if s == "max" then rsort
+        else if s == "degree" then L -> last \ sort transpose {apply(L, v -> degree(D, v)), L}
+        else identity;
+    S := processor sources D;
+    L := {};
+    v := null;
+    while S != {} do (
+        v = S_0;
+        L = append(L, v);
+        S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
+        );
+    L
+    )
+
+
+
+
+SortedDigraph = new Type of HashTable;
+
+-- Keys:
+--      digraph: the original digraph
+--      NewDigraph: the digraph with vertices labeld as integers obtained from sorting
+--      map: the map giving the sorted order
+topSort = method()
+topSort Digraph := SortedDigraph => D -> (
+    L := topologicalSort D;
+    g := graph D;
+    new SortedDigraph from {
+	    digraph => D,
+	    newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
+        map => hashTable apply(#L, i -> L_i => i + 1)
+	    }
+    )
+
 
 Bigraph = new Type of Graph
 
 bigraph = method(Options => {Singletons => null})
 bigraph HashTable := opts -> g -> new Bigraph from graph(g, opts)
 bigraph List := opts -> g -> new Bigraph from graph(g, opts)
+
+
+graphData = "graphData"
+labels = "labels"
+
+LabeledGraph = new Type of HashTable
+
+labeledGraph = method()
+labeledGraph (Digraph,List) := (g,L) -> (
+    C := new MutableHashTable;
+    C#cache = new CacheTable from {};
+    lg := new MutableHashTable;
+    lg#graphData = g;
+    label := new MutableHashTable;
+    if instance(g,Graph) then (
+        sg := simpleGraph g;
+        scan(L, i -> 
+            if (sg#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else if (sg#graph#(i#0#1))#?(i#0#0) then label#({i#0#1,i#0#0}) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        )
+    else (
+        scan(L, i -> 
+            if (g#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        );
+    lg#labels = new HashTable from label;
+    C#graph = lg;
+    new LabeledGraph from C
+    )
+
+net LabeledGraph := g -> horizontalJoin flatten (
+     net class g,
+    "{",
+    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
+    "}"
+    )
+
+toString LabeledGraph := g -> concatenate(
+    "new ", toString class g#graph,
+    if parent g#graph =!= Nothing then (" of ", toString parent g),
+    " from {",
+    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
+    "}"
+    )
+
+graph LabeledGraph := opts -> g -> g#graph
+
+
+
 
 MixedGraph = new Type of HashTable
 

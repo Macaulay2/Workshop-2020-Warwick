@@ -12,6 +12,9 @@
 \newtheorem{example}{Example}
 \newtheorem{remark}{Remark}
 
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\bs}{\boldsymbol}
+
 \newcommand{\indep}{\perp \!\!\! \perp}
 \author{M2 Graphical Models MLE team}
 \title{Graphical Models MLE}
@@ -332,6 +335,38 @@ a_{\gamma,\mu} \quad \text{if} \quad \gamma \in d, \mu \in e,\\
 0 \quad \text{otherwise.}
 \end{cases}
 \] 
+
+\newpage 
+\section{Gaussian loopless mixed graph models}
+
+In general we allow for undirected edges $i-j$, directed edges $i\to j$ and bidirected edges $\leftrightarrow$ (\textcolor{blue}{maybe even multidirected in the future!}) but \textit{simple} graphs, i.e. there is at most one edge between any two vertices. These include 
+
+The nodes of $G$ are partitioned as $V = U\cup W$, such that:
+\begin{itemize}
+\item if $i-j$ in $G$ then $i,j\in U$
+\item if $i\leftrightarrow j$ in $G$ then $i,j\in W$ 
+\item there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$
+\end{itemize}
+
+ We still require the directed part to be a DAG, i.e., there are no directed cycles.  Then we can order vertices so that all vertices in $U$ come before vertices in $W$, and whenever $i\to j$ we have $i<j$. 
+
+Let $G=(V,E)$ be an LMG, then the Gaussian model associated to $G$ consists of all $\bs X=(X_i)_{i\in V}$ Gaussian random vectors with zero mean and positive definite covariance matrices $\Sigma \in \RR^{V \times V}$ of the form
+ \begin{equation}\label{eq:parametrization}
+\Sigma\quad=\quad (I-\Lambda)^{-T}\left[\begin{array}{cc}
+K^{-1} & \bs 0\\
+\bs 0 & \Psi
+\end{array}
+\right](I-\Lambda)^{-1},
+\end{equation}
+where 
+\begin{itemize}
+\item[(i)] $\Lambda=[\lambda_{ij}]\in \RR^{V\times V}$ is such that $\lambda_{ij}=0$ whenever $i\to j \notin E$
+\item[(ii)] $K=[k_{ij}] \in \RR^{U\times U}$ is symmetric positive definite such that $k_{ij}=0$ whenever $i-j\notin E$
+\item[(iii)] $\Psi =[\psi_{ij}]\in \RR^{W\times W}$ is symmetric positive definite such that  $\psi_{ij}=0$ whenever $i\leftrightarrow j\notin E$
+\end{itemize}
+
+This parametrization generalizes the one for undirected graphs, DAGs, mixed graphs and chain graphs. \textcolor{blue}{let's implement it in \texttt{M2}!}
+
 \bibliographystyle{plain}
 \bibliography{references}
 

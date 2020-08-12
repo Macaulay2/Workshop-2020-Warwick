@@ -68,7 +68,7 @@ SortedDigraph = new Type of HashTable;
 
 -- Keys:
 --      digraph: the original digraph
---      NewDigraph: the digraph with vertices labeld as integers obtained from sorting
+--      NewDigraph: the digraph with vertices labeled as integers obtained from sorting
 --      map: the map giving the sorted order
 topSort = method()
 topSort Digraph := SortedDigraph => D -> (
@@ -228,6 +228,49 @@ doc ///
    GraphicalModels
    GraphicalModelsMLE 
 ///
+
+--------------------------------------------
+-- Documentation MixedGraph
+--------------------------------------------
+
+doc ///
+  Key 
+  MixedGraph
+
+  Headline
+  MixedGraph is a graph that has undirected, directed and bidirected edges. MixedGraph is a type, 
+  with ancestor classes HashTable < Thing. 
+   
+  Usage
+  To create a MixedGraph, use mixedGraph (Graph, Digraph, Bigraph).
+  
+  Common ways to use MixedGraph are the following functions in the GraphicalModels package:
+   - gaussianRing(MixedGraph)
+   - trekIdeal(Ring,MixedGraph)
+   - trekSeparation(MixedGraph)
+  
+  NOTE 1: While the type MixedGraph allows for any combination of undirexted, directed and bidirected edges,
+  we make the following assumptions (in line with loopless mixed graphs from 
+      Sadeghi and Lauritzen, 2020 <@HREF"https://arxiv.org/pdf/1109.5909.pdf"@>):
+  The vertices of $G$ can be partitioned into $V=U\cup W$ such that
+  - if $i-j$ in $G$ then $i,j\in U$
+  - if $i\leftrightarrow j$ in $G$ then $i,j\in W$ 
+  - if $i\to j$ in $G$ then $i\in U$ and $j\in W$ 
+ and
+ the directed edges form a DAG, i.e., there are no directed cycles. Here, the nodes of a directed cycles can
+ be
+ - the vertices $V$ of  $G$  
+ - undirected connected components 
+ - bidirected connected components
+ For example,   $\{1 \to 2,2\leftrightarrow 3,3 \to 1\}$ is a directed cycle.
+ 
+ NOTE 2: Current implementations of trekIdeal and trekSeparation do not allow undirected edges.
+
+  SeeAlso
+  mixedGraph, gaussianRing, trekIdeal, trekSeparation, Graph, Digraph, Bigraph
+
+///
+
 
 end--
 doc ///

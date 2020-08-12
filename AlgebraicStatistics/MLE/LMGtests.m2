@@ -1,0 +1,2 @@
+restart
+loadPackage "StatGraphs"

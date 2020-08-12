@@ -348,7 +348,9 @@ The nodes of $G$ are partitioned as $V = U\cup W$, such that:
 \item there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$
 \end{itemize}
 
- We still require the directed part to be a DAG, i.e., there are no directed cycles.  Then we can order vertices so that all vertices in $U$ come before vertices in $W$, and whenever $i\to j$ we have $i<j$. 
+\textcolor{blue}{Olga: how restrictive are these assumptions? If we were to relax them eventually, is it better to allow multidirected edges or any combination of directed,undirected and bidirected?}
+
+ We still require the directed part to be a DAG, i.e., there are no directed cycles. \textcolor{blue}{By directed cycles do you mean cycles on nodes or also possible undirected/biderected connected components?} Then we can order vertices so that all vertices in $U$ come before vertices in $W$, and whenever $i\to j$ we have $i<j$. 
 
 Let $G=(V,E)$ be an LMG, then the Gaussian model associated to $G$ consists of all $\bs X=(X_i)_{i\in V}$ Gaussian random vectors with zero mean and positive definite covariance matrices $\Sigma \in \RR^{V \times V}$ of the form
  \begin{equation}\label{eq:parametrization}

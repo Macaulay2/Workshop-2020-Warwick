@@ -146,26 +146,18 @@ KA := sagbi subring(leadTerm gens subR);
 monoRing := subring(B//KA);
 gVars := genVars(monoRing);
 
-M1 := KA#"PresRing"#"InclusionBase";
-M2 := monoRing#"PresRing"#"InclusionBase";
-M3 := KA#"PresRing"#"FullSub";
-M4 := monoRing#"PresRing"#"FullSub";
+(A, B)  = moduleToSubring(subR, result);
+final = autoreduce(A, transpose B)
 
-result2 := ((M2 M1 result)*(transpose gVars));
-assert(M3 M4 result2 == 0);
-coolRing := sagbi subring ((M2 M1 gens KA)|gVars);
-assert(result2%coolRing == 0);
-
-final := autoreduce(coolRing, transpose result2);
 
 print("i="|toString(i));
 print("num syzygies:");
 print(numrows final);
-print("expected:");
+print("expected of degree "|toString(i+1)|":");
 print((2*i)+2);
 assert(numrows final == 7)
 
-coef := monoCoef(gVars_(0,0), final_(0,0))
+error "stop";
 
 ------------------------------------------
 ------------------------------------------

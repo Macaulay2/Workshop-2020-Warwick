@@ -7,7 +7,8 @@ export {
     "isSubalg",
     "autoreduce",
     "monoCoef",
-    "toMonomial"
+    "toMonomial",
+    "moduleToSubring"
     }
 
 -- Returns the variables corresponding to the subalgebra generators in the 
@@ -126,7 +127,7 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 
     loopNum := 0;    	
     while true do (
-	if(loopNum % 10 == 0) then(
+	if loopNum % 100 == 0 and loopNum > 0 then(
 	    print("reduction step:"|toString(loopNum));
 	    );
 	badTerms := result // KA;
@@ -170,13 +171,11 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 	
 	coef := coefficient(tb, diffPoly);
 	assert( (leadTerm diffPoly) == tb*coef);
-	
-	result = result - diffPoly;
-	
-	if(loopNum > 500) then(
-	    error "stop";
-	    );
-	
+	assert(coefficient(tb, result) != 0);
+	diffPoly = diffPoly * (1/coefficient(tb, diffPoly));
+	diffPoly = diffPoly * coefficient(tb, result);
+        
+	result = result - diffPoly;	
 		
 	loopNum = loopNum + 1;
     	);
@@ -312,10 +311,35 @@ monoCoef(RingElement, RingElement) := (m, p) -> (
     );
 
 
+-- This is a highly experimental function:
+-- If M is something like the output of toricSyz, this gives you a Subring
+-- instance and a matrix that you can use with the function autoreduce.
+moduleToSubring = method()
+moduleToSubring(Subring, Matrix) := (subR, M) -> (
+    
+    -- The value of these generators doesn't matter, but they should be 
+    -- increasing under the monomial order.
+    tense := subR#"PresRing"#"TensorRing";
+    dummy := for i from 1 to numcols M list( ((vars tense)_(0,0))^i );
+    dummy = matrix({dummy});
+    monoRing := subring(dummy);
+    gVars := genVars(monoRing);
+    
+    M1 := subR#"PresRing"#"InclusionBase";
+    M2 := monoRing#"PresRing"#"InclusionBase";
+    
+    result2 := ((M2 M1 M)*(transpose gVars));
+        
+    -- This call to sagbi should terminate quickly if subR is a sagbi basis.
+    coolRing := sagbi subring ((M2 M1 gens subR)|gVars);
+    assert(result2%coolRing == 0);
+    (coolRing, result2)
+    );
+
 -- Perform autoreduction on the generators of an intrinsic ideal:
 -- I.e., reduce g\in idealGens modulo idealGens-g for all g\in idealGens.   
    -- subR is a Subring (probably has to be a Sagbi basis)
-   -- idealGens is a 1-row matrix containing generators of an ideal in subR.
+   -- idealGens is a matrix containing generators of an ideal in subR.
 autoreduce = method(TypicalValue => Matrix)
 autoreduce(Subring, Matrix) := (subR, idealGens) -> (
     noDupes := new MutableList from first entries idealGens;        

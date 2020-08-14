@@ -77,3 +77,39 @@ topList := {};
 	print "d";
 	if isTop then(topList=append(topList,v););
 	print "hi";	
+	
+	
+	
+--------------
+
+restart
+loadPackage("GraphicalModelsMultiTrek",Reload=>true)
+--G = mixedGraph(digraph {{b,d},{c,d},{b,c}},bigraph {{a,d}})
+G = mixedGraph(digraph {{a,b},{b,d},{a,c},{c,e}})
+D = digraph G
+
+Slist = {{b,d},{c,e}}
+Alist = {{b},{c}}
+tops(D,2,Slist,Alist)
+
+L = multiTrekSeparation(G,2);
+
+
+for l in L do
+(
+   if l_1 == ({b}, {c}) then print l
+    
+)
+
+L1 = trekSeparation G 
+
+
+for l in L1 do
+(
+ 
+ if isSubset({{b},{c}},l) then print l 
+ 
+)
+ 
+ 
+    

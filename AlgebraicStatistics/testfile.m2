@@ -94,14 +94,63 @@ tops(D,2,Slist,Alist)
 
 L = multiTrekSeparation(G,2);
 
+length L
+for l in L do
+(
+    if sum(l#1,i->length i) < min(length l#0#0, length l#0#1) then(
+    print l
+    )
+    )
 
+Lineq = {}
+for l in L do
+(
+    if sum(l#1,i->length i) < min(length l#0#0, length l#0#1) then(
+    Lineq=append(Lineq,{l})
+    )
+    )
+
+for l in LineqLists do
+(
+    print l
+    )
+
+for l in L1sort do
+(
+    print l
+    )
+
+--Compare Lineq and L1
+LineqLists=apply(Lineq,l->{sort(l#0#0#0),sort(l#0#0#1),sort(l#0#1#0),sort(l#0#1#1)})
+L1sort=apply(L1,l->{sort(l#0),sort(l#1),sort(l#2),sort(l#3)})
+
+for l in L1sort do(
+    print(member(l,LineqLists))
+    )
+
+for l in L1sort do(
+    if not (member(l,LineqLists)) then (print l;)
+    )
+
+--we seemingly missed {{a, c, e}, {a, b, d}, {a}, {d}}, but maybe it is implied by one we didn't miss (i.e. not minimal)
+missedStatement= {({a, c, e}, {a, b, d}),({a}, {d})}
+for l in L do(
+    if impliesSeparationStatement(2,l,missedStatement) then (print l);
+    )
+
+
+
+--------------------------
+
+--------------------------
 for l in L do
 (
    if l_1 == ({b}, {c}) then print l
     
 )
 
-L1 = trekSeparation G 
+L1 = trekSeparation G;
+
 
 
 for l in L1 do
@@ -111,5 +160,22 @@ for l in L1 do
  
 )
  
- 
+length L1
     
+-----
+
+impliesSeparationStatement = method()
+--Return true if statement1 implies statement2
+--For every S1 in statement1 and corresponding S2 in statement2: S2 subset of S1
+--For every A1 in statement1 and corresponding A2 in statement2: A1 subset of A2
+impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2) ->
+(for i from 0 to k-1 do(
+	if not isSubset(statement2#0#i,statement1#0#i) then(return false;);
+	if not isSubset(statement1#1#i,statement2#1#i) then(return false;);
+	);
+    	return true;
+   )
+
+s1 = {({d, b}, {a, b, c, e}), ({b}, {})}
+s2 = {({d, b}, {a, b, c, e}), ({b}, {c})}
+impliesSeparationStatement(2,s2,s1)

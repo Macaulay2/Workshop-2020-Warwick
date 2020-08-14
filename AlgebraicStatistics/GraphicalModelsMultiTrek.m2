@@ -1109,12 +1109,35 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
 		Sk = delete(w,Sk);	     	    	    	    	    	 --if w is reachable in G' from any one of the vertices of toplist then it cannot be in S_k
 	    );
 	                                                                 -- we are not removing A_k from S_k. Hence A_k \subset S_k.
-	    statements=append(statements,{append(Slist,Sk),Alist});
+	    newStatement:={append(Slist,Sk),Alist};
+	    redundant:=false;
+	    i:=0;
+	    while not redundant and i < length(statements) do(
+		if impliesSeparationStatement(k,statements#i,newStatement) then (redundant=true;);
+		if impliesSeparationStatement(k,newStatement,statements#i) then (
+		    statements=remove(statements,i);
+		    i=i-1;
+		    );
+		i=i+1;
+		);
+	    if not redundant then(statements=append(statements,newStatement););
        );
     
     );
     statements
 )
+
+impliesSeparationStatement = method()
+--Return true if statement1 implies statement2
+--For every S1 in statement1 and corresponding S2 in statement2: S2 subset of S1
+--For every A1 in statement1 and corresponding A2 in statement2: A1 subset of A2
+impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2) ->
+(for i from 0 to k-1 do(
+	if not isSubset(statement2#0#i,statement1#0#i) then(return false;);
+	if not isSubset(statement1#1#i,statement2#1#i) then(return false;);
+	);
+    	return true;
+   )
 
 	    -*
 	    scan(v,i->DGhash#i=DG#i);

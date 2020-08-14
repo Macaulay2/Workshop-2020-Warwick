@@ -107,7 +107,7 @@ L1 = trekSeparation G
 for l in L1 do
 (
  
- if isSubset({{b},{c}},l) then print l 
+ if isSubset({{b}},l) then print l 
  
 )
  

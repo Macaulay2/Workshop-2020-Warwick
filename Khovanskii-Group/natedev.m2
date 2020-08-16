@@ -10,10 +10,6 @@ installPackage(
     RunExamples => false,
     RerunExamples => false
     )
-export {
-    "debugPrintMap",
-    "debugPrintAllMaps"
-    }
 
 --setRandomSeed("randseed1");
 
@@ -56,37 +52,7 @@ moTest := (subR, n, maxDeg) -> (
     print("-------------------------------------------"); 
     print("-- End moTest"); 
     print("-------------------------------------------"); 
-
-);
- 
-debugPrintMap := f -> (
-    a := gens source f;
-    for i from 0 to (length a)-1 do(
-	elt := f(a_i);
-	print("maps "|toString(a_i)|" to "|toString(elt));
-	);    
     );
--- This is by far the easiest way to find the map that you need.
-debugPrintAllMaps := subR -> (
-    pres := makePresRing(subR);
-    print("--------------------------------");
-    print("-- PresRing map info dump:");
-    print("--------------------------------");
-    print("-- ProjectionInclusion:");
-    debugPrintMap (pres#"ProjectionInclusion");
-    print("-- ProjectionBase:");
-    debugPrintMap (pres#"ProjectionBase");
-    print("-- InclusionBase:");
-    debugPrintMap (pres#"InclusionBase");
-    print("-- Substitution:");
-    debugPrintMap (pres#"Substitution");
-    print("-- FullSub:");
-    debugPrintMap (pres#"FullSub");
-    print("--------------------------------");
-    print("-- End PresRing map info dump.");
-    print("--------------------------------");
-    );
-
 
 
 -- The reason I use a finite field is because that's what the original programmers used
@@ -102,7 +68,7 @@ genericminors = (minorsize,rowsize,colsize) -> (
     x = symbol x;
     R := kk[x_1 .. x_matdim];
     Temp := genericMatrix(R,x_1,rowsize,colsize);
-    --print(Temp);
+    print(Temp);
     gens minors(minorsize,Temp)
     );
 
@@ -130,35 +96,42 @@ A := {t_1*t_2*t_3,
       t_1*t_3^2,
       t_2^2*t_3,
       t_2*t_3^2};
-B := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
+G := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
 subR = sagbi subring A;
 assert((set first entries gens subR) === (set A)); 
--- The algorithm was never guarenteed to generate a minimal set of generators.
--- In this case, the generators are redundant.
--- Can we find minimal generators of the syzygy module? There are supposed to be 2i+2 
--- of degree i+1. (NOTE: Sturmfel's doesn't actually say anything about the total number   
--- of syzygies. He only states the number that have degree i+1.)
 
-result := toricSyz(subR, B);
-assert(result * (transpose B) == 0);
 
-KA := sagbi subring(leadTerm gens subR);
-monoRing := subring(B//KA);
-gVars := genVars(monoRing);
+tsyz := toricSyz(subR, G);
+assert(tsyz * (transpose G) == 0);
 
-(A, B)  = moduleToSubring(subR, result);
-final = autoreduce(A, transpose B)
+-*
+(A, B, gVars) := moduleToSubring(subR, tsyz);
+final := autoreduce(A, transpose B);
+final = extractEntries(final, gVars);
+ans1 := subR#"PresRing"#"FullSub"(sub(final,subR#"PresRing"#"TensorRing"))
+*-
+
+
+ans1 = mingensSubring(subR, tsyz)
+
+
+ans2 = (gens gb (transpose tsyz//subR));
+ans2 = subR#"PresRing"#"FullSub"(ans2);
+ans2 = transpose compress ans2;
+
+
+ans2Reduced = mingensSubring(subR, ans2);
+
+-- ans2Reduced == ans1
 
 
 print("i="|toString(i));
 print("num syzygies:");
-print(numrows final);
+print(numrows ans1);
 print("expected of degree "|toString(i+1)|":");
 print((2*i)+2);
-assert(numrows final == 7)
-
+assert(numrows ans1 == 7)
 error "stop";
-
 ------------------------------------------
 ------------------------------------------
 -- Other Sturmfels example 
@@ -167,20 +140,69 @@ error "stop";
 
 print("Sturmfels chapter 11 example 11.25.");
 M = genericminors(2, 2, 5)
--- (I don't understand where that weight vector comes from.)
+
+-- This monomial order is such that all the 2x2 determinants ab-cd satisfy ab > cd.
 BaseRing := kk[x_1..x_10, MonomialOrder => {Weights=> {1,1,2,4,3,9,4,16,5,25}}]
 N = sub(M, BaseRing);
-subR := subring(N);
+subR := sagbi subring(N);
 pres := subR#"PresRing";
 tense = pres#"TensorRing";
+
+-- The variables of the ambient ring are the variables of a generic matrix.
+-- They are structured as follows, where the entries are subscripts of x,
+-- the variable of the ambient ring:
+--
+-- | 1 3 5 7 9  |
+-- | 2 4 6 8 10 |
+--
+-- The generators are the binomial(5,2)=10 2x2 determinants:
+--
+-- p_10 = [12]
+-- p_11 = [13]
+-- p_12 = [23]
+-- p_13 = [14]
+-- p_14 = [24]
+-- p_15 = [34]
+-- p_16 = [15]
+-- p_17 = [25]
+-- p_18 = [35]
+-- p_19 = [45]
+
 g1 = ((p_10-p_12)*(p_12-p_15))_tense;
-g2 = ((p_15 + p_13 + p_16)*(p_16 + p_17 + p_18))_tense
+g2 = ((p_11 + p_13 + p_16)*(p_16 + p_17 + p_18))_tense
 G = matrix({{g1, g2}})
--- These agree with what Sturmfels says they should be
-print("-- lead terms of G:");
-print(leadTerm G)
+ltG = leadTerm pres#"Substitution" G;
 -- g_3 in Sturmfels.
 f = ((p_16*p_18*g1) - (p_12*p_15*g2))_tense
+
+
+
+gensSyz := toricSyz(subR, ltG);
+
+-- The result of toricSyz is really a KA module. 
+KA = sagbi subring(leadTerm gens subR);
+tenseKA = KA#"PresRing"#"TensorRing";
+
+
+(A0, B0, gVars) := moduleToSubring(KA, gensSyz);
+M3 = map(tense, ring B0, (vars tense)|ltG)
+assert(M3 B0 == 0);
+
+-*
+final := autoreduce(A0, transpose B0);
+final = extractEntries(final, gVars);
+gensSyz2 = KA#"PresRing"#"FullSub"(sub(final,KA#"PresRing"#"TensorRing"))
+assert(gensSyz2*(transpose KA#"PresRing"#"FullSub" sub(ltG, tenseKA)) == 0);
+*-
+
+-- This is the algorithm 11.24 solution
+cheat := transpose compress KA#"PresRing"#"FullSub"(gens gb (transpose gensSyz//KA))
+nocheat := mingensSubring(KA, gensSyz)
+
+error "stop";
+--toricSyz(Subring, Matrix) := on(lookup(toricSyz, Subring, Matrix), GenerateAssertions=> true, Name=>"toricSyz")
+test := intrinsicBuchberger(subR, G)
+error "stop";
 
 subRSagbi = sagbi subR;
 presSagbi = subRSagbi#"PresRing";

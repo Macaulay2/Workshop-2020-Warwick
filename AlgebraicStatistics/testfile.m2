@@ -133,13 +133,15 @@ for l in L1sort do(
     if not (member(l,LineqLists)) then (print l;)
     )
 
+#L1
+#LineqLists
 --we seemingly missed {{a, c, e}, {a, b, d}, {a}, {d}}, but maybe it is implied by one we didn't miss (i.e. not minimal)
 missedStatement= {({a, c, e}, {a, b, d}),({a}, {d})}
 for l in L do(
     if impliesSeparationStatement(2,l,missedStatement) then (print l);
     )
 
-
+missedStatement = {({},{a,b,c,d,e}),({},{})}
 
 --------------------------
 
@@ -151,7 +153,7 @@ for l in L do
 )
 
 L1 = trekSeparation G;
-
+#L1
 
 
 for l in L1 do
@@ -281,6 +283,7 @@ out (ZZ,List) := List => (k,statements) ->
     return s;    
 )
 k=2
+#L
 T = out(k,L)
 T#0
 L#0
@@ -288,16 +291,28 @@ L#0
 T1 = set T
 #T1
 L1 = toList T1
+#L1
+L1#0
 L2 = apply(L1,l->toList l)
 #L2
 L2#0
 
-for l in L2 do print l
+
+for l in L1 do print l
+for l in L do print l
+
+L#0
 
 
 
 
 
 
+---- 
+--example for k=3
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d},{b,e},{c,f},{d,g}})
+L = multiTrekSeparation(G,3);
+#L
 
 
+--writing the documentation and some test for the multi-trek separation 

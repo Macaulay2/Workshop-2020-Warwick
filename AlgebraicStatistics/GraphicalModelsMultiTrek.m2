@@ -1140,6 +1140,7 @@ impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2
    )
 
 sortedout = method()
+-- method to sort separration statements
 sortedout (List) := List => (L) ->
 (
     l := #L;

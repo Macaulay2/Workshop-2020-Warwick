@@ -227,3 +227,77 @@ for l in Lineq do
     
     print l;
    )
+--
+L
+L#0
+set(L#0#0)
+set(L#0#1)
+set(set(L#0#0),set(L#0#1))
+ss = set apply(L#0#0,l->set(l))
+sa = set apply(L#0#1,l->set(l))
+s = {ss,sa}
+
+sortedout = method()
+sortedout (List) := List => (statements) ->
+(
+    l := #statements;
+    s := {};
+    for i from 0 to l-1 do
+    (
+    ss :=  set apply(statements#i#0,l->set(l)); 
+    sa :=  set apply(statements#i#1,l->set(l)); 
+    s = s|{{ss,sa}};
+    );   
+    return s;    
+)
+T = sortedout(L)
+#T
+T#0
+L#0
+L1 = set T
+#L1
+L1_0
+L2 = toList L1
+L2#0
+L2#0
+#L2
+#L
+---------
+
+out = method() --removing symmetries and also no need to sort the output
+-- the form of output is {{S_1,A_1},{S_2,A_2}} and so on
+
+out (ZZ,List) := List => (k,statements) ->
+(
+    l := #statements;
+    s := {};
+    for i from 0 to l-1 do
+    (
+    ss :=   apply(statements#i#0,l->set(l)); 
+    sa :=   apply(statements#i#1,l->set(l)); 
+    t =  set apply(k,i->{{ss_i},{sa_i}}); 
+    s = s|{t};
+    );   
+    return s;    
+)
+k=2
+T = out(k,L)
+T#0
+L#0
+#T
+T1 = set T
+#T1
+L1 = toList T1
+L2 = apply(L1,l->toList l)
+#L2
+L2#0
+
+for l in L2 do print l
+
+
+
+
+
+
+
+

@@ -93,8 +93,9 @@ Alist = {{b},{c}}
 tops(D,2,Slist,Alist)
 
 L = multiTrekSeparation(G,2);
-
-length L
+L
+L#0
+#L
 for l in L do
 (
     if sum(l#1,i->length i) < min(length l#0#0, length l#0#1) then(
@@ -179,3 +180,50 @@ impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2
 s1 = {({d, b}, {a, b, c, e}), ({b}, {})}
 s2 = {({d, b}, {a, b, c, e}), ({b}, {c})}
 impliesSeparationStatement(2,s2,s1)
+
+L_0_0
+
+sorted_statements = method()
+sorted_statements (List) := List => (statements) ->
+(
+    l := #statements;
+    s := {};
+    for i from 0 to l-1 do
+    (
+    ss = apply(statements#i#0,l->sort(l)); 
+    sa = apply(statements#i#1,l->sort(l)); 
+    s = s|{{(ss),(sa)}};
+    );   
+    return s;    
+)
+L
+L#0
+L#0#0
+l =  apply(toList(L#0#0),l->{sort(l)}); 
+l
+
+ls = sorted_statements(L)
+#ls
+#L
+ls#0
+L#0
+ls#0
+L#0
+
+for i from 0 to #L-1 do
+( 
+    print ls#i; 
+    print L#i;
+    print "\n";    
+    
+    
+)
+
+ls
+apply(L#0#0,l->sort(l))
+L#0#0
+for l in Lineq do
+(
+    
+    print l;
+   )

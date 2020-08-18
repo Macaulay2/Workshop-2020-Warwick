@@ -1124,7 +1124,7 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
        );
     
     );
-    statements
+    return sortedout(statements);
 )
 
 impliesSeparationStatement = method()
@@ -1138,6 +1138,21 @@ impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2
 	);
     	return true;
    )
+
+sortedout = method()
+sortedout (List) := List => (L) ->
+(
+    l := #L;
+    s := {};
+    for i from 0 to l-1 do
+    (
+    ss := apply(L#i#0,l->sort(l)); 
+    sa := apply(L#i#1,l->sort(l)); 
+    s = s|{{(ss),(sa)}};
+    );   
+    return s;    
+)
+
 
 	    -*
 	    scan(v,i->DGhash#i=DG#i);

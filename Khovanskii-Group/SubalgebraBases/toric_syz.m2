@@ -13,7 +13,8 @@ export {
     "mingensSubring",
     "debugPrintMap",
     "debugPrintAllMaps",
-    "extrinsicBuchberger"
+    "extrinsicBuchberger",
+    "freeModuleSubring"
     }
 
 debugPrintMap = method()
@@ -364,6 +365,16 @@ monoCoef(RingElement, RingElement) := (m, p) -> (
     sum coefs   
     );
 
+-- TODO: implement as operator "^".
+freeModuleSubring = method()
+freeModuleSubring = (subR, n) -> (
+    tense := subR#"PresRing"#"TensorRing";
+    amb := ambient subR;
+    if n <= 0_ZZ then (
+	error "Module rank must be positive.";
+	);
+    moduleToSubring(subR, id_((ambient subR)^n))
+    );
 
 -- !!! 	   This is a highly experimental function.     !!!
 -- If M is the output of toricSyz, this produces a Subring instance and a 1-column 

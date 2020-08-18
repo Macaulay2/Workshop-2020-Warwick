@@ -12,7 +12,8 @@ export {
     "extractEntries",
     "mingensSubring",
     "debugPrintMap",
-    "debugPrintAllMaps"
+    "debugPrintAllMaps",
+    "extrinsicBuchberger"
     }
 
 debugPrintMap = method()
@@ -217,6 +218,15 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 -- applies intrinsicReduce to each entry of the 1-row matrix M.
 intrinsicReduce(Subring, Matrix, Matrix) := (subR, G, M) -> (
     matrix({apply(first entries M, ent -> intrinsicReduce(subR, G, ent))})
+    );
+
+-- algorithm 11.24
+extrinsicBuchberger = method(TypicalValue => Matrix)
+extrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
+    G := (gens gb (transpose (S//subR)));
+    G = subR#"PresRing"#"FullSub"(G);
+    G = transpose compress G;
+    mingensSubring(subR, G)
     );
 
 
@@ -439,6 +449,8 @@ mingensSubring(Subring, Matrix) := (subR, M) -> (
     (A, B, gVars)  := moduleToSubring(subR, M);
     debugPrintAllMaps(A);
     final := autoreduce(A, transpose B);
+    -- Sort the rows of the matrix for more predictable behavior.
+    final = matrix transpose {sort first entries transpose final};
     final = extractEntries(final, gVars);
     subR#"PresRing"#"FullSub"(sub(final,subR#"PresRing"#"TensorRing"))
     );

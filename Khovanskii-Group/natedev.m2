@@ -99,49 +99,40 @@ A := {t_1*t_2*t_3,
 G := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
 subR = sagbi subring A;
 assert((set first entries gens subR) === (set A)); 
-
-
 tsyz := toricSyz(subR, G);
 assert(tsyz * (transpose G) == 0);
 
--*
-(A, B, gVars) := moduleToSubring(subR, tsyz);
-final := autoreduce(A, transpose B);
-final = extractEntries(final, gVars);
-ans1 := subR#"PresRing"#"FullSub"(sub(final,subR#"PresRing"#"TensorRing"))
-*-
-
-
 ans1 = mingensSubring(subR, tsyz)
+ans2 = extrinsicBuchberger(subR, tsyz);
 
+-- Subroutine 11.24 is guarenteed to return a (non-reduced) GB but subroutine 11.18 is only 
+-- guarenteed to return some set of generators. So, it may be a coincidence that ans1 and ans2
+-- coincide for all values of i that I have tried.
+-- If tsyz generates syz(G), then it generates in(syz G) because in(syz G) = syz(G)?
+assert(ans1 == ans2);
 
-ans2 = (gens gb (transpose tsyz//subR));
-ans2 = subR#"PresRing"#"FullSub"(ans2);
-ans2 = transpose compress ans2;
-
-
-ans2Reduced = mingensSubring(subR, ans2);
-
--- ans2Reduced == ans1
-
-
+-*
 print("i="|toString(i));
 print("num syzygies:");
 print(numrows ans1);
 print("expected of degree "|toString(i+1)|":");
 print((2*i)+2);
-assert(numrows ans1 == 7)
-error "stop";
+*-
+-- the degree of each row is 3*(i+1) because all the generators have degree 3
+degs := apply(entries (ans1//subR), row -> degree sum row)
+assert(length (positions(degs, d -> first d == 3*(i+1))) == (2*i)+2);
+
 ------------------------------------------
 ------------------------------------------
--- Other Sturmfels example 
+-- Sturmfels example 11.25 
 ------------------------------------------
 ------------------------------------------
 
 print("Sturmfels chapter 11 example 11.25.");
 M = genericminors(2, 2, 5)
 
--- This monomial order is such that all the 2x2 determinants ab-cd satisfy ab > cd.
+-- This monomial order is such that all the 2x2 determinants ab-cd satisfy ab > cd (I.e., the
+-- positive term comes first.)
 BaseRing := kk[x_1..x_10, MonomialOrder => {Weights=> {1,1,2,4,3,9,4,16,5,25}}]
 N = sub(M, BaseRing);
 subR := sagbi subring(N);
@@ -175,8 +166,6 @@ ltG = leadTerm pres#"Substitution" G;
 -- g_3 in Sturmfels.
 f = ((p_16*p_18*g1) - (p_12*p_15*g2))_tense
 
-
-
 gensSyz := toricSyz(subR, ltG);
 
 -- The result of toricSyz is really a KA module. 
@@ -184,23 +173,12 @@ KA = sagbi subring(leadTerm gens subR);
 tenseKA = KA#"PresRing"#"TensorRing";
 
 
-(A0, B0, gVars) := moduleToSubring(KA, gensSyz);
-M3 = map(tense, ring B0, (vars tense)|ltG)
-assert(M3 B0 == 0);
+-- ans1 contains ans2. 
+ans1 = extrinsicBuchberger(KA, gensSyz);
+ans2 = mingensSubring(KA, gensSyz)
 
--*
-final := autoreduce(A0, transpose B0);
-final = extractEntries(final, gVars);
-gensSyz2 = KA#"PresRing"#"FullSub"(sub(final,KA#"PresRing"#"TensorRing"))
-assert(gensSyz2*(transpose KA#"PresRing"#"FullSub" sub(ltG, tenseKA)) == 0);
-*-
-
--- This is the algorithm 11.24 solution
-cheat := transpose compress KA#"PresRing"#"FullSub"(gens gb (transpose gensSyz//KA))
-nocheat := mingensSubring(KA, gensSyz)
 
 error "stop";
---toricSyz(Subring, Matrix) := on(lookup(toricSyz, Subring, Matrix), GenerateAssertions=> true, Name=>"toricSyz")
 test := intrinsicBuchberger(subR, G)
 error "stop";
 

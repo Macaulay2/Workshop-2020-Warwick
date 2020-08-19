@@ -26,23 +26,23 @@ newPackage(
         )
 
 export {
-     "topologicalSort",
-    "topSort",
-    "SortedDigraph",
-    "Bigraph",
-    "bigraph",
-    "LabeledGraph",
-    "labeledGraph",
-    "MixedGraph",
-    "mixedGraph",
-    "collateVertices"
+     "StatGraphs$topologicalSort",
+    "StatGraphs$topSort",
+    "StatGraphs$SortedDigraph",
+    "StatGraphs$Bigraph",
+    "StatGraphs$bigraph",
+    "StatGraphs$LabeledGraph",
+    "StatGraphs$labeledGraph",
+    "StatGraphs$MixedGraph",
+    "StatGraphs$mixedGraph",
+    "StatGraphs$collateVertices"
     }
 
 
 --check whats the difference between topologicalSort and topSort
-topologicalSort = method()
-topologicalSort Digraph := List => D -> topologicalSort(D, "")
-topologicalSort (Digraph, String) := List => (D,s) -> (
+StatGraphs$topologicalSort = method()
+StatGraphs$topologicalSort Digraph := List => D -> StatGraphs$topologicalSort(D, "")
+StatGraphs$topologicalSort (Digraph, String) := List => (D,s) -> (
     if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
     s = toLower s;
     processor := if s == "random" then random

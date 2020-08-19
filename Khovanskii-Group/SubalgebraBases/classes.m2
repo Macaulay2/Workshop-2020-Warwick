@@ -40,7 +40,6 @@ numgens Subring := A -> numcols gens A
 ambient Subring := A -> A#"AmbientRing"
 net Subring := A -> "subring of " | toString(ambient A)
 
--- TODO: Write a Subring equality operator which calculates the mathematical equality of subalgebras 
 -- TODO: Write good tests for % and //.
 
 -- This type is compatible with internal maps that are generated in the Sagbi algorithm.
@@ -64,87 +63,7 @@ makePresRing(Ring, Matrix) := (R, gensR) ->(
 	);
     makePresRing(R, first entries gensR)
     );
- 
-------------------------------------------------------------------------------------------
--- This is how the function selectVariables creates an induced monomial order:
--- It "emulates" the monomial order "program" to determine what order applies to each variable.
-
--- From: https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/m2/orderedmonoidrings.m2
-------------------------------------------------------------------------------------------
-
--- "Offset." It's a "pointer" to the last variable whose order is not accounted for.
-off := 0
-
--- Does not change off. 
--- This function basically drops the entries of wts corresponding to variables we don't care about.
-pw := (v,wts) -> (
-    -- "wts" applies to the next #wts variables, starting at "off."
-    for i in v list(
-	if i<off then(
-	    continue; 
-	    )else(
-	    if i >= off+(#wts) then (
-		break; 
-		) else (
-		wts#(i-off)
-		)
-	    )
-     )
- );
-
--- Side effect: adds #wts to off.
--- because each entry in wts is a degree, so it effects the next #wts variables.
-pg := (v,wts) -> (
-    first(pw(v,wts), off = off + #wts)
-    );
-
--- Side effect: adds nw to off.
--- Returns the amount of entries in v it actually applies to.
-pn := (v,nw) -> (
-     off = off + nw;
-     n := 0;
-     for i in v do (
-	 if i<off then (
-	     continue;
-	     ) else (
-	     if i >= off + nw then(
-	     	 break;
-		 )else (
-		 n=n+1;
-	     	 )
-	     )
-	 );
-     n
-     );
- 
--- select option
-selop = new HashTable from { GRevLex => pg, Weights => pw, Lex => pn, RevLex => pn, GroupLex => pn, GroupRevLex => pn, NCLex => pn }
--- select monomial order
-selmo = (v,mo) -> (
-     off = 0;
-     apply(mo, x -> ( 
-	     if instance(x,Option) and selop#?(x#0) then (
-		 -- call the corresponding function in the hash table selop 
-	     	 x#0 => selop#(x#0)(v,x#1) 
-	     	 )else (
-	     	 x
-	     	 )
-	     )
-     	 )
-     );
-selectVars = method()
-selectVars(List,PolynomialRing) := (v,R) -> (
-     v = splice v;
-     o := new MutableHashTable from options R;
-     o.MonomialOrder = selmo(v,o.MonomialOrder);
-     o.Variables = o.Variables_v;
-     o.Degrees = o.Degrees_v;
-     o = new OptionTable from o;
-     (S := (coefficientRing R)(monoid [o]),map(R,S,(generators R)_v))
-     ); 
- 
-------------------------------------------------------------------------------------------
- 
+  
 makePresRing(Ring, List) := (R, gensR) ->( 
     gensR = sort gensR;
     
@@ -219,6 +138,7 @@ makePresRing(Subring) := subR -> (
     );
 
 -- computes relations of presentation using gb
+-- TODO: This needs to be fixed because the cache effects the function's result.
 presentation Subring := A -> (
     if not A.cache#?"LiftedPresGB" then (
 	pres := A#"PresRing";
@@ -233,6 +153,7 @@ ring Subring := A -> (
     P := ring I;
     P/I
     );
+
 -- f % Subring is never going to be an element of the subalgebra, hence the ouput
 -- is in the lower variables of TensorRing.
 -- input: f in ambient A or TensorRing of A. 
@@ -249,7 +170,7 @@ RingElement % Subring := (f, A) -> (
     );
 
 -- f // Subring is always going to be inside of the subalgebra, hence the output
--- should be in the upper variables of TensorRing.
+-- should be in the upper variables of TensorRing. 
 -- input: f in ambient A or TensorRing of A. 
 -- output: a in TensorRing of A such that f = a + r w/ a in A, r "minimal."
 RingElement // Subring := (f, A) -> (
@@ -265,6 +186,7 @@ RingElement // Subring := (f, A) -> (
     result % I
     );
 
+-- Sends each entry e to e%A
 Matrix % Subring := (M, A) -> (
     pres := A#"PresRing";
     ents := for i from 0 to numrows M - 1 list(
@@ -272,6 +194,8 @@ Matrix % Subring := (M, A) -> (
 	);
     matrix(pres#"TensorRing", ents)
     );
+
+-- Sends each entry e to e//A
 Matrix // Subring := (M, A) -> (
     pres := A#"PresRing";
     ents := for i from 0 to numrows M - 1 list(

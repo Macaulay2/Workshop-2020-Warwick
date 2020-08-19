@@ -6,15 +6,11 @@ export {
     "genVars",
     "isSubalg",
     "autoreduce",
-    "monoCoef",
     "toMonomial",
-    "moduleToSubring",
     "extractEntries",
-    "mingensSubring",
     "debugPrintMap",
     "debugPrintAllMaps",
-    "extrinsicBuchberger",
-    "freeModuleSubring"
+    "extrinsicBuchberger"
     }
 
 debugPrintMap = method()
@@ -25,7 +21,6 @@ debugPrintMap(RingMap) := f -> (
 	print("maps "|toString(a_i)|" to "|toString(elt));
 	);    
     );
-
 
 debugPrintAllMaps = method()
 debugPrintAllMaps(Subring) := subR -> (
@@ -230,7 +225,6 @@ extrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
     mingensSubring(subR, G)
     );
 
-
 -- This is subroutine 11.17 of Sturmfels.
 -- NOTE: intrinsicBuchberger calls both intrinsicReduce and toricSyz. If intrinsicBuchberger is
 -- tested extensively, toricSyz and intrinsicReduce can be safely assumed to be correct.
@@ -320,118 +314,8 @@ intrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
     currentGens = currentGens // subR;        
     print("-- Computing autoreduction...");
     error "stop";
-    reduced := for i from 0 to (numcols currentGens)-1 list(
-	if (i % 10) == 0 then(
-	    print(toString(i)|"/"|toString(numcols currentGens - 1));
-	    );
-	s := currentGens_(0,i);
-	intrinsicReduce(subR, submatrix'(currentGens,,{i}), s)
-	);
-    matrix({reduced})
+    autoreduce(subR, currentGens)
     );
-
--- For polynomial p monomial m, extract the coefficient of m in p. For example:
--- p = x*y*z + z*y^2 + 2x^2*y^2*z^2
--- m = x*y
--- Then:
--- p = (z+2x*y*z^2)*m + z*y^2 
--- monoCoef(p, m) = z+2x*y*z^2.
--- (Notice that the coefficient of the monomial m may involve m.)
--- (Also, if m has a coefficient other than one it will be ignored.)
-monoCoef = method(TypicalValue => RingElement)
-monoCoef(RingElement, RingElement) := (m, p) -> (
-    
-    -- This does not completley guarentee that they are elements of the same ring... 
-    if ring m =!= ring p then (
-	error "monoCoef expected m and p to be elements of the same ring.";
-	);
-    supp := support(m);
-    R := ring(m);
-    if numcols monomials m != 1 or supp == {} then(
-	error "monoCoef expects m to be a non-constant monomial.";
-	);
-    -- remove the coefficient of m.
-    m = toMonomial(ring m, first exponents m);
-
-    monosP := monomials p;
-    coefs := for i from 0 to (numcols monosP)-1 list(
-	mono := monosP_(0,i);
-	if gcd(m, mono) == leadTerm m then(
-	    (coefficient(mono, p))*toMonomial(R, first ((exponents mono)-(exponents m)))
-	    ) else(
-	    0
-	    )
-	);
-    sum coefs   
-    );
-
--- TODO: implement as operator "^".
-freeModuleSubring = method()
-freeModuleSubring = (subR, n) -> (
-    tense := subR#"PresRing"#"TensorRing";
-    amb := ambient subR;
-    if n <= 0_ZZ then (
-	error "Module rank must be positive.";
-	);
-    moduleToSubring(subR, id_((ambient subR)^n))
-    );
-
--- !!! 	   This is a highly experimental function.     !!!
--- If M is the output of toricSyz, this produces a Subring instance and a 1-column 
--- matrix can be used with the function autoreduce. 
-moduleToSubring = method()
-moduleToSubring(Subring, Matrix) := (subR, M) -> (
-    
-    -- It requires subR to be a Sagbi basis so that it can run extra checks to verify
-    -- assumptions about the properties of the resulting subring. 
-    -- TODO: consider the implications of removing these checks so that this function
-    -- can work when subR isn't a Sagbi basis.
-    if not subR#"isSagbi" then(
-	error "Only modules over Subring instances that are a sagbi basis are currently supported.";
-	);
-    
-    if M%subR != 0 then(
-	error "M is supposed to have entries that are elements of subR.";
-	); 
-    
-    -- The value of these generators doesn't matter, but they should be increasing under
-    -- the monomial order.
-    tense := subR#"PresRing"#"TensorRing";
-    dummy := for i from 1 to numcols M list( ((vars tense)_(0,0))^i );
-    dummy = matrix({dummy});
-    monoRing := subring(dummy);
-    gVars := genVars(monoRing);
-    
-    M1 := subR#"PresRing"#"InclusionBase";
-    M2 := monoRing#"PresRing"#"InclusionBase";
-    
-    result2 := ((M2 M1 M)*(transpose gVars));
-        
-    -- This call to sagbi should terminate quickly if subR is a Sagbi basis.    
-    coolRing := sagbi subring ((M2 M1 gens subR)|gVars);    
-    
-    -- If either of these checks fail, it could mean that the monomial order on coolRing isn't behaving.
-    if not coolRing#"isSagbi" then(
-	error "Could not construct a sagbi basis of module's ring. ";
-	);
-    assert(result2%coolRing == 0);
-    
-    (coolRing, result2, gVars)
-    );
-
--- Basically this is the inverse of moduleToSubring.
-    -- M is a 1-column matrix that is probably the result of a call to moduleToSubring
-    -- gVars is a 1-row matrix containing the variables that correspond to the generators of the module.
-extractEntries = method()
-extractEntries(Matrix, Matrix) := (M, gVars) -> (    
-    -- Sorting is done to produce consistent behavior, but the monomial order on gVars is arbitrary.
-    gVars = matrix({sort first entries gVars});
-    mat := for i from 0 to (numrows M)-1 list(
-    	apply(first entries gVars, var -> monoCoef(var, M_(i,0)))	
-	);
-    matrix(mat)
-    );
-
 
 -- Perform autoreduction on the generators of an intrinsic ideal:
 -- I.e., reduce g\in idealGens modulo idealGens-g for all g\in idealGens.   
@@ -452,18 +336,6 @@ autoreduce(Subring, Matrix) := (subR, idealGens) -> (
     -- The extra "matrix entries" is to eliminate the degrees (which are the numbers in curly brackets)
     -- I don't know what they are for and they break the == operator.
     matrix entries (transpose compress (matrix({reducedGens})))
-    );
-
--- Performs autoreduction on M treated as a module over subR.
-mingensSubring = method(TypicalValue => Matrix)
-mingensSubring(Subring, Matrix) := (subR, M) -> (  
-    (A, B, gVars)  := moduleToSubring(subR, M);
-    debugPrintAllMaps(A);
-    final := autoreduce(A, transpose B);
-    -- Sort the rows of the matrix for more predictable behavior.
-    final = matrix transpose {sort first entries transpose final};
-    final = extractEntries(final, gVars);
-    subR#"PresRing"#"FullSub"(sub(final,subR#"PresRing"#"TensorRing"))
     );
 
 -- This is subroutine 11.18 of Sturmfels.
@@ -525,6 +397,4 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
     fullSubKA := KA#"PresRing"#"FullSub";
     binomials = transpose compress transpose fullSubKA binomials;
     matrix entries binomials
-    --matrix entries transpose compress KA#"PresRing"#"FullSub"(gens gb (transpose (matrix entries binomials)//KA))
-    
     );

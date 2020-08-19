@@ -1,8 +1,3 @@
--- This file contains:
--- - useful debugging functions (debugPrintMap and debugPrintAllMaps) 
--- - A new example from Sturmfels chapter 11
--- - Usage of new features
-
 pathToPackage = "./SubalgebraBases.m2"
 installPackage(
     "SubalgebraBases",
@@ -176,7 +171,6 @@ tenseKA = KA#"PresRing"#"TensorRing";
 -- ans1 contains ans2. 
 ans1 = extrinsicBuchberger(KA, gensSyz);
 ans2 = mingensSubring(KA, gensSyz)
-
 
 error "stop";
 test := intrinsicBuchberger(subR, G)

@@ -316,3 +316,4 @@ L = multiTrekSeparation(G,3);
 
 
 --writing the documentation and some test for the multi-trek separation 
+help multiTrekSeparation 

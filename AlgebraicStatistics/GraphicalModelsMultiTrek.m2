@@ -2593,6 +2593,54 @@ doc///
      trekIdeal
 ///
 
+
+
+-------------------------------------
+-- Documentation multiTrekSeparation    --
+-------------------------------------
+
+doc/// 
+   Key
+     multiTrekSeparation
+     (multiTrekSeparation,MixedGraph,ZZ)
+   Headline
+     the multi-trek separation statements of a mixed graph 
+   Usage
+     multiTrekSeparation(G,k)
+   Inputs
+     G:MixedGraph
+       mixed graph with directed edges
+   Outputs
+     :List
+        of lists \{(S_1,\dots,S_k),(A_1,\dots,A_k\}, where (A_1,dots,A_k) $k$-trek-separates (S_1,\dots,S_k).
+   Description 
+     Text
+       A $k$-trek in a DAG $G$ between k nodes $v_1,\dots,v_k$ is an ordered collection of $k$ directed paths $(P_1,\dots,P_k)$, where 
+       $P_i$ has sink $v_i$, and $P_1,\dots,P_k$ have the same source vertex, called the top of the $k$-trek.
+       
+       We say the collection of sets $(A_1,\dots,A_k)$ $k$-trek separates $S_1,\dots,S_k$ if for every $k$-trek with paths $(P_1,\dots,P_k)$
+       between $S_1,\dots,S_k$ there exists $j \in \{1,\dots,k\} such that $P_j$ contains a vertex from $A_j$.
+       
+       The function multiTrekSeparation returns a list of $k$-trek separation statements $\{(Slist),(Alist)\}$, where $Slist = \{S_1,\dots,S_k\},
+       Alist = \{A_1,\dots,A_k\}$ such that $Alist k$-trek-separates $Slist$.
+       
+       Each statement is maximal in the ordering where $\{(S_{1,1},\dots,S_{1,k}),(A_{1,1},\dots,A_{1,k})\}\,<\,\{(S_{2,1},\dots,S_{2,k}),(A_{2,1},\dots,A_{2,k})\}\,
+       if $S_{1,i}$ is a subset of $S_{2,i}$ and $A_{2,i}$ is a subset of $A_{1,i}$ for all $i$. Each statement is also unique up to symmetry, 
+       since $\{(S_{1},\dots,S_{k}),(A_{1},\dots,A_{k})\}$\,is a $k$-trek-separation statement if and only if 
+       $\{(S_{\sigma(1)},\dots,S_{\sigma(k)}),(A_{\sigma(1)},\dots,A_{\sigma(k)})\}$ is a $k$-trek-separation for some permutation $\sigma on [k]$.
+
+       These defintions and conventions are taken from this paper \url{https://arxiv.org/pdf/2001.10426.pdf}.
+     
+     Example
+       G = mixedGraph(digraph {{a,b},{b,d},{a,c},{c,e}})
+       S = multiTrekSeparation(G,2)
+
+   Caveat
+       {\tt multiTrekSeparation} $G$ is only implemented for mixedGraphs with directed edges.    
+   SeeAlso
+     trekSeparation
+///
+
 ----------------------------------------------------------------------------------
 -- Documentation sVariableName, kVariableName, lVariableName, pVariableName     --
 ----------------------------------------------------------------------------------

@@ -264,7 +264,17 @@ L2#0
 L2#0
 #L2
 #L
+
+
+
 ---------
+restart
+loadPackage("GraphicalModelsMultiTrek",Reload=>true)
+--G = mixedGraph(digraph {{b,d},{c,d},{b,c}},bigraph {{a,d}})
+G = mixedGraph(digraph {{a,b},{b,d},{a,c},{c,e}})
+
+k=2
+L = multiTrekSeparation(G,k);
 
 out = method() --removing symmetries and also no need to sort the output
 -- the form of output is {{S_1,A_1},{S_2,A_2}} and so on
@@ -280,9 +290,107 @@ out (ZZ,List) := List => (k,statements) ->
     t =  set apply(k,i->{{ss_i},{sa_i}}); 
     s = s|{t};
     );   
-    return s;    
+    T1 = set s;
+    T2 = toList T1;    	       	       --removed the symmetries
+    T3 = apply(T2,l->toList(l));       --converting to the desired form of output
+    
+    
+    T4 = {};
+    
+
+    for l in T3 do
+    (
+    	slist = {};
+    	alist = {};
+    
+        for i from 0 to k-1 do
+    	(
+    	    slist = slist|{sort toList l#i#0#0};
+	    alist = alist|{sort toList l#i#1#0};	
+	
+    	);       
+        T4 = T4|{{(slist),(alist)}};
+    
+    );
+    return T4;    
 )
+
+
+#L
+for l in L do print l; 
 k=2
+L = multiTrekSeparation(G,k);
+#L
+T = out(k,L);
+#T
+
+for l in T do print l
+l = #L
+
+for i from 0 to l-1 do
+(
+    print L_i;
+    print T_i;
+    print "\n";
+)
+
+
+T1 = set T
+#T1
+
+T2 = toList T1
+#T2
+
+T3 = apply(T2,l->toList(l)) 
+T3#0
+T3#0#0
+#T3
+
+T3#0
+toList T3#0#1#0#0
+
+T4 = {}
+
+for l in T3 do
+(
+    slist = {};
+    alist = {};
+    
+    for i from 0 to k-1 do
+    (
+    	slist = slist|{sort toList l#i#0#0};
+	alist = alist|{sort toList l#i#1#0};	
+	
+    );       
+    T4 = T4|{{(slist),(alist)}};
+    
+)
+
+
+#T4
+
+
+for i from 0 to #T3 - 1 do
+(
+    print T3#i;
+    print T4#i;
+    print "\n";
+)
+T4#0#0
+T4#0#1
+for t in T2 do
+(
+    print t;
+    print "\n";
+    
+)
+
+
+
+
+
+
+
 #L
 T = out(k,L)
 T#0
@@ -317,3 +425,46 @@ L = multiTrekSeparation(G,3);
 
 --writing the documentation and some test for the multi-trek separation 
 help multiTrekSeparation 
+
+
+--writing tests for multi_trek 
+
+restart
+loadPackage("GraphicalModelsMultiTrek",Reload=>true)
+--G = mixedGraph(digraph {{b,d},{c,d},{b,c}},bigraph {{a,d}})
+G = mixedGraph(digraph {{a,b},{b,d},{a,c},{c,e}});
+
+
+k=2
+L = multiTrekSeparation(G,k);
+
+Lineq = {}
+for l in L do
+(
+    if sum(l#1,i->length i) < min(length l#0#0, length l#0#1) then(
+    Lineq=append(Lineq,{l})
+    )
+)
+
+
+L1 = trekSeparation(G);
+
+--Compare Lineq and L1
+
+LineqLists=apply(Lineq,l->{l#0#0#0,l#0#0#1,l#0#1#0,l#0#1#1})
+
+L1sort=apply(L1,l->{sort(l#0),sort(l#1),sort(l#2),sort(l#3)})
+
+
+LineqLists = apply(LineqLists,l->{sort(l)})
+L1sort = apply(L1sort,l->{sort(l)})
+
+for l in L1sort do(
+    print(member(l,LineqLists))
+    )
+
+for l in L1sort do(
+    if not (member(l,LineqLists)) then (print l;)
+    )
+
+LineqLists#0

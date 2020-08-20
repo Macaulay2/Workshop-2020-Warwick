@@ -1112,19 +1112,21 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
 	    newStatement:={append(Slist,Sk),Alist};
 	    redundant:=false;
 	    i:=0;
-	    while not redundant and i < length(statements) do(
+	    while not redundant and i < length(statements) do
+	    (
 		if impliesSeparationStatement(k,statements#i,newStatement) then (redundant=true;);
-		if impliesSeparationStatement(k,newStatement,statements#i) then (
+		if impliesSeparationStatement(k,newStatement,statements#i) then
+		(
 		    statements=remove(statements,i);
 		    i=i-1;
-		    );
-		i=i+1;
 		);
+		i=i+1;
+	    );
 	    if not redundant then(statements=append(statements,newStatement););
        );
     
     );
-    return sortedout(statements);
+    return remsymmetries(k,statements);
 )
 
 impliesSeparationStatement = method()
@@ -1140,7 +1142,7 @@ impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2
    )
 
 sortedout = method()
--- method to sort separration statements
+-- method to sort separation statements
 sortedout (List) := List => (L) ->
 (
     l := #L;
@@ -1154,25 +1156,45 @@ sortedout (List) := List => (L) ->
     return s;    
 )
 
+remsymmetries = method() --removing symmetries and also no need to sort the output
+-- the form of output is {{S_1,...,S_k},{A_1,...,A_k}} and so on
 
-	    -*
-	    scan(v,i->DGhash#i=DG#i);
-	    print "hi2";
-	    scan(Alist#(k-1), i->scan(v, j->(
-	    DGhash#i=DGhash#i-{j};
-	    DGhash#j=DGhash#j-{i};)));
-            print DGhash#(v#1);
-	    *-
-	    
-      -*	Slist' := (set (SS#0));
-	print "---";
-	print Slist';
-	--Want to loop over all Slist = {S1..}
-	for i from 1 to k-2 do(
-	    Slist' = (Slist' ** (set (SS#i)))/splice; 
-	    print Slist';
-	    );
-	    
+remsymmetries (ZZ,List) := List => (k,statements) ->
+(
+    l := #statements;
+    s := {};
+    for i from 0 to l-1 do
+    (
+    ss :=   apply(statements#i#0,l->set(l)); 
+    sa :=   apply(statements#i#1,l->set(l)); 
+    t :=  set apply(k,i->{{ss_i},{sa_i}}); 
+    s = s|{t};
+    );   
+    T1 := set s;
+    T2 := toList T1;    	       	       --removed the symmetries
+    T3 := apply(T2,l->toList(l));       --converting to the desired form of output
+    
+    
+    T4 := {};
+    
+    for l in T3 do
+    (
+    	slist := {};
+    	alist := {};
+    
+        for i from 0 to k-1 do
+    	(
+    	    slist = slist|{sort toList l#i#0#0};
+	    alist = alist|{sort toList l#i#1#0};	
+	
+    	);       
+        T4 = T4|{{(slist),(alist)}};
+    
+    );
+    return T4;    
+)
+
+
             
 -*
 Input: graph g, integer k, Slist and Alist k-tuples of vertices

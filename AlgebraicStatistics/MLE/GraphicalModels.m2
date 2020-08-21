@@ -5,9 +5,24 @@ newPackage(
      Version => "1.0",
      Date => "April, 2013",
      Authors => {
-	  {Name => "Luis Garcia-Puente",
+          {Name=> "Carlos Amendola", 
+	   Email=> "carlos.amendola@tum.de",
+	   HomePage=>"http://www.carlos-amendola.com/"},
+       
+	  {Name => "Luis David Garcia Puente",
 	   Email => "lgarcia@shsu.edu",
 	   HomePage => "http://www.shsu.edu/~ldg005"},
+       
+          {Name=> "Roser Homs Pons", 
+	   Email=> "roserhp@gmail.com",
+	   HomePage=>"https://personal-homepages.mis.mpg.de/homspons/index.html"},
+       
+          {Name=> "Olga Kuznetsova", 
+	   Email=> "kuznetsova.olga@gmail.com",
+	   HomePage=>"https://okuznetsova.com"},
+       
+          {Name=> "Harshit J Motwani", 
+	   Email=> "harshitmotwani2015@gmail.com"},
           {Name=> "Sonja Petrovic", 
 	   Email=> "sonja@psu.edu",
 	   HomePage=>"http://www.personal.psu.edu/sxp61"}, 
@@ -22,7 +37,7 @@ newPackage(
 	  -- HomePage=>""}      
 	  },
      Headline => "discrete and Gaussian graphical models",
-     PackageExports => { "Graphs" },
+     PackageExports => { "Graphs","StatGraphs" },
      PackageImports => { "IntegralClosure", "Elimination" },
      Certification => {
 	  "journal name" => "The Journal of Software for Algebra and Geometry",

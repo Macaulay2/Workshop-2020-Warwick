@@ -4,8 +4,45 @@ export {
     "toricSyz",
     "subalgEquals",
     "genVars",
-    "isSubalg"
+    "isSubalg",
+    "autoreduce",
+    "toMonomial",
+    "extractEntries",
+    "debugPrintMap",
+    "debugPrintAllMaps",
+    "extrinsicBuchberger"
     }
+
+debugPrintMap = method()
+debugPrintMap(RingMap) := f -> (
+    a := gens source f;
+    for i from 0 to (length a)-1 do(
+	elt := f(a_i);
+	print("maps "|toString(a_i)|" to "|toString(elt));
+	);    
+    );
+
+debugPrintAllMaps = method()
+debugPrintAllMaps(Subring) := subR -> (
+    pres := makePresRing(subR);
+    print("--------------------------------");
+    print("-- PresRing map info dump:");
+    print("--------------------------------");
+    print("-- ProjectionInclusion:");
+    debugPrintMap (pres#"ProjectionInclusion");
+    print("-- ProjectionBase:");
+    debugPrintMap (pres#"ProjectionBase");
+    print("-- InclusionBase:");
+    debugPrintMap (pres#"InclusionBase");
+    print("-- Substitution:");
+    debugPrintMap (pres#"Substitution");
+    print("-- FullSub:");
+    debugPrintMap (pres#"FullSub");
+    print("--------------------------------");
+    print("-- End PresRing map info dump.");
+    print("--------------------------------");
+    );
+
 
 -- Returns the variables corresponding to the subalgebra generators in the 
 -- tensor ring of a subring instance,
@@ -15,9 +52,11 @@ genVars(Subring) := subR ->(
     selectInSubring(1, vars subR#"PresRing"#"TensorRing")    
     );
 
--- This function allows you to compute the lead term with respect to the ordering
--- on the upper variables induced from the ordering on the variables of the ambient
--- ring.
+-- Not sure if this function is practically useful or not. For now, it's worth
+-- keeping for testing the monomial order on the tensor ring created by the
+-- subring constructor.
+-- Computes the lead term with respect to the ordering on the upper variables
+-- induced from the ordering on the variables of the ambient ring.
    -- subR is any Subring instance.
    -- f is an element of subR's tensor ring.
 leadTerm(Subring, RingElement) := (subR, f) -> (
@@ -60,15 +99,18 @@ Subring == Subring := (A, B) -> (subalgEquals(A,B));
 toMonomial = (R, L) ->(
     variableList := flatten entries vars R;
     m := 1;
-    for i from 0 to (#L-1) do(
+    for i from 0 to (length L)-1 do(
 	m = m*(variableList_i)^(L#i);
 	);
     m	  
     );
+
 -- returns the coefficient of the lead monomial of RingElement f.
 leadCoef = f ->(
     coefficient(leadMonomial f, f)
     );
+
+debugBreakFlag := false;
 
 -- This is subroutine 11.14 of Sturmfels.
 -- There are many simillarities between this calculation and the subduction algorithm.
@@ -85,70 +127,84 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 	error "Can only use IntrinsicReduce on a Subring instance that is a Sagbi basis.";
 	);
     
-    if projInc G != G then(
-	--error "G must contain entries that are polynomials in the generators of subR."
-	);
-    
     -- This is one way to guarentee that p is actually an element of subR,
     -- but it requires p to be put into normal form beforehand which is an
     -- expensive operation. 
     -- TODO: Look into what happens when p isn't an element of subR.
-    if projInc p != p then(
+    --if projInc p != p then(
 	--error "p must be a polynomial in the generators of subR."
-	);
+	--);
+    --if projInc G != G then(
+        --error "G must contain entries that are polynomials in the generators of subR."
+        --);
     
     amb := ambient subR;
-
     fullSub := pres#"FullSub";
-    result := fullSub p;
-
-    KA := subring(leadTerm gens subR);
-    ringG := subring(fullSub G);
-    inG := subring( (leadTerm fullSub G) );    
-    loopNum := 0;
+    result := p;
     
-    Q := (gens inG)//KA;
-    -- This is an ideal inside of the tensor ring of KA.
+    -- If the  === comparison is true, it  does not guarentee that will not throw an error.
+    if source fullSub === ring p then(
+    	result = fullSub p;
+    	);    
+    if source fullSub === ring G then(
+    	G = fullSub G;
+    	);
+   
+    -- This call to sagbi will not take long.
+    KA := sagbi subring(leadTerm gens subR);
+    tenseKA := KA#"PresRing"#"TensorRing";
+    Q := (leadTerm G)//KA;
+    
+    -- This is an ideal inside of the _tensor ring_ of KA.
     I := monomialIdeal(Q);
-    	
+
+    loopNum := 0;    	
     while true do (
-	--print("loopNum:"|toString(loopNum));	
-	
+	if loopNum % 100 == 0 and loopNum > 0 then(
+	    print("reduction step:"|toString(loopNum));
+	    );	
 	badTerms := result // KA;
-      	badTerms = badTerms-(badTerms%I);
-	badTerms = selectInSubring(1, monomials badTerms);
+	badTerms = badTerms-(badTerms%I);
+	badTerms = selectInSubring(1, monomials badTerms);		
 	
        	if badTerms == 0 then(
 	    break;
 	    );
-	fullSub = KA#"PresRing"#"FullSub";
+	fullSubKA := KA#"PresRing"#"FullSub";
 	subMap := KA#"PresRing"#"Substitution";
 
-	tb := fullSub max first entries badTerms;	
-	coef := coefficient(tb, result);
-	assert(coef != 0);
-	-- find a generator of inG that divides tb.
-	pos := position(first entries gens inG, gen -> gcd(tb,gen) == gen);
+	tb := fullSubKA max first entries badTerms;	
+	assert(coefficient(tb, result) != 0);
+	
+	pos := position(first entries Q, gen -> (tb//KA)%(monomialIdeal gen) == 0);
 	assert(pos =!= null);
-	g := (gens inG)_(0, pos);
-	v := (first exponents tb)-(first exponents g);
-
+	
+	g := fullSubKA (Q_(0,pos));
+	v := first ((exponents tb)-(exponents g));
+	
 	-- mono is supposed to be an element of subR.
-	mono := toMonomial(amb,v);
-	mono = pres#"FullSub"(sub(mono//KA,pres#"TensorRing"));
+	mono := toMonomial(amb,v)//subR;
+	mono = fullSub(mono);
+	assert(mono%subR == 0);
+
+	-- g is supposed to an element of the subring generated by G.
+	g = G_(0,pos);	
 	
-	-- g is supposed to be an element of the intrinsic ideal.
-	g = sub(g//inG, ringG#"PresRing"#"TensorRing");
-	g = (ringG#"PresRing"#"FullSub")(g);	
-	
-	diffPoly := (g*mono)*coef;
+	-- since an ideal absorbs outside products, we know that diffPoly is an element of ideal G.
+	diffPoly := g*mono;
 		
 	if(diffPoly == 0) then(
-	    error "stop";
+	    error "This is not supposed to happen. (Possibly a bug within the function intrinsicReduce.)";
 	    );
-	assert( (leadTerm diffPoly) == tb*coef);
 	
+	coef := coefficient(tb, diffPoly);
+	assert( (leadTerm diffPoly) == tb*coef);
+	assert(coefficient(tb, result) != 0);
+	diffPoly = diffPoly * (1/coefficient(tb, diffPoly));
+	diffPoly = diffPoly * coefficient(tb, result);
+        assert(coefficient(tb, diffPoly) == coefficient(tb, result));
 	result = result - diffPoly;	
+		
 	loopNum = loopNum + 1;
     	);
     assert(result%subR == 0);  
@@ -160,6 +216,14 @@ intrinsicReduce(Subring, Matrix, Matrix) := (subR, G, M) -> (
     matrix({apply(first entries M, ent -> intrinsicReduce(subR, G, ent))})
     );
 
+-- algorithm 11.24
+extrinsicBuchberger = method(TypicalValue => Matrix)
+extrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
+    G := (gens gb (transpose (S//subR)));
+    G = subR#"PresRing"#"FullSub"(G);
+    G = transpose compress G;
+    mingensSubring(subR, G)
+    );
 
 -- This is subroutine 11.17 of Sturmfels.
 -- NOTE: intrinsicBuchberger calls both intrinsicReduce and toricSyz. If intrinsicBuchberger is
@@ -185,7 +249,8 @@ intrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
     
     encountered := set(first entries S);
     currentGens := S;
-    KA := subring leadTerm gens subR;
+    
+    KA := sagbi subring leadTerm gens subR;
 
     loopNum := 0;
     while true do(
@@ -193,12 +258,24 @@ intrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
 	print("-- loop number "|toString(loopNum)|":");
 	
     	C := leadTerm(fullSub currentGens);
+	print("finding toric syzygies...");
 	M := toricSyz(subR, C);
-	print("Total syzygies: "|toString(numrows M));	
+	print("num. syzygies before autoreduction:"|toString(numrows M));	
+	print("computing autoreduction...");
+	if(loopNum == 1) then(
+	    debugBreakFlag = true;
+	    --error "break";
+	    );
+	
+	
+	--M = mingensSubring(KA, M);
+	M = transpose compress KA#"PresRing"#"FullSub"(gens gb (transpose M//KA));	
+	
+	print("num. syzygies after reduction: "|toString(numrows M));	
     	newGens := for i from 0 to (numrows M) - 1 list(
 	    H := (M^{i} // subR);
 	    
-	    -- These assertions are condition 4.1. (Note: matrix equality is broken)
+	    -- These assertions are condition 4.1.
 	    A := M^{i};
 	    B := leadTerm fullSub H;
 	    assert( H % subR == 0); -- H is an element of SubR^r.
@@ -209,7 +286,6 @@ intrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
 	    --assert(f%subR == 0); 
 	    hbar := intrinsicReduce(subR, S, f);
 	    --assert(hbar%subR == 0);
-	    
 	    
 	    if hbar == 0 then(
 		print("zero");
@@ -237,14 +313,29 @@ intrinsicBuchberger(Subring, Matrix) := (subR, S) -> (
     print("-- Computing normal form of generators...");    
     currentGens = currentGens // subR;        
     print("-- Computing autoreduction...");
-    reduced := for i from 0 to (numcols currentGens)-1 list(
-	if (i % 10) == 0 then(
-	    print(toString(i)|"/"|toString(numcols currentGens - 1));
-	    );
-	s := currentGens_(0,i);
-	intrinsicReduce(subR, submatrix'(currentGens,,{i}), s)
+    error "stop";
+    autoreduce(subR, currentGens)
+    );
+
+-- Perform autoreduction on the generators of an intrinsic ideal:
+-- I.e., reduce g\in idealGens modulo idealGens-g for all g\in idealGens.   
+   -- subR is a Subring (probably has to be a Sagbi basis)
+   -- idealGens is a matrix containing generators of an ideal in subR.
+autoreduce = method(TypicalValue => Matrix)
+autoreduce(Subring, Matrix) := (subR, idealGens) -> (
+    noDupes := new MutableList from first entries idealGens;        
+    reducedGens := for i from 0 to (numcols idealGens)-1 list(		
+	s := idealGens_(0,i);
+	notS := submatrix'(matrix({toList noDupes}),,{i});      
+	print("----------- autoreduction step "|toString(i)|"/"|toString(numcols idealGens)|"  --------------");
+	answer := intrinsicReduce(subR, notS, s);
+       	answer = sub(answer,ring idealGens);
+	noDupes#i = answer;	
+	answer
 	);
-    matrix({reduced})
+    -- The extra "matrix entries" is to eliminate the degrees (which are the numbers in curly brackets)
+    -- I don't know what they are for and they break the == operator.
+    matrix entries (transpose compress (matrix({reducedGens})))
     );
 
 -- This is subroutine 11.18 of Sturmfels.
@@ -291,91 +382,19 @@ toricSyz(Subring, Matrix) := (subR, M) -> (
     
     -- U is supposed to in the upper variables only. 
     assert(KA#"PresRing"#"ProjectionInclusion" U == U);
+    
     intersection := selectInSubring(1, gens gb intersect(ideal U, KA#"PresRing"#"LiftedPres"));    
     
-    ---------------------------- The rest of this function is a hack. Is there a better solution? ------------------------------------
-    -- How about this: change the monomial order so that the leading terms are always the e_i?    
-    
-    -- In terms of the Sturmfels description, subRU is such that the upper variables of subRU are the e_i.
-    -- We want to extract the coefficients of each e_i. The problem is that these upper variables are not
-    -- inside of the coefficient ring, hence cannot be extracted with the function "coefficient."
-    subRU := subring U;
-    presRU := subRU#"PresRing";
-    tenseU := presRU#"TensorRing";
-    subU := presRU#"Substitution";
-
-    -- It would be correct to run the following two lines, but also highly inefficient.
-    --I := presRU#"SyzygyIdeal";
-    --inter := (presRU#"InclusionBase")(intersection)%I;
-
-    -- Since we know extra information about the elements of gens subRU (i.e., that they're all monomials)
-    -- we can safely undo the substitution term by term. 
-    
-    U = presRU#"InclusionBase"(U);
-    intersection = (presRU#"InclusionBase")(intersection);
-    upperSubRU := first entries selectInSubring(1, vars tenseU);
-    inter := for i from 0 to (numcols intersection)-1 list(
-	elt := intersection_(0,i);
-	--print("--------------------------"|toString(i)|"------------------------------");
-	--cheat := elt%I;
-	--print("Given element:"|toString(elt));
-	--print("Probable answer:"|toString(cheat));	
-	result := sum apply(terms elt, term -> (
-		--print("----------------------------");
-		--print("term: "|toString(term));
-		
-		-- (gcd discards the coefficient)
-		pos := positions(upperSubRU, gen -> gcd(subU gen, term)*leadCoef(subU gen) == subU gen);	
-		assert(pos =!= {});
-    		
-		-- if multiple monomials from U divide term, pick the lead term among them. 
-		divisors := apply(first entries U_pos, m -> leadMonomial m);
-		leadDivisor := leadMonomial (sum divisors);
-		pos = pos#(position(divisors, d -> d == leadCoef(d)*leadDivisor));
-		
-		e := upperSubRU#pos;
-		--print("has factor: "|toString(e)|"="|toString(leadDivisor));
-		-- It intentionally doesn't use the full multiplicity of the generator.
-		mono := first ((exponents term) - (exponents leadDivisor));		
-		mono = apply(mono, mult -> if mult > 0 then mult else 0);
-		mono = toMonomial(tenseU, mono);
-		mono = mono*(upperSubRU#pos);
-		mono = mono * ((leadCoef term) / (leadCoef subU e));
-		--error "stop";
-		--print("final monomial: "|toString(mono));
-
-		mono
-		));
-	--print("----------------------------");
-	--print("Result:"|toString(result));
-	--print("----------------------------");
-	
-	assert(subU result == subU elt);
-	
-	--assert(subU cheat == subU elt);
-	--assert((presRU#"FullSub")(result) == (presRU#"FullSub")(cheat));
-	result
-	);
-    inter = matrix({inter});
-    magicRing := (tenseKA)[upperSubRU];
-    upperSubRU = gens magicRing; 
-    --print("-- num syzygies:"|toString(numcols inter));
-    ans := for i from 0 to (numcols inter)-1 list(
-	subbed := sub(inter_(0,i), magicRing);
-    	result := apply(upperSubRU, x -> coefficient(x, subbed));
-	if select(result, x -> x != 0) == {} then(
-	    error "Impossible";
+    binomials := for i from 0 to (numcols intersection)-1 list(
+	ent := intersection_(0,i);
+	coefs := apply(first entries U, e -> monoCoef(e, ent));
+      	if position(coefs, c -> c != 0) === null then (
+	    error "Error: something impossible happened. (This may be a bug in the function toricSyz.)";
 	    );
-	result
+    	coefs 
 	);
-    ans = (matrix ans) || special;
-    
+    binomials = (matrix binomials) || special;
     fullSubKA := KA#"PresRing"#"FullSub";
-    ans = sub(ans, tenseKA);
-    ans = transpose compress transpose ans;
-    assert(fullSubKA(ans * (transpose M))== 0);
-    ans = transpose compress transpose fullSubKA(ans);
-    -- Discard the degree information because it breaks the matrix equality operator...
-    -- Not really sure what the degrees of a matrix (the numbers in the brackets) are for.
-    matrix entries ans
+    binomials = transpose compress transpose fullSubKA binomials;
+    matrix entries binomials
     );

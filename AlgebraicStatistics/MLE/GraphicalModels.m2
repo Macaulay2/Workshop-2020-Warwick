@@ -507,6 +507,52 @@ markovRing Sequence := Ring => opts -> d -> (
 --     (coefficient field, variable name s, variable name l, variable name p, vertices of the mixed graph) -- in case of MixedGraph input.
 ------------------------------------------------------------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-----AUXILIAR FUNCTIONS FOR GAUSSIANRING MIXED GRAPHS---------------------------
+--------------------------------------------------------------------------------
+
+-- neighbors of a vertex of a mixed graph considering the underlying graph
+-- of its graph, digraph and bigraph
+-- INPUT:
+-- g=mixedGraph (collateVertices requires mixedGraph)
+-- v=element in vertices g
+-- OUTPUT:
+-- V=set that contains all neighboring vertices of v in the underlying graph of g
+neighborsMG := (g,v) -> (
+    i := position(vertices g, u -> u === v);
+    if i === null then error "v is not a vertex of g.";
+    G:= collateVertices g;
+    V:=set {};
+    for h in keys G#graph do V=V+neighbors(underlyingGraph G#graph#h,v);
+    V
+ )
+
+
+-- neighbors of a vertex of a mixed graph considering the underlying graph
+-- of its graph, digraph and bigraph
+-- INPUT:
+-- g=mixedGraph (neighborsMG requires mixedGraph)
+-- OUTPUT:
+-- C=list of 
+connectedComponentsMG := (g) -> (
+    V := vertices g;
+    while #V != 0 list (
+        C := {first V};
+        i := 0;
+        while i!= #C do (
+            N := toList neighborsMG(g, C_i);
+            C = unique(C | N);
+            V = V - set C;
+            i = i + 1;
+            if #V == 0 then break;
+            );
+        C
+        )
+    )
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 gaussianRingList := new MutableHashTable;
 
 gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
@@ -571,35 +617,54 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
+     -- convert mixedGraph to hash table
+     gg:= graph g;
+     -- necessary condition (not sufficient) to have partition V=U\union W
+     if(isSubset((set vertexSet gg#Graph)*(set vertexSet gg#Bigraph),set {})==false) then error "undirected and bidirected edges in same connected component";
+     -- make partition V=U\union W
+     L:=connectedComponentsMG g;
+     U:={};
+     W:={};
+     for l in L do (
+	 i:=0;
+	 while(member(l_i,vertexSet gg#Graph)==false and member(l_i,vertexSet gg#Bigraph)==false and i==#l) do i=i+1;
+    	 if i==#l then (if U=={} then W=flatten append(W,l) else U=flatten append(U,l); continue;);
+    	 if member(l_i,vertexSet gg#Graph)==true then U=flatten append(U,l) else W=flatten append(W,l);
+    	 );
+     -- sort vertices (only according to vertex number)
+     vv := sort vertices g;
+     -- add all vertices to all graphs and convert them to hash tables
      G := graph collateVertices g;
      dd := graph G#Digraph;
      bb := graph G#Bigraph;
-     uu := G#Graph;
-     if #(edges uu) > 0 then error "mixedgraph must have no undirected part ";
-     vv := sort vertices g;
+     uu := graph G#Graph;
+     -- set ring variables
      s := toSymbol opts.sVariableName;
      l := toSymbol opts.lVariableName;
      p := toSymbol opts.pVariableName;
-     kk := opts.Coefficients;          
-     if (not gaussianRingList#?(kk,s,l,p,vv)) then ( 
-	  --(kk,s,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
+     k := toSymbol opts.kVariableName; 
+     kk := opts.Coefficients;        
+     if (not gaussianRingList#?(kk,s,k,l,p,vv)) then ( 
+	  --(kk,s,k,l,p,vv) uniquely identifies gaussianRing in case of MixedGraph input.
      sL := delete(null, flatten apply(vv, x-> apply(vv, y->if pos(vv,x)>pos(vv,y) then null else s_(x,y))));
+     kL := join(apply(U, i->k_(i,i)),delete(null, flatten apply(U, x-> apply(toList uu#x, y->if pos(vv,x)>pos(vv,y) then null else k_(x,y)))));
      lL := delete(null, flatten apply(vv, x-> apply(toList dd#x, y->l_(x,y))));	 
-     pL := join(apply(vv, i->p_(i,i)),delete(null, flatten apply(vv, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
-     m := #lL+#pL;
-     R := kk(monoid [lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]);
+     pL := join(apply(W, i->p_(i,i)),delete(null, flatten apply(W, x-> apply(toList bb#x, y->if pos(vv,x)>pos(vv,y) then null else p_(x,y)))));
+     m := #kL+#lL+#pL; 
+     R := kk(monoid [kL,lL,pL,sL,MonomialOrder => Eliminate m, MonomialSize=>16]); 
      -- create gaussianVariables hash table: (symbol s)_(i,j) => ring var with the same name, same for l, p.
      H := new MutableHashTable;
      nextvar := 0;
+     for v in kL do (H#v = R_nextvar; nextvar = nextvar+1); 
      for v in lL do (H#v = R_nextvar; nextvar = nextvar+1);
      for v in pL do (H#v = R_nextvar; nextvar = nextvar+1);
      for v in sL do (H#v = R_nextvar; nextvar = nextvar+1);
      R.gaussianVariables = new HashTable from H;
      R#numberOfEliminationVariables = m;
-     R.gaussianRingData = {#vv,s,l,p};
+     R.gaussianRingData = {#vv,U,W,s,k,l,p}; 
      R.mixedGraph = g;
-     gaussianRingList#((kk,s,l,p,vv)) = R;); 
-     gaussianRingList#((kk,s,l,p,vv))
+     gaussianRingList#((kk,s,k,l,p,vv)) = R;); 
+     gaussianRingList#((kk,s,k,l,p,vv)) 
      )
 
 
@@ -616,19 +681,41 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
 
 undirectedEdgesMatrix = method()
 undirectedEdgesMatrix Ring := Matrix =>  R -> (
-     if not (R.?graph and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a Graph";
+     -- check that the ring comes from either a graph or a mixedGraph 
+     if not ((R.?graph or R.?mixedGraph) and R.?gaussianRingData) then error "expected a ring created with gaussianRing of a Graph or mixedGraph";
+     -- undirectedEdgesMatrix for graphs
+     if (R.?graph) then (
      g := R.graph;
      bb:= graph g;
      vv := sort vertices g;
      n := R.gaussianRingData#0; --number of vertices
-     k := R.gaussianRingData#2; 
+     k := R.gaussianRingData#2; -- k variables in gaussianRing Graph
      H := R.gaussianVariables;
      PM := mutableMatrix(R,n,n);
      scan(vv,i->PM_(pos(vv,i),pos(vv,i))=H#(k_(i,i)));
      scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(k_(i,j)) else H#(k_(j,i))));
-     matrix PM) 
-
-
+     matrix PM
+     ) 
+     -- undirectedEdgesMatrix for mixedGraphs
+     else (
+     -- retrieve graph in mixedGraph
+     g = R.mixedGraph; -- retrieve underlying mixedGraph of the ring
+     G := graph collateVertices g; -- add all vertices to graph,digraph and bigraph + convert to hash table 
+     bb = graph G#Graph; --retrieve graph with added vertices from hash table
+     -- take only component U of mixedGraph
+     vv = R.gaussianRingData#1; -- list of vertices of component U of V=U\union W
+     n = #vv; --number of vertices of component U of V of V=U\union W
+     -- retrieve variables
+     k = R.gaussianRingData#4; --k variables in gaussianRing MixedGraph
+     H = R.gaussianVariables;
+     -- build matrix
+     PM = mutableMatrix(R,n,n);
+     scan(vv,i->PM_(pos(vv,i),pos(vv,i))=H#(k_(i,i)));
+     scan(vv,i->scan(toList bb#i, j->PM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(k_(i,j)) else H#(k_(j,i))));
+     matrix PM
+     )
+     )
+ 
 
 ------------------------------------------------------------------
 -- directedEdgesMatrix Ring 
@@ -642,7 +729,7 @@ directedEdgesMatrix Ring := Matrix => R -> (
      dd := graph G#Digraph;
      vv := sort vertices g;
      n := R.gaussianRingData#0;
-     l := R.gaussianRingData#2;
+     l := R.gaussianRingData#5; -- l variables
      H := R.gaussianVariables;
      LM := mutableMatrix(R,n,n);
      scan(vv,i->scan(toList dd#i, j->LM_(pos(vv,i),pos(vv,j))=H#(l_(i,j))));
@@ -659,9 +746,10 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
      g := R.mixedGraph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
-     vv := sort vertices g;
-     n := R.gaussianRingData#0;
-     p := R.gaussianRingData#3;
+     -- take only component W of mixedGraph
+     vv := R.gaussianRingData#2;
+     n := #vv;
+     p := R.gaussianRingData#6; -- p variables
      H := R.gaussianVariables;
      PM := mutableMatrix(R,n,n);
      scan(vv,i->PM_(pos(vv,i),pos(vv,i))=H#(p_(i,i)));
@@ -732,7 +820,7 @@ covarianceMatrix(Ring) := Matrix => (R) -> (
      	    g = R.mixedGraph;
 	    vv = sort vertices g;
      	    n = R.gaussianRingData#0;
-     	    s = R.gaussianRingData#1;
+     	    s = R.gaussianRingData#3;
             H = R.gaussianVariables;
      	    SM = mutableMatrix(R,n,n);
      	    scan(vv,i->scan(vv, j->SM_(pos(vv,i),pos(vv,j))=if pos(vv,i)<pos(vv,j) then H#(s_(i,j)) else H#(s_(j,i))));

@@ -343,7 +343,8 @@ net Digraph := Net => G -> (
     ))
 
 toString Digraph := String => D -> (
-    horizontalJoin(
+       concatenate( -- issue #1473 in github
+ --   horizontalJoin(
         toLower toString class D, 
         " (",
         toString vertexSet D,
@@ -1762,6 +1763,7 @@ foreFathers (MixedGraph, Thing) := (G,v) -> foreFathers(digraph G, v)
 children (MixedGraph, Thing) := (G,v) -> children(digraph G, v)
 neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
 nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
+
 
 collateVertices = method()
 collateVertices MixedGraph := g -> (

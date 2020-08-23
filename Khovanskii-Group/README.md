@@ -9,15 +9,23 @@
 
 # Where's the Code?
 
-1. [Version on the master branch](https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SubalgebraBases.m2). All tests pass since the release of Macaulay2 1.15.
+1. [Version on the master branch](https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SubalgebraBases.m2)
 2. However, the code was still a bit opaque. A stripped-down, working rewrite is available on this repository. Try [installing](./install.m2) it!
 
 # What are (Khovanskii bases / SAGBI bases / Canonical Subalgebra Bases)?
 
 1. See [here](./Subalgebra-Basics/StuCh11.pdf) for a first answer to this question.
 
-## Design notes
+## 
 
+1. It is **not** reccommended to work on the documenation because the package is still changing. 
+2. The package's "official" tests (which are automatically run when the package installs) are broken and should be ignored for now. Instead, the package's working tests can be run by executing the file benchmark.m2. This is done for several reasons:
+    - If the official tests fail when you are trying to debug, it would normally prevent the package from installing and therefore prevent debugging.
+    - The package's official tests have to run in a very short amount of time because they contribute to the total time it takes to build Macaulay2. Putting the tests in the file benchmark.m2 allows us to have a more comprehensive set of tests that we can use during development. 
+    - Not everyone is an Emacs wizard
+    
+
+## Design notes
 
 1. The Subring type:
     - The function "subring" is the canonical constructor of the Subring type.

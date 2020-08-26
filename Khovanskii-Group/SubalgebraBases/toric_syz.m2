@@ -10,7 +10,8 @@ export {
     "extractEntries",
     "debugPrintMap",
     "debugPrintAllMaps",
-    "extrinsicBuchberger"
+    "extrinsicBuchberger",
+    "leadCoef"
     }
 
 debugPrintMap = method()
@@ -329,10 +330,15 @@ autoreduce(Subring, Matrix) := (subR, idealGens) -> (
 	notS := submatrix'(matrix({toList noDupes}),,{i});      
 	print("----------- autoreduction step "|toString(i)|"/"|toString(numcols idealGens)|"  --------------");
 	answer := intrinsicReduce(subR, notS, s);
-       	answer = sub(answer,ring idealGens);
+       	answer = sub(answer,ring idealGens);	
+	if(answer != 0) then ( 
+	    answer = answer*(1/leadCoef(answer));
+	    );
 	noDupes#i = answer;	
+	
 	answer
 	);
+    
     -- The extra "matrix entries" is to eliminate the degrees (which are the numbers in curly brackets)
     -- I don't know what they are for and they break the == operator.
     matrix entries (transpose compress (matrix({reducedGens})))

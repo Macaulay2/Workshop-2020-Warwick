@@ -97,7 +97,7 @@ assert((set first entries gens subR) === (set A));
 tsyz := toricSyz(subR, G);
 assert(tsyz * (transpose G) == 0);
 
-ans1 = mingensSubring(subR, tsyz)
+ans1 = mingensSubring(subR, tsyz);
 ans2 = extrinsicBuchberger(subR, tsyz);
 
 -- Subroutine 11.24 is guarenteed to return a (non-reduced) GB but subroutine 11.18 is only 
@@ -167,13 +167,75 @@ gensSyz := toricSyz(subR, ltG);
 KA = sagbi subring(leadTerm gens subR);
 tenseKA = KA#"PresRing"#"TensorRing";
 
-
 -- ans1 contains ans2. 
 ans1 = extrinsicBuchberger(KA, gensSyz);
 ans2 = mingensSubring(KA, gensSyz)
 
+-*
+ents := (transpose gensSyz)//KA;
+test := gens kernel ents;
+for i from 0 to (numrows test)-1 do(
+    print(test_i);
+    );
+*-
+
+M0 = pres#"FullSub".matrix 
+M1 = schreyerOrder (pres#"FullSub".matrix)
+debug Core;
+rawGetSchreyer((source M1).RawFreeModule)
+
+
+R = QQ[x_1..x_9, MonomialOrder => Lex];
+M = transpose genericMatrix(R, first gens R, 3, 3)
+A = (M*(transpose M))-(id_(source M))
+B = (det M) - 1 
+eqns := (flatten entries A)|{B}
+sag = sagbi eqns
+
+
+
+--
+gndR = QQ[(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => Lex];
+G = vars gndR;
+t = transpose G_{0..2}
+w = transpose G_{3..5}
+v = transpose G_{6..8}
+plucker := w||v
+W = genericSkewMatrix(gndR, G_(0,3), 3);
+T = genericSkewMatrix(gndR, G_(0,0), 3);
+zed = W-W;  
+I = id_(source zed)
+translation := matrix({{I, zed},{T, I}})*plucker
+
+-- This could be made into a test.
+-- The extra polynomial f_1 is p_12
+sag = sagbi transpose translation;
+
+
+
+
+--adj = matrix({{W, zed},{T*W,W}});
+
+
+
+
+
+
 error "stop";
-test := intrinsicBuchberger(subR, G)
+
+
+
+
+gndR = QQ[t_1,t_2,t_3,w_1,w_2,w_3,v_1,v_2,v_3, MonomialOrder => Lex];
+G = vars gndR;
+T = genericSkewMatrix(gndR, G_(0,0), 3);
+I = matrix entries id_(source T);
+Z = T-T;
+--T = matrix {{0,-x_3,x_2},{x_3, 0, -x_1},{-x_2,x_1,0}}
+trans = matrix {{I, Z},{T, I}}
+
+
+
 error "stop";
 
 subRSagbi = sagbi subR;

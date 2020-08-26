@@ -188,10 +188,39 @@ time assert (toricSyz(subR, M//subR) == ans);
 
 
 
+-*
 
+This test doesn't have any assertions but you can manually verify it with debugPrintAllMaps.
 
+See theorem 2 of https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf
+(For m=3)
 
+the dot products from (5): 
 
+p_18    11 
+p_11    22
+p_9     33
+p_15    12
+p_10    23
+p_13    13
 
+The 2x2 minors of the matrix of scalar products:
 
+p_12    diagonal
+p_16
+p_17
+p_18
+p_19    diagonal
+p_20
+p_21    diagonal
 
+p_14 - The 3x3 determinant of (5)
+
+*-
+
+R = QQ[x_1..x_9, MonomialOrder => Lex];
+M = transpose genericMatrix(R, first gens R, 3, 3)
+A = (M*(transpose M))-(id_(source M))
+B = (det M) - 1 
+eqns := (flatten entries A)|{B}
+sag = sagbi eqns

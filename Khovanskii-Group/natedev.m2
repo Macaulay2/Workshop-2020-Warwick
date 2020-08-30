@@ -5,9 +5,9 @@ installPackage(
     RunExamples => false,
     RerunExamples => false
     )
+debug Core;
 
 --setRandomSeed("randseed1");
-
 moTest := (subR, n, maxDeg) -> (
     subMap := subR#"PresRing"#"Substitution";
     fullSub := subR#"PresRing"#"FullSub";
@@ -169,83 +169,103 @@ tenseKA = KA#"PresRing"#"TensorRing";
 
 -- ans1 contains ans2. 
 ans1 = extrinsicBuchberger(KA, gensSyz);
-ans2 = mingensSubring(KA, gensSyz)
-
--*
-ents := (transpose gensSyz)//KA;
-test := gens kernel ents;
-for i from 0 to (numrows test)-1 do(
-    print(test_i);
-    );
-*-
-
-M0 = pres#"FullSub".matrix 
-M1 = schreyerOrder (pres#"FullSub".matrix)
-debug Core;
-rawGetSchreyer((source M1).RawFreeModule)
+ans2 = mingensSubring(KA, gensSyz);
 
 
-R = QQ[x_1..x_9, MonomialOrder => Lex];
-M = transpose genericMatrix(R, first gens R, 3, 3)
+------------------------------------------------------------------------------------
+-- Screw invariants
+------------------------------------------------------------------------------------
+
+-- Invariants the rotation subgroup of SE(3) (see benchmark.m2 for more information)
+-- Notice how we need an elimination order on the AMBIENT ring, not the tensor ring.  
+R = QQ[(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => {Eliminate 3, Lex}];
+
+M =  transpose genericMatrix(R, first gens R, 3, 3)
 A = (M*(transpose M))-(id_(source M))
 B = (det M) - 1 
 eqns := (flatten entries A)|{B}
-sag = sagbi eqns
+sag1 = sagbi eqns
 
-
-
---
-gndR = QQ[(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => Lex];
-G = vars gndR;
+-- Invariants of the translation subgroup of SE(3) (see benchmark.m2 for more information)
+G = vars R;
 t = transpose G_{0..2}
 w = transpose G_{3..5}
 v = transpose G_{6..8}
 plucker := w||v
-W = genericSkewMatrix(gndR, G_(0,3), 3);
-T = genericSkewMatrix(gndR, G_(0,0), 3);
-zed = W-W;  
+T = genericSkewMatrix(R, G_(0,0), 3);
+zed = T-T;  
 I = id_(source zed)
 translation := matrix({{I, zed},{T, I}})*plucker
+sag2 = sagbi transpose translation;
 
--- This could be made into a test.
--- The extra polynomial f_1 is p_12
-sag = sagbi transpose translation;
+-- This normal form calculation is computing an intersection of subrings.
+ans = sag2#"PresRing"#"FullSub"((gens sag1)//sag2)
+-- The sagbi call removes the constants/zeros and verifies that it's a sagbi basis. 
+-- selectInSubring computes an intersection with a polynomial ring. 
+ans = selectInSubring(1, gens sagbi ans)
 
+error "stop"
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
+------------------------------------------
+------------------------------------------
+-- Example 1, Stillman and Tsai 
+-- Falsely succeeds, can we do better?
+------------------------------------------
+------------------------------------------
+gndR = kk[x,y, MonomialOrder => Lex]
+I = ideal(x^2 - x*y)
+Q = gndR/I
+subR = sagbi(subring {x}, PrintLevel => 2)
+elt = ((gens subR)_(0,0))^1
 
+J = gens subR#"PresRing"#"SyzygyIdeal"
 
---adj = matrix({{W, zed},{T*W,W}});
+for j from 0 to (numcols J)-1 do(
+    pj := J_(0,j);
+    
+    --error "stop";
+    );
 
+G = lift(gens subR, ambient ambient subR)
+subR2 = subring G;
+extra = subR2#"PresRing"#"FullSub"((presentation Q)//subR2)
+newElts = sub(extra, Q)
 
-
-
-
+subR = sagbi(subring ((gens subR)|newElts), PrintLevel => 0)
 
 error "stop";
 
-
-
-
-gndR = QQ[t_1,t_2,t_3,w_1,w_2,w_3,v_1,v_2,v_3, MonomialOrder => Lex];
+------------------------------------------
+------------------------------------------
+-- attempt to do all of SE(3) at once
+------------------------------------------
+------------------------------------------
+gndR = QQ[(x_1..x_9)|(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => GRevLex];
 G = vars gndR;
-T = genericSkewMatrix(gndR, G_(0,0), 3);
-I = matrix entries id_(source T);
-Z = T-T;
---T = matrix {{0,-x_3,x_2},{x_3, 0, -x_1},{-x_2,x_1,0}}
-trans = matrix {{I, Z},{T, I}}
+x = transpose G_{0..8}
+t = transpose G_{9..11}
+w = transpose G_{12..14}
+v = transpose G_{15..17}
+plucker := w||v
 
+T = genericSkewMatrix(gndR, G_(0,8), 3);
+zed = T-T;  
+I = id_(source zed)
 
+R = genericMatrix(gndR, G_(0,0), 3, 3);
+A = (R*(transpose R))-I
+B = (det R) - 1 
+eqns = (flatten entries A)|{B}
+
+translation := matrix({{I, zed},{T, I}})*plucker
+rotation := matrix({{R, zed},{zed, R}})*plucker
+
+rotation = (transpose rotation) | (matrix {eqns});
+sag2 = sagbi(rotation,PrintLevel=> 1);
 
 error "stop";
-
-subRSagbi = sagbi subR;
-presSagbi = subRSagbi#"PresRing";
-tenseSagbi = presSagbi#"TensorRing";
-
-assert(ambient subRSagbi === ambient subR);
-assert(tenseSagbi =!= tense);
-assert(subR == subRSagbi);
-assert(G%subR == 0);
 
 ------------------------------------------
 ------------------------------------------
@@ -266,12 +286,9 @@ print("is h zero? - "|toString(h == 0));
 
 ------------------------------------------
 ------------------------------------------
--- end intrinsicBuchberger test
-------------------------------------------
-------------------------------------------
-
-
 -- Normal form demo
+------------------------------------------
+------------------------------------------
  
 f = f_tense;
 print("-- f:");

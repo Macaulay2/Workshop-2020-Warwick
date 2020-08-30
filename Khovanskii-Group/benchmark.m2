@@ -188,7 +188,30 @@ time assert (toricSyz(subR, M//subR) == ans);
 
 
 
+print("Example 2, Stillman and Tsai, N=4 (subring of a quotient ring with a finite sagbi basis)");
+N = 4;
+gndR = kk[(a,b,c,d)|(u_1..u_N)|(v_1..v_N), MonomialOrder => Lex];
+I = ideal(a*b - b*c - 1);
+quot = gndR/I;
+U = (vars quot)_{4..(N+3)}
+V = (vars quot)_{(N+4)..(2*N+3)}
+G = flatten for i from 0 to N-1 list(
+    {a*(U_(0,i)) + b*(V_(0,i)), c*(U_(0,i)) + d*(V_(0,i))}
+    );
+sag = sagbi G
+ans = matrix {{c*u_4+d*v_4, c*u_3+d*v_3, c*u_2+d*v_2, c*u_1+d*v_1, a*u_4+b*v_4, a*u_3+b*v_3, a*u_2+b*v_2,
+     	a*u_1+b*v_1, a*d*u_3*v_4-a*d*u_4*v_3-b*c*u_3*v_4+b*c*u_4*v_3,
+     	a*d*u_2*v_4-a*d*u_4*v_2-b*c*u_2*v_4+b*c*u_4*v_2, a*d*u_2*v_3-a*d*u_3*v_2-b*c*u_2*v_3+b*c*u_3*v_2,
+     	a*d*u_1*v_4-a*d*u_4*v_1-b*c*u_1*v_4+b*c*u_4*v_1, a*d*u_1*v_3-a*d*u_3*v_1-b*c*u_1*v_3+b*c*u_3*v_1,
+     	a*d*u_1*v_2-a*d*u_2*v_1-b*c*u_1*v_2+b*c*u_2*v_1}}
+
+time assert (gens sag == ans);
+
+
+
 -*
+
+Invariants of SO(3) (Rotation subgroup of SE(3))
 
 This test doesn't have any assertions but you can manually verify it with debugPrintAllMaps.
 
@@ -223,4 +246,21 @@ M = transpose genericMatrix(R, first gens R, 3, 3)
 A = (M*(transpose M))-(id_(source M))
 B = (det M) - 1 
 eqns := (flatten entries A)|{B}
-sag = sagbi eqns
+sag1 = sagbi eqns
+
+
+-- Invariants of the translation subgroup of SE(3).
+-- No assertions right now, but it's easy to manually verify
+-- See (9) in the paper: https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf
+
+gndR = QQ[(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => Lex];
+G = vars gndR;
+t = transpose G_{0..2}
+w = transpose G_{3..5}
+v = transpose G_{6..8}
+plucker := w||v
+T = genericSkewMatrix(gndR, G_(0,0), 3);
+zed = T-T;  
+I = id_(source zed)
+translation := matrix({{I, zed},{T, I}})*plucker
+sag2 = sagbi transpose translation;

@@ -328,7 +328,7 @@ autoreduce(Subring, Matrix) := (subR, idealGens) -> (
     reducedGens := for i from 0 to (numcols idealGens)-1 list(		
 	s := idealGens_(0,i);
 	notS := submatrix'(matrix({toList noDupes}),,{i});      
-	print("----------- autoreduction step "|toString(i)|"/"|toString(numcols idealGens)|"  --------------");
+	--print("----------- autoreduction step "|toString(i)|"/"|toString(numcols idealGens)|"  --------------");
 	answer := intrinsicReduce(subR, notS, s);
        	answer = sub(answer,ring idealGens);	
 	if(answer != 0) then ( 

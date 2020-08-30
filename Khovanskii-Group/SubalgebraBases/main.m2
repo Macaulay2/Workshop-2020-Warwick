@@ -9,11 +9,30 @@ export {
     "SubalgComputations",
     "SagbiGens",
     "SagbiDone",
-    "appendToBasis" -- temporary
+    "checkSagbi"
     }
 
+-- Checks if subR is a Sagbi basis and returns a Subring instance with an updated isSagbi flag.
+-- This currently has bugs, it might be better to delete this and suggest calling sagbi instead.
+-- Based on Corollary 11.5 of Sturmfels.
+checkSagbi = method(TypicalValue => Subring)
+checkSagbi(Subring) := subR -> (
+    pres := subR#"PresRing";
+    if not subR.cache#?"SyzygyIdealGB" then (
+    	subR.cache#"SyzygyIdealGB" = gb (pres#"SyzygyIdeal");
+    	);
+    J := subR.cache#"SyzygyIdealGB";
+    zeroGens := selectInSubring(1, gens J);
+    pf := pres#"FullSub"(zeroGens);
 
-
+    ht := new MutableHashTable from subR;
+    
+    -- There is weirdness caused by how it treats zero objects as special...
+    ht#"isSagbi" = pres#"FullSub"(subduction(subR, pf)) == 0;    
+    
+    
+    new Subring from ht
+    );
 
 -- Performs subduction using the generators of subR.
 -- currently does not require the generators to be a Sagbi basis.
@@ -62,7 +81,6 @@ subduction(Subring, Matrix) := (subR, M) -> (
 -- subalgebraBasis is needed for legacy purposes. It should not be changed or deleted. 
 -- New code should use the function "sagbi." 
 ---------------------------------------------------------------------------------------
-
 subalgebraBasis = method(
     TypicalValue => Matrix, 
     Options => {
@@ -71,19 +89,17 @@ subalgebraBasis = method(
     	PrintLevel => 0
 	}
     );
-
 subalgebraBasis(Matrix) := o -> gensMatrix -> (
     R := subring gensMatrix;
     gens sagbi(R,o)
     );
-
 subalgebraBasis(List) := o -> L -> (
     gens sagbi(o, subring L)
     );
-
 subalgebraBasis(Subring) := o -> subR -> (
-    gens sagbi subR
+    gens sagbi(o, subR)
     );
+---------------------------------------------------------------------------------------
 
 
 sagbi = method(
@@ -103,6 +119,8 @@ sagbi(List) := o -> L -> (
     sagbi(o, subring L)
     );
 
+-- PrintLevel > 0: Print some information each loop, but don't print any polynomials.
+-- PrintLevel > 1: Print new Sagbi gens.
 sagbi(Subring) := o -> R -> (
     R.cache.SubalgComputations = new MutableHashTable;
     subalgComp := R.cache.SubalgComputations;
@@ -119,7 +137,7 @@ sagbi(Subring) := o -> R -> (
     subalgComp#"Pending" = new MutableList from toList(o.Limit+1:{});
     R.cache.SagbiGens = matrix(ambient R,{{}});
 
-    -- Get the maximum degree of the generators. This is used as a stopping condition.
+    -- This is a _lower_ bound on the degree of a Sagbi basis.
     maxGensDeg := (max degrees source gens R)_0;
 
     -- Only look at generators below degree limit.  Add those generators to the SubalgebraGenerators
@@ -128,72 +146,103 @@ sagbi(Subring) := o -> R -> (
     -- Remove elements of coefficient ring
     (subalgComp#"Pending")#0 = {};
     processPending(R, o.Limit);
-    currDegree = subalgComp#"CurrentLowest" + 1;
-    
+    -- The +1 can be removed (sometimes this is desirable during debugging)
+    currDegree = subalgComp#"CurrentLowest"+1;
+   
     isPartial := false;
-       
+    
+    -- This will work when ambient R is a quotient ring or a polynomial ring.
+    --ambPres := presentation ambient R;
+           
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
-	
+	if (o.PrintLevel > 0) then (
+	    print("---------------------------------------");
+	    print("-- Current degree:"|toString(currDegree));
+	    print("---------------------------------------");
+	    );	
 	partialSagbi := subalgComp#"PartialSagbi";
 	pres := partialSagbi#"PresRing";
+ 	assert(isHomogeneous pres#"SyzygyIdeal");
 
-	-- SyzygyIdeal is A_I in Sturmfels chapter 11.
 	partialSagbi.cache#"SyzygyIdealGB" = gb(pres#"SyzygyIdeal", DegreeLimit => currDegree);
 	sagbiGB := partialSagbi.cache#"SyzygyIdealGB";
-	
-	-- This will select the entries of partialSagbi.cache#"SyzygyIdealGB" that do not involve any of (leadTerms subalgComp#"SyzygyIdeal") and 
-	-- also have degree equal to currDegree. So, they will be exclusively in the higher block of variables of TensorRing.
 	zeroGens := submatByDegree(mingens ideal selectInSubring(1, gens sagbiGB), currDegree);
+	syzygyPairs = pres#"Substitution"(zeroGens);
 	
-	-- Plug the generators into the degree currDegree polynomials that eliminate the lead terms (I.e. zeroGens.) 
-	-- This changes it from a polynomial in the generators to a polynomial in the variables of the ambient ring.
-       	syzygyPairs = pres#"Substitution"(zeroGens);
-
 	-- Have we previously found any syzygies of degree currDegree?
         if subalgComp#"Pending"#currDegree != {} then (
             syzygyPairs = syzygyPairs | pres#"InclusionBase"(matrix{subalgComp#"Pending"#currDegree});
             subalgComp#"Pending"#currDegree = {};
             );
 	
-       	subd := subduction(partialSagbi, syzygyPairs);
+	if o.PrintLevel > 0 then(
+	    print("-- Number of S-pairs:"|toString(numcols syzygyPairs));
+	    );	
 	
+       	subd := subduction(partialSagbi, syzygyPairs);
+
        	if entries subd != {{}} then (
-	    -- converts back to the variables of the ambient ring.
 	    subducted := (pres#"ProjectionBase")(subd);
 	    newElems = compress subducted;
             ) else (
 	    newElems = subd;
+	    );	
+	
+	if o.PrintLevel > 1 then(
+	    print("-- New generators:");
+	    if(numcols newElems == 0) then(
+		-- We have to have this case because zero matrices are special 
+		print("| 0 |");
+		)else(
+	    	print(matrix entries transpose newElems);
+	    	);
 	    );
 	
-	if numcols newElems > 0 then (
-	    -- Put newElems in pending and update subalgComp. 
-            insertPending(R, newElems, o.Limit);
+	if numcols newElems > 0 then (	    
+	    insertPending(R, newElems, o.Limit);
     	    processPending(R, o.Limit);
-	    currDegree = subalgComp#"CurrentLowest";
+	    currDegree = subalgComp#"CurrentLowest";   
             ) else (
-	    -- "rawStatus1 raw (subalgComp#"sagbiGB") == 6" means that the GB is a complete GB (as if DegreeLimit was not specified.)
-	    if sum toList apply(subalgComp#"Pending", i -> #i) == 0 and rawStatus1 raw sagbiGB == 6 and currDegree > maxGensDeg then (
-                R.cache.SagbiDone = true;
-                if (o.PrintLevel > 0) then (
-		    print("Finite SAGBI basis was found.");
-		    );
+	    
+	    C0 := sum toList apply(subalgComp#"Pending", i -> #i) == 0;
+	    C1 := rawStatus1 raw sagbiGB == 6;
+	    C2 := currDegree > maxGensDeg; 
+	    
+	    if o.PrintLevel > 0 then(
+		print("-- Stopping conditions:");
+		print("--    No higher degree candidates: "|toString(C0));
+		print("--    S-pair ideal GB completed:   "|toString(C1));
+		print("--    Degree lower bound:          "|toString(C2));
+		);
+	    
+	    if C0 and C1 and C2 then (
+                
+		
+		
+		
+		R.cache.SagbiDone = true;
+		
             	);
-            );
+	    );
 	currDegree = currDegree + 1;
     	);
     
     if currDegree > o.Limit then(
 	isPartial = true;
 	);
-    -- Possibly, it could finish on the same run that it successfully terminates.
+    -- Possibly, it could finish on the same loop that it successfully terminates.
     if R.cache.SagbiDone == true then(
 	isPartial = false;
 	);
     
-    if currDegree > o.Limit and o.PrintLevel > 0 then (
-	print("Limit was reached before a finite SAGBI basis was found.");
-    	);    
-
+    if o.PrintLevel > 0 then(
+    	if currDegree > o.Limit then (
+	    print("-- Limit was reached before a finite SAGBI basis was found.");
+    	    )else(
+	    print("-- Finite Sagbi basis was found.");
+	    );
+    	);
+    
     -- We return a new instance of subring instead of the generators themselves so that we can say whether or not a Subring instance
     -- IS a Sagbi basis, not whether or not it HAS a Sagbi basis. (The latter is unacceptable because the cache should not effect 
     -- the value of a function.)
@@ -207,13 +256,13 @@ sagbi(Subring) := o -> R -> (
     -----------------------------------------------------------------------------------------------------
     -- The correct way to implement a function that requires a Subring instance that is a Sagbi basis is to check that 
     -- (subR.isSagbi == true). If (subR.isSagbi == false) and (subR.cache.SagbiDone == true), an error should still be thrown.
-    
-    
+        
     resultR := ambient R;
     M := R.cache.SagbiGens;
     presRing := makePresRing(resultR, M);
     
-    -- It shouldn't directly set (cache => R.cache) because there is a possibility of inhereting outdated information. 
+    -- It shouldn't directly set (cache => R.cache) because there is a possibility of inhereting outdated information.
+    -- (It can't assume that outside sources haven't modified the cache.) 
     cTable := new CacheTable from{
 	SubalgComputations => new MutableHashTable from {},
 	SagbiGens => M,
@@ -228,5 +277,5 @@ sagbi(Subring) := o -> R -> (
 	"isPartialSagbi" => isPartial,
 	"partialDegree" => currDegree-1,
 	cache => cTable
-	} 
+	}
     );

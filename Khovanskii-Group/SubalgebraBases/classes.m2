@@ -100,7 +100,7 @@ makePresRing(Ring, List) := opts -> (R, gensR) ->(
     
     Substitution := map(TensorRing, TensorRing,
         (vars TensorRing)_{0..nBaseGens-1} | InclusionBase(matrix({gensR})));
-    
+    	
     SyzygyIdeal := ideal(
         (vars TensorRing)_{nBaseGens..nBaseGens+nSubalgGens-1}-
 	InclusionBase(leadTerm matrix({gensR})));

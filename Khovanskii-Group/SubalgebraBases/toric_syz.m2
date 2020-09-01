@@ -6,6 +6,7 @@ export {
     "genVars",
     "isSubalg",
     "autoreduce",
+    "autosubduce",
     "toMonomial",
     "extractEntries",
     "debugPrintMap",
@@ -343,6 +344,26 @@ autoreduce(Subring, Matrix) := (subR, idealGens) -> (
     -- I don't know what they are for and they break the == operator.
     matrix entries (transpose compress (matrix({reducedGens})))
     );
+
+-- Perform autosubduction on the generators of a subring:
+-- I.e., reduce g\in (gens subR) modulo (gens subR)-g for all g\in (gens subR).   
+autosubduce = method(TypicalValue => Subring)
+autosubduce(Subring) := subR -> (
+    G := gens subR;
+    noDupes := new MutableList from first entries G;        
+    reducedGens := for i from 0 to (numcols G)-1 list(		
+    	s := G_(0,i);
+    	notS := subring compress submatrix'(matrix({toList noDupes}),,{i});      
+	answer := notS#"PresRing"#"FullSub"(subduction(notS, s));
+    	if(answer != 0) then ( 
+	    answer = answer*(1/leadCoef(answer));
+	    );
+    	noDupes#i = answer;	
+    	answer
+    	);
+    subring(compress matrix({reducedGens}))
+    );
+
 
 -- This is subroutine 11.18 of Sturmfels.
 -- Assumes M is a matrix of monomials in the toric ring K[A]

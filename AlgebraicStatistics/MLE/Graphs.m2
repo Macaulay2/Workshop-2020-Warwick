@@ -330,7 +330,8 @@ net Digraph := Net => G -> (
     ))
 
 toString Digraph := String => D -> (
-    horizontalJoin(
+       concatenate( -- issue #1473 in github
+ --   horizontalJoin(
         toLower toString class D, 
         " (",
         toString vertexSet D,
@@ -1632,8 +1633,42 @@ vertexMultiplication (Graph, Thing, Thing) := Graph => (G,v,u) -> (
 
 
 
+--AlgebraicStatistics_Roser
+graph MixedGraph := opts -> g -> g#graph
+digraph MixedGraph := opts -> g -> g#graph#Digraph
+bigraph MixedGraph := opts -> g -> g#graph#Bigraph
+vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))
+
+descendents (MixedGraph, Thing) := (G,v) -> descendents(digraph G, v)
+nondescendents (MixedGraph, Thing) := (G,v) -> nondescendents(digraph G, v)
+parents (MixedGraph, Thing) := (G,v) -> parents(digraph G, v)
+foreFathers (MixedGraph, Thing) := (G,v) -> foreFathers(digraph G, v)
+children (MixedGraph, Thing) := (G,v) -> children(digraph G, v)
+neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
+nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
 
 
+collateVertices = method()
+collateVertices MixedGraph := g -> (
+    v := vertices g;
+    hh := new MutableHashTable;
+    G := graph g;
+    -- Graph
+    x := graph G#Graph;
+    scan(v,j->if x#?j then hh#j=x#j else hh#j={});
+    gg := graph(new HashTable from hh);
+    -- Digraph
+    x = graph G#Digraph;
+    scan(v,j->if x#?j then hh#j=x#j else hh#j={});
+    dd := digraph(new HashTable from hh);
+    -- Bigraph
+    x = graph G#Bigraph;
+    scan(v,j->if x#?j then hh#j=x#j else hh#j={});
+    bb := bigraph(new HashTable from hh);
+    mixedGraph(gg,dd,bb))
+
+
+-- OK-GraphsCleanUp
 
 
 ------------------------------------------

@@ -69,3 +69,24 @@ undirectedEdgesMatrix R
 directedEdgesMatrix R
 bidirectedEdgesMatrix R
 covarianceMatrix R
+
+-- random function with options
+r = method(Options => {Test => true});
+r RR := opts -> x -> (
+    
+    if opts.Test then x^2 else x+1
+    );
+r(0.5)
+r(0.5, Test => true)
+r(0.5, Test => false)
+
+r = method(Options => {Test => true});
+r RR := opts -> x -> (
+    y:=x;
+    if opts.Test then y=x^2;
+    return y
+    );
+r(0.5)
+r(0.5, Test => false)
+
+

@@ -34,7 +34,7 @@ newPackage(
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true,
-     PackageExports => {"GraphicalModels","Graphs","Bertini","EigenSolver"}
+     PackageExports => {"GraphicalModels","Graphs","Bertini","EigenSolver","StatGraphs"}
      -- need to check whether Bertini is actually used
      -- EigenSolver is used for computing the MLE. May need to be replaced or complemented 
      -- by a more efficient solver in the future

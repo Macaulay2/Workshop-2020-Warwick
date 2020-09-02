@@ -26,8 +26,8 @@ the License, or any later version.
 
 newPackage select((
     "Graphs",
-        Version => "0.3.2",
-        Date => "18. October 2018",
+        Version => "0.3.3",
+        Date => "21. August 2020",
         Authors => {
             {Name => "Jack Burkart", Email => "jburkar1@nd.edu"},
             {Name => "David Cook II", Email => "dwcook@eiu.edu", HomePage => "http://ux1.eiu.edu/~dwcook/"},
@@ -168,7 +168,6 @@ export {
     "sinks",
     "sources",
     "spectrum",
-    "topologicalSort",
     "vertexCoverNumber",
     "vertexCovers",
     --
@@ -218,19 +217,7 @@ export {
     "reindexBy",
     "removeNodes",
     "spanningForest",
-    "vertexMultiplication",
-    -- 
-    -- Things that probably should not be in this package.
-    "topSort",
-        "newDigraph",
-        "SortedDigraph",
-    "Bigraph",
-    "bigraph",
-    "LabeledGraph",
-    "labeledGraph",
-    "MixedGraph",
-    "mixedGraph",
-    "collateVertices"
+    "vertexMultiplication"
     }
 
 ------------------------------------------
@@ -1640,117 +1627,13 @@ vertexMultiplication (Graph, Thing, Thing) := Graph => (G,v,u) -> (
     if member(v, vertexSet G) == false then error "2nd argument must be in the input graph's vertex set";
     graph(append(vertexSet G, u), edges G | apply(toList neighbors (G,v), i -> {i,u}), EntryMode => "edges")
     )
-------------------------------------------
-------------------------------------------
--- Things that probably should not be in this package.
-------------------------------------------
-------------------------------------------
--- All of these things are used exclusively by GraphicalModels.
--- They probably should be there, not here.  Otherwise they should
--- probably be in their own package as they are highly specialized.
 
-SortedDigraph = new Type of HashTable;
 
--- Keys:
---      digraph: the original digraph
---      NewDigraph: the digraph with vertices labeld as integers obtained from sorting
---      map: the map giving the sorted order
-topSort = method()
-topSort Digraph := SortedDigraph => D -> (
-    L := topologicalSort D;
-    g := graph D;
-    new SortedDigraph from {
-	    digraph => D,
-	    newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
-        map => hashTable apply(#L, i -> L_i => i + 1)
-	    }
-    )
 
-Bigraph = new Type of Graph
 
-bigraph = method(Options => {Singletons => null})
-bigraph HashTable := opts -> g -> new Bigraph from graph(g, opts)
-bigraph List := opts -> g -> new Bigraph from graph(g, opts)
 
-graphData = "graphData"
-labels = "labels"
 
-LabeledGraph = new Type of HashTable
-
-labeledGraph = method()
-labeledGraph (Digraph,List) := (g,L) -> (
-    C := new MutableHashTable;
-    C#cache = new CacheTable from {};
-    lg := new MutableHashTable;
-    lg#graphData = g;
-    label := new MutableHashTable;
-    if instance(g,Graph) then (
-        sg := simpleGraph g;
-        scan(L, i -> 
-            if (sg#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
-            else if (sg#graph#(i#0#1))#?(i#0#0) then label#({i#0#1,i#0#0}) = i#1
-            else error (toString(i#0)|" is not an edge of the graph");
-            );
-        )
-    else (
-        scan(L, i -> 
-            if (g#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
-            else error (toString(i#0)|" is not an edge of the graph");
-            );
-        );
-    lg#labels = new HashTable from label;
-    C#graph = lg;
-    new LabeledGraph from C
-    )
-
-net LabeledGraph := g -> horizontalJoin flatten (
-     net class g,
-    "{",
-    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
-    "}"
-    )
-
-toString LabeledGraph := g -> concatenate(
-    "new ", toString class g#graph,
-    if parent g#graph =!= Nothing then (" of ", toString parent g),
-    " from {",
-    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
-    "}"
-    )
-
-graph LabeledGraph := opts -> g -> g#graph
-
-MixedGraph = new Type of HashTable
-
-mixedGraph = method()
-mixedGraph (Graph, Digraph, Bigraph) := (g,d,b) -> (
-    C := new MutableHashTable;
-    C#cache = new CacheTable from {};
-    h := new MutableHashTable;
-    h#Graph = g;
-    h#Digraph = d;
-    h#Bigraph = b;
-    C#graph = new HashTable from h;
-    new MixedGraph from C)
-mixedGraph (Digraph, Bigraph) := (d,b) -> mixedGraph(graph {},d,b)
-mixedGraph (Graph, Digraph) := (g,d) -> mixedGraph(g,d,bigraph {})
-mixedGraph Digraph := d -> mixedGraph(graph {},d, bigraph {})
-
-net MixedGraph := g -> horizontalJoin flatten (
-     net class g,
-    "{",
-    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
-    "}"
-    )
-
-toString MixedGraph := g -> concatenate(
-    "new ", toString class g#graph,
-    if parent g#graph =!= Nothing then (" of ", toString parent g),
-    " from {",
-    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
-    "}"
-    )
-
+--AlgebraicStatistics_Roser
 graph MixedGraph := opts -> g -> g#graph
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
@@ -1785,6 +1668,9 @@ collateVertices MixedGraph := g -> (
     mixedGraph(gg,dd,bb))
 
 
+-- OK-GraphsCleanUp
+
+
 ------------------------------------------
 ------------------------------------------
 -- Documentation
@@ -1801,12 +1687,6 @@ doc ///
 
 -------------------------------
 --Data Types
--------------------------------
-doc ///
-    Key
-    	Bigraph
-///
-
 doc ///
     Key
     	Digraph
@@ -1817,20 +1697,7 @@ doc ///
     	Graph
 ///
 
-doc ///
-    Key
-    	LabeledGraph
-///
 
-doc ///
-    Key
-    	MixedGraph
-///
-
-doc ///
-    Key
-    	SortedDigraph
-///
 
 
 

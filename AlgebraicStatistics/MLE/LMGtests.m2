@@ -3,9 +3,21 @@ installPackage "Graphs"
 installPackage "StatGraphs"
 installPackage "GraphicalModels"
 
+loadPackage "Graphs"
+loadPackage "StatGraphs"
+loadPackage "GraphicalModels"
+
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
+
+W:=vertexSet B;
+U:=collateVertices g - W;
+
+
+G=graph{{1,2}}
+D=digraph{{1,3},{3,2},{6,7},{7,8},{6,8}}
+B=bigraph{{5,4}}
 
 -- MixedGraph with all components
 g=mixedGraph(G,D,B)

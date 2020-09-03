@@ -422,9 +422,15 @@ G  = mixedGraph(digraph {{a,b},{a,c},{a,d},{b,e},{c,f},{d,g}})
 L = multiTrekSeparation(G,3);
 #L
 
+restart 
+loadPackage("GraphicalModelsMultiTrek_TIM.m2",Reload=>true)
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
+L = multiTrekSeparation(G,3,3);
+#L
+for el in L do(print el)
 
 --writing the documentation and some test for the multi-trek separation 
-help multiTrekSeparation 
+help trekSeparation 
 
 
 --writing tests for multi_trek 
@@ -469,89 +475,20 @@ for l in L1sort do(
 
 LineqLists#0
 
--------
-restart 
-loadPackage("GraphicalModelsMultiTrek",Reload=>true)
-G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
-L = multiTrekSeparation(G,3,3);
-#L
+----impliesSeperationStatement test
+S1={({c, a, b}, {c, d}, {a, b, c, d}), ({}, {c, d}, {})}
+S2={({c, d, a, b}, {c, d}, {a, b, c, d}), ({}, {c, d}, {})}
+impliesSeparationStatement = method()
+--Return true if statement1 implies statement2
+--For every S1 in statement1 and corresponding S2 in statement2: S2 subset of S1
+--For every A1 in statement1 and corresponding A2 in statement2: A1 subset of A2
+impliesSeparationStatement (ZZ,List,List) := Boolean => (k,statement1,statement2) ->
+(for i from 0 to k-1 do(
+	if not isSubset(statement2#0#i,statement1#0#i) then(return false;);
+	if not isSubset(statement1#1#i,statement2#1#i) then(return false;);
+	);
+    	return true;
+   )
 
-L
-
-L#0
-L#0#0
-L#0#1
-L#1
-
-trial = method() --removing symmetries and also no need to sort the output
--- the form of output is {{S_1,...,S_k},{A_1,...,A_k}} and so on
-
-trial (ZZ,List) := List => (k,statements) ->
-(
-    l := #statements;
-    s := {};
-    for i from 0 to l-1 do
-    (
-    ss :=   apply(statements#i#0,l->set(l)); 
-    sa :=   apply(statements#i#1,l->set(l)); 
-    t := sort  apply(k,j->{{ss_j},{sa_j}}); 
-    s = s|{t};
-    );   
-    T1 := set s;
-    T2 := toList T1;    	       	       --removed the symmetries
-    T3 := apply(T2,l->toList(l));       --converting to the desired form of output
-    
-    
-    T4 := {};
-    for l in T3 do
-    (
-    	slist := {};
-    	alist := {};
-        for i from 0 to k-1 do
-    	(
-    	    slist = slist|{sort toList l#i#0#0};
-	    alist = alist|{sort toList l#i#1#0};	
-	
-    	);       
-        T4 = T4|{{(slist),(alist)}};
-    
-    );
-    return T4;    
-)
-
-L1 = trial(3,L);
-L1#0
-#L1
-L#0
-t = {{{set {c, d}}, {set {c, d}}}, {{set {a, b, c, d}}, {set {}}}, {{set {a, b, c, d}}, {set {}}}}
-set {t} 
-
-
-L1
-L1#0 isMember L
-
-L1 ? L
-
-help ismember
-L#0
-L1#0
-L2 = apply(L,l->{toList apply(l_0,t->sort t),toList apply(l_1,t-> sort t)})
-L2#0
-isSubset(L1#0,L2)
-L1#0
-L2
-for l in L2 do
-(
-    if l#0 == {{a,b,d},{a,c,d},{a,b,c,d}} then print l; 
-)
-
-for l in L1 do
-(
-    if not member(l,L2) then print l;    
-)
-
-for l in L2 do
-(
-    if l#0#0 == {a,b,c,d} then print l;    
-)
-
+impliesSeparationStatement(3,S1,S2)
+impliesSeparationStatement(3,S2,S1)

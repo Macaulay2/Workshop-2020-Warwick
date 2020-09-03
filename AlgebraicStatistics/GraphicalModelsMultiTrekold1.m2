@@ -1058,7 +1058,7 @@ Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such
 a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
 *-
 multiTrekSeparation = method()
-multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) -> 
+multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> 
 (
  
     G := graph collateVertices g;    	 --outputs the hash table after collating vertices 
@@ -1071,8 +1071,7 @@ multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) ->
     DGhash := new MutableHashTable from apply(v,i->{i,DG#i});	     	 -- creating a mutable hash table from DG
                                                                          --DGhash#(v#1) --returns children of the vertex v#1
     
-    for Alist in toList(((set subsets v)^**k)/deepSplice) do(	    	--making k-cartesian product of subsets of v
-    if sum(Alist,el->length el) < n then
+    for Alist in toList(((set subsets v)^**k)/deepSplice) do	    	--making k-cartesian product of subsets of v
     (	     	     	     	     	     	     	     	     	-- Alist is one of the k-cartesian product of subsets of v
 	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v)));       --assume A_i \subset S_i
 	                                                                --subsetsBetween returns all subsets of v containing Alist#i
@@ -1123,15 +1122,11 @@ multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) ->
 		);
 		i=i+1;
 	    );
-	    if not redundant then(
-		statements=append(statements,newStatement);
-		print newStatement;
-		);
+	    if not redundant then(statements=append(statements,newStatement););
        );
+    
     );
-    );
-return statements;
-   -- return remsymmetries(k,statements);
+    return remsymmetries(k,statements);
 )
 
 impliesSeparationStatement = method()
@@ -2629,7 +2624,7 @@ doc///
 doc/// 
    Key
      multiTrekSeparation
-     (multiTrekSeparation,MixedGraph,ZZ,ZZ)
+     (multiTrekSeparation,MixedGraph,ZZ)
    Headline
      the multi-trek separation statements of a mixed graph 
    Usage

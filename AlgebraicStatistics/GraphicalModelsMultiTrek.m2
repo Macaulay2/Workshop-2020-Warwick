@@ -1058,7 +1058,7 @@ Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such
 a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
 *-
 multiTrekSeparation = method()
-multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) -> 
+multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) -> 
 (
  
     G := graph collateVertices g;    	 --outputs the hash table after collating vertices 
@@ -1071,7 +1071,8 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
     DGhash := new MutableHashTable from apply(v,i->{i,DG#i});	     	 -- creating a mutable hash table from DG
                                                                          --DGhash#(v#1) --returns children of the vertex v#1
     
-    for Alist in toList(((set subsets v)^**k)/deepSplice) do	    	--making k-cartesian product of subsets of v
+    for Alist in toList(((set subsets v)^**k)/deepSplice) do(	    	--making k-cartesian product of subsets of v
+    if sum(Alist,el->length el) < n then
     (	     	     	     	     	     	     	     	     	-- Alist is one of the k-cartesian product of subsets of v
 	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v)));       --assume A_i \subset S_i
 	                                                                --subsetsBetween returns all subsets of v containing Alist#i
@@ -1122,11 +1123,15 @@ multiTrekSeparation (MixedGraph,ZZ) := List => (g,k) ->
 		);
 		i=i+1;
 	    );
-	    if not redundant then(statements=append(statements,newStatement););
+	    if not redundant then(
+		statements=append(statements,newStatement);
+		--print newStatement;
+		);
        );
-    
     );
-    return remsymmetries(k,statements);
+    );
+return statements;
+  --return remsymmetries(k,statements);	       --returns output without any symmetries need to check it once again
 )
 
 impliesSeparationStatement = method()
@@ -1167,7 +1172,7 @@ remsymmetries (ZZ,List) := List => (k,statements) ->
     (
     ss :=   apply(statements#i#0,l->set(l)); 
     sa :=   apply(statements#i#1,l->set(l)); 
-    t :=  set apply(k,i->{{ss_i},{sa_i}}); 
+    t := sort  apply(k,j->{{ss_j},{sa_j}}); 
     s = s|{t};
     );   
     T1 := set s;
@@ -1176,12 +1181,10 @@ remsymmetries (ZZ,List) := List => (k,statements) ->
     
     
     T4 := {};
-    
     for l in T3 do
     (
     	slist := {};
     	alist := {};
-    
         for i from 0 to k-1 do
     	(
     	    slist = slist|{sort toList l#i#0#0};
@@ -1193,7 +1196,6 @@ remsymmetries (ZZ,List) := List => (k,statements) ->
     );
     return T4;    
 )
-
 
             
 -*
@@ -2624,7 +2626,7 @@ doc///
 doc/// 
    Key
      multiTrekSeparation
-     (multiTrekSeparation,MixedGraph,ZZ)
+     (multiTrekSeparation,MixedGraph,ZZ,ZZ)
    Headline
      the multi-trek separation statements of a mixed graph 
    Usage

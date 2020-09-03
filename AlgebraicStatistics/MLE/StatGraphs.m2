@@ -188,6 +188,7 @@ children (MixedGraph, Thing) := (G,v) -> children(digraph G, v)
 neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
 nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
 
+
 collateVertices = method()
 collateVertices MixedGraph := g -> (
     v := vertices g;

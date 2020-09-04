@@ -1,7 +1,7 @@
 needsPackage "NumericalAlgebraicGeometry"
 
-bareboneP2 = method() -- compute 'satind' from homogenization and compute inputs for barebonesSolve using satind
-bareboneP2 Ideal := J -> ( -- currently assumes dim R = 2 et 2 (nonlinear) equations, homogenizes to P^2
+barebonesP2 = method() -- compute 'satind' from homogenization and compute inputs for barebonesSolve using satind
+barebonesP2 Ideal := J -> ( -- currently assumes dim R = 2 et 2 (nonlinear) equations, homogenizes to P^2
     R := ring J;
     FF := coefficientRing R;
     Lvar := vars R;
@@ -20,6 +20,32 @@ bareboneP2 Ideal := J -> ( -- currently assumes dim R = 2 et 2 (nonlinear) equat
     signature := flatten apply(degDmonoms,m->(apply(J_*,f->(m,f))));
     barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
     )     
+
+
+
+
+barebonesP1P1 = method() -- based on Laurent's code
+barebonesP1P1 Ideal := J -> ( -- currently assumes dim R = 2 et 2 equations, homogenizes to P^1 x P^1
+    R := ring J;
+    FF := coefficientRing R;
+    Lvar := vars R;
+    (xx0, yy0) := (symbol xx0, symbol yy0);
+    nR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1)];
+    E0 := homogenize(homogenize(sub(J_0,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
+    E1 := homogenize(homogenize(sub(J_1,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
+    JnR := ideal(E0,E1); -- homogenized equations
+    nnR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1),Degrees=>{{1,0},{1,0},{0,1},{0,1}}];
+    JnnR := sub(JnR,nnR); -- homogeneized equations in the bigraded ring
+    deg := degrees JnnR;
+    satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};
+    quotientBasis := flatten entries sub(basis(R/J),R);
+    degDmonoms := flatten entries matrix{for d to 6 list basis(d,R)};
+    S := degDmonoms;
+    outputVariables := gens R;
+    x := R_0;
+    signature := flatten apply(degDmonoms,m->(apply(J_*,f->(m,f))));
+    barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
+    )
 
 
 
@@ -50,12 +76,12 @@ Description:
 *-
 barebonesSolve(Ideal,List,RingElement,List) := List => 
 opts -> (I,S,x,signature) -> (
-    outputVariables := opts.OutputVariables; 
-    if outputVariables===null then error "TO DO: set the default";
-    quotientBasis := opts.QuotientBasis;
-    if quotientBasis===null then error "TO DO: set the default";
     R := ring I;
     CR := coefficientRing R;
+    outputVariables := opts.OutputVariables; 
+    if outputVariables===null then error "TO DO: set the default";
+    quotientBasis := apply(opts.QuotientBasis, g -> lift(g,R));
+    if quotientBasis===null then error "TO DO: set the default";
     assert(S_0 === 1_R);
     monomialsAndCoefficients := coefficients matrix {S | apply(signature, mf->first mf * last mf)};
     monoms := first monomialsAndCoefficients;
@@ -63,9 +89,10 @@ opts -> (I,S,x,signature) -> (
     Icoeffs := coeffs_{#S..(numcols coeffs - 1)};
     Scoeffs := coeffs_{0..#S-1};
     L := image Scoeffs;
-    projL := (last SVD sub(transpose mingens L,CC))^{0..numgens L-1}; -- orthogonal projection to L
     IcapL := intersect(L, image Icoeffs); -- this should be done numerically
-    projC := (last SVD(transpose(projL*sub(mingens IcapL,CC))))^{numgens IcapL..numgens L-1}; -- orthogonal projection to (I \cap L)^\perp
+    projL := (last SVD sub(transpose mingens L,CC))^{0..numgens L-1}; -- orthogonal projection to L
+    projC := (last SVD(transpose(projL*sub(mingens IcapL,CC))))^{numgens IcapL ..numgens L-1}; -- orthogonal projection to (I \cap L)^\perp
+    print (numrows projC, #quotientBasis);
     assert(numrows projC == #quotientBasis); --TO DO: error message
     ind := new HashTable from apply(#S,i->S_i=>i);
     projection := projC*projL; -- this is an ofthodonal projection (but doesn't need to be)  
@@ -87,9 +114,49 @@ end
 restart
 load "projbarebone.m2"
 B = QQ[x0,x1,x2]
-I = ideal(random(2,B), random(2,B))
+I = ideal(random(4,B), random(4,B))
 R = QQ[x1,x2]
 spe = map(R,B,matrix{{1,x1,x2}})
 J = spe I
-bareboneP2 J
+barebonesP2 J
 
+
+-*
+restart
+load "projbarebone.m2"
+A = QQ[x0,x,y0,y,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+I = ideal(random({2,5},A),random({2,5},A))
+R = QQ[x,y]
+spe = map(R,A,matrix{{1,x,1,y}})
+J=spe I
+I = J
+D=7 --why 6?
+degDmonoms = flatten entries matrix{for d to D list basis(d,R)}
+S = degDmonoms
+signature = flatten apply(degDmonoms,m->(apply(I_*,f->(m,f)))) ;
+outputVariables = {x,y}
+quotientBasis = flatten entries basis(R/J);
+ours = barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
+theirs = solveSystem I_*	
+areEqual(sortSolutions ours, sortSolutions theirs) 
+*-
+
+
+-- the smallest P1P1 example which has a problem.
+restart
+load "projbarebone.m2"
+A = QQ[x0,x,y0,y,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+I = ideal(random({1,3},A),random({1,3},A))
+R = QQ[x,y]
+spe = map(R,A,matrix{{1,x,1,y}})
+J=spe I
+I = J
+D=3 --why 6?
+degDmonoms = flatten entries matrix{for d to D list basis(d,R)}
+S = degDmonoms
+signature = flatten apply(S,m->(apply(I_*,f->(m,f)))) ;
+outputVariables = {x,y}
+quotientBasis = flatten entries basis(R/J);
+ours = barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
+rank coeffs -- it is dim(span(m*f | (m,f) in signature) + span(S)). However, it is 27. 
+            -- it gives us smaller intersection IcapL than what we want. 

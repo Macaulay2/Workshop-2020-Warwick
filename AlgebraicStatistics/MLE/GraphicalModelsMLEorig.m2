@@ -1,7 +1,7 @@
 -- -*- coding: utf-8-unix -*-
 
 newPackage(
-     "GraphicalModelsMLE",
+     "GraphicalModelsMLEorig",
      Version => "0.3",
      Date => "June 5, 2020",
      Authors => {
@@ -309,7 +309,7 @@ beginDocumentation()
 
 doc ///
     Key
-        GraphicalModelsMLE
+        GraphicalModelsMLEorig
     Headline
         a package for MLE estimates of parameters for statistical graphical models 
     Description        

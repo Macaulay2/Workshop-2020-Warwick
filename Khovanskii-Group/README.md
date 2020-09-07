@@ -54,10 +54,43 @@ Using the package is a good way to learn about the code as well as the underlyin
 
 ## References with examples worth looking at
 
-1. [Introductory reference](./Subalgebra-Basics/StuCh11.pdf).
+1. [Introductory reference](./Subalgebra-Basics/StuCh11.pdf). (The algorithms defined in this source are implemented in the file toric_syz.m2.)
 
 2. [Khovanskii bases / valuations from weight matrices](https://arxiv.org/pdf/1610.00298.pdf)
 
-3. (related to 2, paper associated to the original package) [SAGBI bases for quotient rings](https://www.sciencedirect.com/science/article/pii/S0022404999000158)
+3. **(See "subrings of quotient rings.pdf")** [SAGBI bases for quotient rings](https://www.sciencedirect.com/science/article/pii/S0022404999000158)
 
-4. Other examples worth pursuing [here](https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf), and [here](https://arxiv.org/abs/1809.01026), and [here](https://arxiv.org/pdf/1702.05480.pdf), and [here](https://arxiv.org/abs/0803.0892), and [here](https://arxiv.org/abs/1612.03838), and ...
+4. Other examples worth pursuing [here](https://arxiv.org/abs/1809.01026), and [here](https://arxiv.org/pdf/1702.05480.pdf), and [here](https://arxiv.org/abs/0803.0892), and [here](https://arxiv.org/abs/1612.03838), and ...
+
+5. [This paper](https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf)
+
+See these links for code implementing the calculations of the above paper.
+
+The invariants of the adjoint action of SE(3) acting on m screws:
+
+- m = 1: https://gist.github.com/natelastname/d5611c33869a171e0b459b9f79df5b28
+- m = 2: https://gist.github.com/natelastname/f7a8728d27a68a9a272958bc7d216f73
+- m = 3: This is the subject of their conjecture. It's easy to modify m = 2 for this case. Not easy to compute.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

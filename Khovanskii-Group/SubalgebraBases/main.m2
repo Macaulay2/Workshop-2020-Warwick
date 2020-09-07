@@ -9,7 +9,8 @@ export {
     "SubalgComputations",
     "SagbiGens",
     "SagbiDone",
-    "checkSagbi"
+    "checkSagbi",
+    "Autosubduce"
     }
 
 -- Checks if subR is a Sagbi basis and returns a Subring instance with an updated isSagbi flag.
@@ -29,7 +30,6 @@ checkSagbi(Subring) := subR -> (
     
     -- There is weirdness caused by how it treats zero objects as special...
     ht#"isSagbi" = pres#"FullSub"(subduction(subR, pf)) == 0;    
-    
     
     new Subring from ht
     );
@@ -61,7 +61,8 @@ subduction(Subring, RingElement) := (subR, f) -> (
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
     fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), tense);
+    result = promote(result_(0,0), tense);    
+    
     result
     );
 
@@ -79,12 +80,13 @@ subduction(Subring, Matrix) := (subR, M) -> (
 
 ---------------------------------------------------------------------------------------
 -- subalgebraBasis is needed for legacy purposes. It should not be changed or deleted. 
--- New code should use the function "sagbi." 
+-- New code should use the function "sagbi."
 ---------------------------------------------------------------------------------------
 subalgebraBasis = method(
     TypicalValue => Matrix, 
     Options => {
 	Strategy => null,
+	Autosubduce => true,
     	Limit => 100,
     	PrintLevel => 0
 	}
@@ -101,11 +103,11 @@ subalgebraBasis(Subring) := o -> subR -> (
     );
 ---------------------------------------------------------------------------------------
 
-
 sagbi = method(
     TypicalValue => Subring, 
     Options => {
     	Strategy => null,
+	Autosubduce => true,
     	Limit => 100,
     	PrintLevel => 0
     	}
@@ -122,6 +124,15 @@ sagbi(List) := o -> L -> (
 -- PrintLevel > 0: Print some information each loop, but don't print any polynomials.
 -- PrintLevel > 1: Print new Sagbi gens.
 sagbi(Subring) := o -> R -> (
+    
+    
+    if o.Autosubduce then(
+	if o.PrintLevel > 0 then (
+	    print("Performing initial autosubduction...");
+	    );
+    	R = autosubduce R;
+    	);
+
     R.cache.SubalgComputations = new MutableHashTable;
     subalgComp := R.cache.SubalgComputations;
     
@@ -137,23 +148,16 @@ sagbi(Subring) := o -> R -> (
     subalgComp#"Pending" = new MutableList from toList(o.Limit+1:{});
     R.cache.SagbiGens = matrix(ambient R,{{}});
 
-    -- This is a _lower_ bound on the degree of a Sagbi basis.
     maxGensDeg := (max degrees source gens R)_0;
-
-    -- Only look at generators below degree limit.  Add those generators to the SubalgebraGenerators
     reducedGens := compress submatBelowDegree(gens R, o.Limit+1);
     insertPending(R, reducedGens, o.Limit);
     -- Remove elements of coefficient ring
     (subalgComp#"Pending")#0 = {};
     processPending(R, o.Limit);
-    -- The +1 can be removed (sometimes this is desirable during debugging)
+
     currDegree = subalgComp#"CurrentLowest"+1;
-   
     isPartial := false;
-    
-    -- This will work when ambient R is a quotient ring or a polynomial ring.
-    --ambPres := presentation ambient R;
-           
+     
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
 	if (o.PrintLevel > 0) then (
 	    print("---------------------------------------");
@@ -162,7 +166,6 @@ sagbi(Subring) := o -> R -> (
 	    );	
 	partialSagbi := subalgComp#"PartialSagbi";
 	pres := partialSagbi#"PresRing";
- 	assert(isHomogeneous pres#"SyzygyIdeal");
 
 	partialSagbi.cache#"SyzygyIdealGB" = gb(pres#"SyzygyIdeal", DegreeLimit => currDegree);
 	sagbiGB := partialSagbi.cache#"SyzygyIdealGB";
@@ -191,11 +194,11 @@ sagbi(Subring) := o -> R -> (
 	if o.PrintLevel > 1 then(
 	    print("-- New generators:");
 	    if(numcols newElems == 0) then(
-		-- We have to have this case because zero matrices are special 
+		-- It has to treat this as a special case because zero matrices are special. 
 		print("| 0 |");
 		)else(
-	    	print(matrix entries transpose newElems);
-	    	);
+		debugPrintMat(newElems);
+		);
 	    );
 	
 	if numcols newElems > 0 then (	    
@@ -211,17 +214,12 @@ sagbi(Subring) := o -> R -> (
 	    if o.PrintLevel > 0 then(
 		print("-- Stopping conditions:");
 		print("--    No higher degree candidates: "|toString(C0));
-		print("--    S-pair ideal GB completed:   "|toString(C1));
+		print("--    S-poly ideal GB completed:   "|toString(C1));
 		print("--    Degree lower bound:          "|toString(C2));
 		);
 	    
 	    if C0 and C1 and C2 then (
-                
-		
-		
-		
 		R.cache.SagbiDone = true;
-		
             	);
 	    );
 	currDegree = currDegree + 1;

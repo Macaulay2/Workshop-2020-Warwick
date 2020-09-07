@@ -9,10 +9,26 @@ export {
     "VarBaseName"
     }
 
+
+-- Returns M with all constant entries deleted.
+deleteConstants := M -> (
+    L := first entries M; 
+    L = select(L, gen -> not isConstant gen);
+    matrix({L})
+    );
+
+
 Subring = new Type of HashTable
 subring = method(Options => {VarBaseName => "p"})
 subring Matrix := opts -> M -> (
     R := ring M;
+    
+    M = deleteConstants M;
+    
+    if zero M then (
+	error "Cannot construct an empty subring.";
+	);
+   
     cTable := new CacheTable from{
 	SubalgComputations => new MutableHashTable from {},
 	SagbiGens => matrix(R, {{}}),
@@ -75,18 +91,24 @@ makePresRing(Ring, List) := opts -> (R, gensR) ->(
     MonoidAmbient := monoid ambR;
     CoeffField := coefficientRing ambR;
     
-    -- Construct the monoid of a ring with variables corresponding to generators of the ambient ring and the subalgebra.
-    -- Has an elimination order that eliminates the generators of the ambient ring.
     -- The degrees of generators are set so that the SyzygyIdeal is homogeneous.
+    -- (This property is important for subrings of quotient rings. Note that it isn't guarenteed currently
+    -- when the order does not agree with the grading on the lead term.)
     newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
-
+    
+    --AA := degrees source matrix({gensR});
+    --BB := degrees source matrix({apply(gensR, gen -> leadTerm gen)});
+    
     NewVariables := monoid[        
 	VariableBaseName=> opts.VarBaseName,
 	Variables=>nBaseGens+nSubalgGens,
 	Degrees=>join(degrees source vars ambR, degrees source matrix({gensR})),
-        MonomialOrder => newOrder];
+        MonomialOrder => newOrder
+	];
         
-    TensorRing := CoeffField NewVariables;	    
+    TensorRing := CoeffField NewVariables;
+    
+    assert(heft TensorRing =!= null);	    
         
     ProjectionInclusion := map(TensorRing, TensorRing,
         (matrix {toList(nBaseGens:0_(TensorRing))}) |
@@ -121,6 +143,23 @@ makePresRing(Ring, List) := opts -> (R, gensR) ->(
 	"LiftedPres" => liftedPres
 	};
     
+    -*
+    pres := new PresRing from ht;
+    print("-------------");
+    for i from 0 to (length gensR)-1 do(
+	A := genVars_(0,i);
+	B := gensR#i;
+	C := (gens pres#"SyzygyIdeal")_(0,i);
+	
+	if degree B != degree leadTerm B then (
+	    print("!!!");
+	    );
+	
+	print(toString(i)|":"|toString(degree A)|toString(degree B));
+	print(genVars_(0,i));	
+	assert(isHomogeneous C);
+	);
+    *-
     new PresRing from ht
     );
 

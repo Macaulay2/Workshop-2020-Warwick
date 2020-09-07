@@ -1,10 +1,9 @@
 -- return the monomial order stashed inside of a ring
 getMonomialOrder = R -> (options R).MonomialOrder
 
--- Sorts and adds the elements of the matrix "candidates" to the pending list of R
+-- Makes a pass through the elements in the first row of "candidates" and places them in the correct sublist of subalgComp#"Pending".
     -- R is a subalgebra
     -- candidates is a matrix of elements of the subalgebra.
-    -- Algorithm makes a pass through the elements in the first row of "candidates" and places them in the correct sublist of subalgComp#"Pending".
 insertPending = (R, candidates, maxDegree) -> (
     subalgComp := R.cache.SubalgComputations;
     
@@ -61,23 +60,28 @@ submatByDegree = (inputMatrix, currDegree) -> (
 
 -- Reduces the lowest degree in subalgComp#"Pending", updating subalgComp#"Pending" and subalgComp#"sagbiGB".
 -- The various maps, tensor ring, and syzygy ideal are updated to reflect this change.
--- !!!Assumes that the pending list has been subducted!!!
+-- !!!Assumes that the pending list has been subducted!!! 
    -- R is the subalgebra.
    -- maxDegree is the degree limit.
 processPending = (R, maxDegree) -> (
 
     subalgComp := R.cache.SubalgComputations;
     currentLowest := lowestDegree(R, maxDegree);
-    
     if currentLowest <= maxDegree then (
-	-- remove redundant elements of the lowest degree in subalgComp#"Pending".
-	reducedGenerators := gens gb(matrix{(subalgComp#"Pending")#currentLowest}, DegreeLimit=>currentLowest);
-    	(subalgComp#"Pending")#currentLowest = {};
+       
+       	-- remove redundant elements of the lowest degree in subalgComp#"Pending".
+	lowest := matrix({(subalgComp#"Pending")#currentLowest});
+	reducedGenerators := gens gb(lowest, DegreeLimit=>currentLowest);
+	
+	if reducedGenerators_(0,0) == 1 then(
+	    error "Could not process the lowest degree S-polynomials. Perhaps autosubduction was turned off?"
+	    );
+	
+	(subalgComp#"Pending")#currentLowest = {};
     	insertPending(R, reducedGenerators, maxDegree);
-    	-- Find the lowest degree elements after reduction.
     	currentLowest = lowestDegree(R, maxDegree);
-    	-- Add new generators to the basis
-    	if currentLowest <= maxDegree then (
+	
+    	if currentLowest <= maxDegree then (	    
             appendToBasis(R, matrix{(subalgComp#"Pending")#currentLowest});
             (subalgComp#"Pending")#currentLowest = {};
 	    );

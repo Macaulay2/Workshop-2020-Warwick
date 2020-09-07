@@ -1,7 +1,7 @@
 -- -*- coding: utf-8-unix -*-
 
 newPackage(
-     "GraphicalModelsMLE",
+     "GraphicalModelsMLEorig",
      Version => "0.3",
      Date => "June 5, 2020",
      Authors => {
@@ -45,8 +45,7 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
     "PDcheck",
     "MLEsolver",
-    "MLEmax",
-    "Saturate"
+    "MLEmax"
        	} 
      
 --**************************--
@@ -158,7 +157,9 @@ genListmatrix = (L,R) ->
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
+-- allow to input both lists and matrices
 sampleCovarianceMatrix = method();
+-- why List and not Matrix as input?
 sampleCovarianceMatrix(List) := (U) -> (
     n := #U;
     U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
@@ -185,51 +186,6 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     answer=substitute(answer, ring(F));
     return transpose(matrix({{(1/g)^2}})*answer)
 );
--*
-scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
-scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
- --   R := gaussianRing(G);  
-    -- Lambda
-    L := directedEdgesMatrix R;
-    -- d is equal to the number of vertices in G
-    d := numRows L;
-    -- K
-    K:= undirectedEdgesMatrix R;
-    -- Psi
-    P := bidirectedEdgesMatrix R;
-    -- move to a new ring, lpR, which does not have the s variables
-    (F,lpR):=changeRing(d,R);
-    L = matRtolpR(L,F);
-    K = matRtolpR(K,F);
-    P = matRtolpR(P,F);
-    FR := frac(lpR);
-    --Omega
-    Kinv:=inverse substitute (K,FR);
-    W:= directSum(Kinv,P);
-    
-
-    -- Sigma
-    IdL := inverse (id_(lpR^d)-L);
-    S := (transpose IdL) * W * IdL;
-    Sinv := inverse substitute(S, FR); 
-    
-    -- Sample covariance matrix
-    V := sampleCovarianceMatrix(U);
-     
-    -- Compute ideal J   
-    C1 := trace(Sinv * V)/2;
-    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL := (substitute((jacobian(matrix{{det(S)}})),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
-    LL=flatten entries(LL);
-    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
-    prod := product(denoms);
-    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-    
-    -- Saturate
-    if opts.Saturate then J = saturate(J, prod);
-    return J;
-);
-*-
 
 scoreEquationsFromCovarianceMatrix = method();
 scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
@@ -353,7 +309,7 @@ beginDocumentation()
 
 doc ///
     Key
-        GraphicalModelsMLE
+        GraphicalModelsMLEorig
     Headline
         a package for MLE estimates of parameters for statistical graphical models 
     Description        

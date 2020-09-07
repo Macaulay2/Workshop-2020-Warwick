@@ -45,7 +45,8 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
     "PDcheck",
     "MLEsolver",
-    "MLEmax"
+    "MLEmax",
+    "Saturate"
        	} 
      
 --**************************--
@@ -184,7 +185,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     answer=substitute(answer, ring(F));
     return transpose(matrix({{(1/g)^2}})*answer)
 );
-
+-*
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
  --   R := gaussianRing(G);  
@@ -203,8 +204,9 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     P = matRtolpR(P,F);
     FR := frac(lpR);
     --Omega
-    Kinv:=inverse K;
-    W:= directSum(Kinv,P)
+    Kinv:=inverse substitute (K,FR);
+    W:= directSum(Kinv,P);
+    
 
     -- Sigma
     IdL := inverse (id_(lpR^d)-L);
@@ -217,7 +219,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Compute ideal J   
     C1 := trace(Sinv * V)/2;
     C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL := (substitute((jacobian(matrix{{det(S)}})), FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    LL := (substitute((jacobian(matrix{{det(S)}})),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod := product(denoms);
@@ -225,6 +227,36 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     
     -- Saturate
     if opts.Saturate then J = saturate(J, prod);
+    return J;
+);
+*-
+
+scoreEquationsFromCovarianceMatrix = method();
+scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
+    V := sampleCovarianceMatrix(U);   
+ --   R := gaussianRing(G);  
+    -- Lambda
+    L := directedEdgesMatrix R;
+    -- d is equal to the number of vertices in G
+    d := numRows L;
+    -- Omega
+    W := bidirectedEdgesMatrix R;
+    -- move to a new ring, lpR, which does not have the s variables
+    (F,lpR):=changeRing(d,R);
+    L = matRtolpR(L,F);
+    W = matRtolpR(W,F);
+    FR := frac(lpR);
+    K := inverse (id_(lpR^d)-L);
+    S := (transpose K) * W * K;
+    Sinv := inverse substitute(S, FR);    
+    C1 := trace(Sinv * V)/2;
+    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
+    LL := (substitute((jacobian(matrix{{det(S)}})), FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    LL=flatten entries(LL);
+    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
+    prod := product(denoms);
+    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
+    J = saturate(J, prod);
     return J;
 );
 

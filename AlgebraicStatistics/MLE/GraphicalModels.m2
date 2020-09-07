@@ -634,18 +634,26 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- convert mixedGraph to hash table
      gg:= graph g;
+
+     --TEST for partition
+     W:=vertexSet gg#Bigraph;
+     U:=vertices g-set W;
+    -- END TEST for partition
+
      -- necessary condition (not sufficient) to have partition V=U\union W
-     if(isSubset((set vertexSet gg#Graph)*(set vertexSet gg#Bigraph),set {})==false) then error "undirected and bidirected edges in same connected component";
+--     if(isSubset((set vertexSet gg#Graph)*(set vertexSet gg#Bigraph),set {})==false) then error "undirected and bidirected edges in same connected component";
      -- make partition V=U\union W
-     L:=connectedComponentsMG g;
-     U:={};
-     W:={};
-     for l in L do (
-	 i:=0;
-	 while(member(l_i,vertexSet gg#Graph)==false and member(l_i,vertexSet gg#Bigraph)==false and i==#l) do i=i+1;
-    	 if i==#l then (if U=={} then W=flatten append(W,l) else U=flatten append(U,l); continue;);
-    	 if member(l_i,vertexSet gg#Graph)==true then U=flatten append(U,l) else W=flatten append(W,l);
-    	 );
+--     L:=connectedComponentsMG g;
+--     U:={};
+--     W:={};
+--     for l in L do (
+--	 i:=0;
+--	 while(member(l_i,vertexSet gg#Graph)==false and member(l_i,vertexSet gg#Bigraph)==false and i==#l) do i=i+1;
+--    	 if i==#l then (if U=={} then W=flatten append(W,l) else U=flatten append(U,l); continue;);
+--    	 if member(l_i,vertexSet gg#Graph)==true then U=flatten append(U,l) else W=flatten append(W,l);
+--    	 );
+
+
      -- sort vertices (only according to vertex number)
      vv := sort vertices g;
      -- add all vertices to all graphs and convert them to hash tables

@@ -130,35 +130,5 @@ I = ideal(random({2,5},A),random({2,5},A))
 R = QQ[x,y]
 spe = map(R,A,matrix{{1,x,1,y}})
 J=spe I
-I = J
-I = ideal gens gb I
-D=6 --why 6?
-degDmonoms = flatten entries matrix{for d to D list basis(d,R)}
-S = degDmonoms
-signature = flatten apply(degDmonoms,m->(apply(I_*,f->(m,f)))) ;
-outputVariables = {x,y}
-quotientBasis = flatten entries basis(R/J);
-ours = barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
-theirs = solveSystem I_*	
-areEqual(sortSolutions ours, sortSolutions theirs) 
+barebonesP1P1 J
 
-
-
--- the smallest P1P1 example which has a problem.
-restart
-load "projbarebone.m2"
-A = QQ[x0,x,y0,y,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
-I = ideal(random({1,3},A),random({1,3},A))
-R = QQ[x,y]
-spe = map(R,A,matrix{{1,x,1,y}})
-J=spe I
-I = J
-D=3 --why 6?
-degDmonoms = flatten entries matrix{for d to D list basis(d,R)}
-S = degDmonoms
-signature = flatten apply(S,m->(apply(I_*,f->(m,f)))) ;
-outputVariables = {x,y}
-quotientBasis = flatten entries basis(R/J);
-ours = barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
-rank coeffs -- it is dim(span(m*f | (m,f) in signature) + span(S)). However, it is 27. 
-            -- it gives us smaller intersection IcapL than what we want. 

@@ -27,7 +27,7 @@ barebonesP2 Ideal := J -> ( -- currently assumes dim R = 2 et 2 (nonlinear) equa
 barebonesP1P1 = method() -- based on Laurent's code
 barebonesP1P1 Ideal := J -> ( -- currently assumes dim R = 2 et 2 equations, homogenizes to P^1 x P^1
     R := ring J;
-    FF := coefficientRing R;
+-*    FF := coefficientRing R;
     Lvar := vars R;
     (xx0, yy0) := (symbol xx0, symbol yy0);
     nR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1)];
@@ -37,13 +37,15 @@ barebonesP1P1 Ideal := J -> ( -- currently assumes dim R = 2 et 2 equations, hom
     nnR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1),Degrees=>{{1,0},{1,0},{0,1},{0,1}}];
     JnnR := sub(JnR,nnR); -- homogeneized equations in the bigraded ring
     deg := degrees JnnR;
-    satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};
+    satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};*-
+    gbJ := gens gb J;
+    D := max flatten apply(flatten entries gbJ, i -> degree i);
     quotientBasis := flatten entries sub(basis(R/J),R);
-    degDmonoms := flatten entries matrix{for d to 6 list basis(d,R)};
+    degDmonoms := flatten entries matrix{for d to D list basis(d,R)};
     S := degDmonoms;
     outputVariables := gens R;
     x := R_0;
-    signature := flatten apply(degDmonoms,m->(apply(J_*,f->(m,f))));
+    signature := flatten apply(degDmonoms,m->(apply((ideal gbJ)_*,f->(m,f))));
     barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
     )
 
@@ -92,7 +94,6 @@ opts -> (I,S,x,signature) -> (
     IcapL := intersect(L, image Icoeffs); -- this should be done numerically
     projL := (last SVD sub(transpose mingens L,CC))^{0..numgens L-1}; -- orthogonal projection to L
     projC := (last SVD(transpose(projL*sub(mingens IcapL,CC))))^{numgens IcapL ..numgens L-1}; -- orthogonal projection to (I \cap L)^\perp
-    print (numrows projC, #quotientBasis);
     assert(numrows projC == #quotientBasis); --TO DO: error message
     ind := new HashTable from apply(#S,i->S_i=>i);
     projection := projC*projL; -- this is an ofthodonal projection (but doesn't need to be)  
@@ -121,7 +122,7 @@ J = spe I
 barebonesP2 J
 
 
--*
+
 restart
 load "projbarebone.m2"
 A = QQ[x0,x,y0,y,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
@@ -130,7 +131,8 @@ R = QQ[x,y]
 spe = map(R,A,matrix{{1,x,1,y}})
 J=spe I
 I = J
-D=7 --why 6?
+I = ideal gens gb I
+D=6 --why 6?
 degDmonoms = flatten entries matrix{for d to D list basis(d,R)}
 S = degDmonoms
 signature = flatten apply(degDmonoms,m->(apply(I_*,f->(m,f)))) ;
@@ -139,7 +141,7 @@ quotientBasis = flatten entries basis(R/J);
 ours = barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
 theirs = solveSystem I_*	
 areEqual(sortSolutions ours, sortSolutions theirs) 
-*-
+
 
 
 -- the smallest P1P1 example which has a problem.

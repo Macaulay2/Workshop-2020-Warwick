@@ -294,7 +294,8 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
     if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
    n := numRows U;
-   S:=(1/n)*U*transpose(U); 
+   S:=sampleCovarianceMatrix U;
+   --S:=(1/n)*U*transpose(U); 
    --do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
     --S:= U*transpose(U);
     --V := sampleCovarianceMatrix(U);

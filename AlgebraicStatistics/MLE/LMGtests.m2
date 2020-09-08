@@ -45,34 +45,60 @@ J===J_LMG
 
 
 -- Test 2: Debug code
-L = directedEdgesMatrix R2
-K = undirectedEdgesMatrix R2
-P = bidirectedEdgesMatrix R2
-
-d = numRows L
-(F,lpR)=changeRing(d,R2)
-FR = frac(lpR);
- 
-Kinv=inverse substitute(K, FR)
-P=substitute(P,FR)
-W= directSum(Kinv,P)
-
-L= substitute (L,FR)
-IdL = inverse (id_(FR^d)-L)
-S = (transpose IdL) * W * IdL
---describe S
-Sinv= inverse S
-
-V = sampleCovarianceMatrix(U)
-C1 = trace(Sinv * V)/2;
-C1derivative = JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-LL = (substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
-LL=flatten entries(LL)
-denoms = apply(#LL, i -> lift(denominator(LL_i), lpR));
-prod = product(denoms);
-J=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-J = saturate(J, prod);
-J
+    -- Lambda
+    L = directedEdgesMatrix R2
+    -- K 
+    K= undirectedEdgesMatrix R2
+    -- Psi
+    P = bidirectedEdgesMatrix R2
+    
+    ----------------------------------------------------
+    -- Create an auxiliary ring and its fraction field
+    -- which do not have the s variables
+    ----------------------------------------------------
+    -- d is equal to the number of vertices in G
+    d = numRows L
+    -- create a new ring, lpR, which does not have the s variables
+    (F,lpR)=changeRing(d,R2)
+    -- create its fraction field
+    FR := frac(lpR);
+    
+    -----------------------------------------------------
+    -- Construct Omega
+    -----------------------------------------------------
+    -- Kinv
+    Kinv:=inverse substitute(K, FR);
+    P=substitute(P,FR);
+    --P =  matRtolpR(P,FR);
+       
+     --Omega
+    W:= directSum(Kinv,P);
+    
+    -- move to FR, the fraction field of lpR
+    L= substitute (L,FR);
+    
+    -- Sigma
+    IdL := inverse (id_(FR^d)-L);
+    S := (transpose IdL) * W * IdL;
+    Sinv = inverse S
+    
+    -- Sample covariance matrix
+    -- convert an integer matrix into rational
+    if ring(U)===ZZ then U=matZZtoQQ(U)
+    V = sampleCovarianceMatrix(U)
+     
+    -- Compute ideal J   
+    C1 := trace(Sinv * V)/2;
+    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
+    LL :=(substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    LL=flatten entries(LL);
+    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
+    prod := product(denoms);
+    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
+    
+    -- Saturate
+    if opts.Saturate then J = saturate(J, prod);
+    return J;
 
 JUndir=scoreEquationsFromCovarianceMatrixUndir(R1,U)
 J===JUndir

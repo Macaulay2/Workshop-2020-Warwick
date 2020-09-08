@@ -185,41 +185,59 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     answer=substitute(answer, ring(F));
     return transpose(matrix({{(1/g)^2}})*answer)
 );
--*
+
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
  --   R := gaussianRing(G);  
+    ----------------------------------------------------
+    -- Extract information about the graph
+    ---------------------------------------------------- 
     -- Lambda
     L := directedEdgesMatrix R;
-    -- d is equal to the number of vertices in G
-    d := numRows L;
-    -- K
+    -- K 
     K:= undirectedEdgesMatrix R;
     -- Psi
     P := bidirectedEdgesMatrix R;
-    -- move to a new ring, lpR, which does not have the s variables
+    
+    ----------------------------------------------------
+    -- Create an auxiliary ring and its fraction field
+    -- which do not have the s variables
+    ----------------------------------------------------
+    -- d is equal to the number of vertices in G
+    d := numRows L;
+    -- create a new ring, lpR, which does not have the s variables
     (F,lpR):=changeRing(d,R);
-    L = matRtolpR(L,F);
-    K = matRtolpR(K,F);
-    P = matRtolpR(P,F);
+    -- create its fraction field
     FR := frac(lpR);
-    --Omega
-    Kinv:=inverse substitute (K,FR);
+    
+    -----------------------------------------------------
+    -- Construct Omega
+    -----------------------------------------------------
+    -- Kinv
+    Kinv:=inverse substitute(K, FR);
+    P=substitute(P,FR);
+    --P =  matRtolpR(P,FR);
+       
+     --Omega
     W:= directSum(Kinv,P);
     
-
+    -- move to FR, the fraction field of lpR
+    L= substitute (L,FR);
+    
     -- Sigma
-    IdL := inverse (id_(lpR^d)-L);
+    IdL := inverse (id_(FR^d)-L);
     S := (transpose IdL) * W * IdL;
-    Sinv := inverse substitute(S, FR); 
+    Sinv := inverse S; 
     
     -- Sample covariance matrix
+    -- convert an integer matrix into rational
+    if ring(U)===ZZ then U=matZZtoQQ(U);
     V := sampleCovarianceMatrix(U);
      
     -- Compute ideal J   
     C1 := trace(Sinv * V)/2;
     C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL := (substitute((jacobian(matrix{{det(S)}})),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    LL :=(substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod := product(denoms);
@@ -229,8 +247,9 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     if opts.Saturate then J = saturate(J, prod);
     return J;
 );
-*-
 
+-*
+-- original code by Elina Robeva
 scoreEquationsFromCovarianceMatrix = method();
 scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     V := sampleCovarianceMatrix(U);   
@@ -259,7 +278,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     J = saturate(J, prod);
     return J;
 );
-
+*-
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
    X := {};
    n := numRows U;

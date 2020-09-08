@@ -187,6 +187,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
 );
 
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
+--scoreEquationsFromCovarianceMatrix = method();
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
  --   R := gaussianRing(G);  
     ----------------------------------------------------
@@ -231,7 +232,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     
     -- Sample covariance matrix
     -- convert an integer matrix into rational
-    if ring(U)===ZZ then U=matZZtoQQ(U);
+    --if ring(U)===ZZ then U=matZZtoQQ(U);
     V := sampleCovarianceMatrix(U);
      
     -- Compute ideal J   
@@ -279,7 +280,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
     return J;
 );
 *-
-scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
+scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    X := {};
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list

@@ -16,6 +16,9 @@ debug needsPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+sampleCovarianceMatrix(U)
+
+
 
 -- Test 1: Confirm the function gives correct output
 J=scoreEquationsFromCovarianceMatrix(R,U);
@@ -28,7 +31,12 @@ dim JnoSat
 degree JnoSat
    
 -- Test 2: Input
+restart
+loadPackage "GraphicalModelsMLE"
+debug needsPackage "GraphicalModelsMLE"
+
 U=random(ZZ^4,ZZ^4)
+--substitute(U,QQ)
 G1=graph{{1,2},{2,3},{3,4},{1,4}}
 G2=mixedGraph G1
 R1=gaussianRing(G1)
@@ -41,16 +49,20 @@ assert(degree J===5)
 
 -- Test 2: Run with the LMG function
 J_LMG=scoreEquationsFromCovarianceMatrix(R2,U);
+
 J===J_LMG
 
-
+R=R2
 -- Test 2: Debug code
+    ----------------------------------------------------
+    -- Extract information about the graph
+    ---------------------------------------------------- 
     -- Lambda
-    L = directedEdgesMatrix R2
+    L = directedEdgesMatrix R
     -- K 
-    K= undirectedEdgesMatrix R2
+    K = undirectedEdgesMatrix R
     -- Psi
-    P = bidirectedEdgesMatrix R2
+    P = bidirectedEdgesMatrix R
     
     ----------------------------------------------------
     -- Create an auxiliary ring and its fraction field
@@ -59,46 +71,47 @@ J===J_LMG
     -- d is equal to the number of vertices in G
     d = numRows L
     -- create a new ring, lpR, which does not have the s variables
-    (F,lpR)=changeRing(d,R2)
+    (F,lpR)=changeRing(d,R)
     -- create its fraction field
-    FR := frac(lpR);
+    FR = frac(lpR)
     
     -----------------------------------------------------
     -- Construct Omega
     -----------------------------------------------------
     -- Kinv
-    Kinv:=inverse substitute(K, FR);
-    P=substitute(P,FR);
+    Kinv=inverse substitute(K, FR)
+    P=substitute(P,FR)
     --P =  matRtolpR(P,FR);
        
      --Omega
-    W:= directSum(Kinv,P);
+    W= directSum(Kinv,P)
     
     -- move to FR, the fraction field of lpR
-    L= substitute (L,FR);
+    L= substitute (L,FR)
     
     -- Sigma
-    IdL := inverse (id_(FR^d)-L);
-    S := (transpose IdL) * W * IdL;
-    Sinv = inverse S
+    IdL = inverse (id_(FR^d)-L)
+    S = (transpose IdL) * W * IdL
+    Sinv = inverse S 
     
     -- Sample covariance matrix
     -- convert an integer matrix into rational
-    if ring(U)===ZZ then U=matZZtoQQ(U)
+    --if ring(U)===ZZ then U=matZZtoQQ(U);
     V = sampleCovarianceMatrix(U)
      
     -- Compute ideal J   
-    C1 := trace(Sinv * V)/2;
-    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL :=(substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
-    LL=flatten entries(LL);
-    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
-    prod := product(denoms);
-    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
+    C1 = trace(Sinv * V)/2
+    C1derivative = JacobianMatrixOfRationalFunction(trace(Sinv * V)/2)
+    LL =(substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative)
+    LL=flatten entries(LL)
+    denoms = apply(#LL, i -> lift(denominator(LL_i), lpR))
+    prod = product(denoms)
+    J = ideal apply(#LL, i -> lift(numerator(LL_i),lpR))
     
     -- Saturate
     if opts.Saturate then J = saturate(J, prod);
     return J;
+);
 
 JUndir=scoreEquationsFromCovarianceMatrixUndir(R1,U)
 J===JUndir
@@ -106,6 +119,10 @@ J
 ------------------------------------------------
 -- Tests for gaussianRing, ...EdgesMatrix
 ------------------------------------------------
+restart
+loadPackage "GraphicalModelsMLE"
+debug needsPackage "GraphicalModelsMLE"
+
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
@@ -122,6 +139,11 @@ undirectedEdgesMatrix R
 directedEdgesMatrix R
 bidirectedEdgesMatrix R
 covarianceMatrix R
+
+d=#vertices g
+U=random(ZZ^8,ZZ^8)
+J=scoreEquationsFromCovarianceMatrix(R,U)
+
 
 -- MixedGraph without B
 g=mixedGraph(G,D)
@@ -154,10 +176,17 @@ covarianceMatrix R
 g=mixedGraph(G)
 R=gaussianRing g
 
+d=#vertices g
+U=random(ZZ^d,ZZ^d)
+J=scoreEquationsFromCovarianceMatrix(R,U)
+
 undirectedEdgesMatrix R
 directedEdgesMatrix R
 bidirectedEdgesMatrix R
 covarianceMatrix R
+
+RU=gaussianRing G
+JU=scoreEquationsFromCovarianceMatrixUndir(RU,U)
 
 -- MixedGraph without G,B
 g=mixedGraph(D)

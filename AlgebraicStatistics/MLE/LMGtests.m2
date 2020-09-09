@@ -6,6 +6,7 @@ restart
 loadPackage "Graphs"
 loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
+loadPackage "GraphicalModelsMLE"
 debug loadPackage "GraphicalModelsMLE"
 --debug needsPackage "GraphicalModelsMLE"
 --------------------------

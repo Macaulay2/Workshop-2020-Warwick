@@ -230,14 +230,12 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     Sinv := inverse S; 
     
     -- Sample covariance matrix
-    -- convert an integer matrix into rational
-    if ring(U)===ZZ then U=matZZtoQQ(U);
     V := sampleCovarianceMatrix(U);
      
     -- Compute ideal J   
     C1 := trace(Sinv * V)/2;
-    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL :=(substitute(jacobian( substitute( matrix {{det S}},lpR)),FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    C1derivative := JacobianMatrixOfRationalFunction(C1);
+    LL :=JacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod := product(denoms);
@@ -248,38 +246,8 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     return J;
 );
 
--*
--- original code by Elina Robeva
-scoreEquationsFromCovarianceMatrix = method();
-scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
-    V := sampleCovarianceMatrix(U);   
- --   R := gaussianRing(G);  
-    -- Lambda
-    L := directedEdgesMatrix R;
-    -- d is equal to the number of vertices in G
-    d := numRows L;
-    -- Omega
-    W := bidirectedEdgesMatrix R;
-    -- move to a new ring, lpR, which does not have the s variables
-    (F,lpR):=changeRing(d,R);
-    L = matRtolpR(L,F);
-    W = matRtolpR(W,F);
-    FR := frac(lpR);
-    K := inverse (id_(lpR^d)-L);
-    S := (transpose K) * W * K;
-    Sinv := inverse substitute(S, FR);    
-    C1 := trace(Sinv * V)/2;
-    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
-    LL := (substitute((jacobian(matrix{{det(S)}})), FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
-    LL=flatten entries(LL);
-    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
-    prod := product(denoms);
-    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-    J = saturate(J, prod);
-    return J;
-);
-*-
-scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
+--scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
+scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    X := {};
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list
@@ -290,15 +258,9 @@ scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
 
 scoreEquationsFromCovarianceMatrixUndir = method();
 scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
-    -- convert an integer matrix into rational
-    if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
    n := numRows U;
    S:=sampleCovarianceMatrix U;
-   --S:=(1/n)*U*transpose(U); 
-   --do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
-    --S:= U*transpose(U);
-    --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- d is equal to the number of vertices in G

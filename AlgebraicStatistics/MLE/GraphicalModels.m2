@@ -634,18 +634,10 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- convert mixedGraph to hash table
      gg:= graph g;
-     -- necessary condition (not sufficient) to have partition V=U\union W
-     if(isSubset((set vertexSet gg#Graph)*(set vertexSet gg#Bigraph),set {})==false) then error "undirected and bidirected edges in same connected component";
-     -- make partition V=U\union W
-     L:=connectedComponentsMG g;
-     U:={};
-     W:={};
-     for l in L do (
-	 i:=0;
-	 while(member(l_i,vertexSet gg#Graph)==false and member(l_i,vertexSet gg#Bigraph)==false and i==#l) do i=i+1;
-    	 if i==#l then (if U=={} then W=flatten append(W,l) else U=flatten append(U,l); continue;);
-    	 if member(l_i,vertexSet gg#Graph)==true then U=flatten append(U,l) else W=flatten append(W,l);
-    	 );
+     --Partition V=U\union W
+     if(vertexSet gg#Graph==={}) then W:=vertices g    
+     else W=vertexSet gg#Bigraph;
+     U:=vertices g-set W;
      -- sort vertices (only according to vertex number)
      vv := sort vertices g;
      -- add all vertices to all graphs and convert them to hash tables
@@ -718,7 +710,7 @@ undirectedEdgesMatrix Ring := Matrix =>  R -> (
      G := graph collateVertices g; -- add all vertices to graph,digraph and bigraph + convert to hash table 
      bb = graph G#Graph; --retrieve graph with added vertices from hash table
      -- take only component U of mixedGraph
-     vv = R.gaussianRingData#1; -- list of vertices of component U of V=U\union W
+     vv = sort R.gaussianRingData#1; -- list of vertices of component U of V=U\union W
      n = #vv; --number of vertices of component U of V of V=U\union W
      -- retrieve variables
      k = R.gaussianRingData#4; --k variables in gaussianRing MixedGraph
@@ -762,7 +754,7 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
      G := graph collateVertices g;
      bb := graph G#Bigraph;
      -- take only component W of mixedGraph
-     vv := R.gaussianRingData#2;
+     vv := sort R.gaussianRingData#2;
      n := #vv;
      p := R.gaussianRingData#6; -- p variables
      H := R.gaussianVariables;

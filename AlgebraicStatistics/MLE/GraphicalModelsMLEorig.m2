@@ -1,7 +1,7 @@
 -- -*- coding: utf-8-unix -*-
 
 newPackage(
-     "GraphicalModelsMLE",
+     "GraphicalModelsMLEorig",
      Version => "0.3",
      Date => "June 5, 2020",
      Authors => {
@@ -45,8 +45,7 @@ export {"sampleCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
     "PDcheck",
     "MLEsolver",
-    "MLEmax",
-    "Saturate"
+    "MLEmax"
        	} 
      
 --**************************--
@@ -158,7 +157,9 @@ genListmatrix = (L,R) ->
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
+-- allow to input both lists and matrices
 sampleCovarianceMatrix = method();
+-- why List and not Matrix as input?
 sampleCovarianceMatrix(List) := (U) -> (
     n := #U;
     U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
@@ -186,71 +187,36 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
-scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
+scoreEquationsFromCovarianceMatrix = method();
+scoreEquationsFromCovarianceMatrix(Ring,List) := (R, U) -> (
+    V := sampleCovarianceMatrix(U);   
  --   R := gaussianRing(G);  
-    ----------------------------------------------------
-    -- Extract information about the graph
-    ---------------------------------------------------- 
     -- Lambda
     L := directedEdgesMatrix R;
-    -- K 
-    K:= undirectedEdgesMatrix R;
-    -- Psi
-    P := bidirectedEdgesMatrix R;
-    
-    ----------------------------------------------------
-    -- Create an auxiliary ring and its fraction field
-    -- which do not have the s variables
-    ----------------------------------------------------
     -- d is equal to the number of vertices in G
     d := numRows L;
-    -- create a new ring, lpR, which does not have the s variables
+    -- Omega
+    W := bidirectedEdgesMatrix R;
+    -- move to a new ring, lpR, which does not have the s variables
     (F,lpR):=changeRing(d,R);
-    -- create its fraction field
+    L = matRtolpR(L,F);
+    W = matRtolpR(W,F);
     FR := frac(lpR);
-    
-    -----------------------------------------------------
-    -- Construct Omega
-    -----------------------------------------------------
-    -- Kinv
-    K=substitute(K, FR);
-    Kinv:=inverse K;
-    P=substitute(P,FR);
-       
-     --Omega
-    if K==0 then W:=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
-    --W:= directSum(Kinv,P);
-    
-    -- move to FR, the fraction field of lpR
-    L= substitute (L,FR);
-    
-    -- Sigma
-    if L==0 then S:=W else (
-	IdL := inverse (id_(FR^d)-L);
-    	S = (transpose IdL) * W * IdL
-	);
-    if S == Kinv then Sinv:= K else Sinv = inverse S; 
-    
-    -- Sample covariance matrix
-    V := sampleCovarianceMatrix(U);
-     
-    -- Compute ideal J   
+    K := inverse (id_(lpR^d)-L);
+    S := (transpose K) * W * K;
+    Sinv := inverse substitute(S, FR);    
     C1 := trace(Sinv * V)/2;
-    C1derivative := JacobianMatrixOfRationalFunction(C1);
-    LL :=JacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    C1derivative := JacobianMatrixOfRationalFunction(trace(Sinv * V)/2);
+    LL := (substitute((jacobian(matrix{{det(S)}})), FR))*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod := product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-    
-    -- Saturate
-    if opts.Saturate then J = saturate(J, prod);
+    J = saturate(J, prod);
     return J;
 );
 
---scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
-scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
+scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
    X := {};
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list
@@ -261,9 +227,14 @@ scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
 
 scoreEquationsFromCovarianceMatrixUndir = method();
 scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
+    -- convert an integer matrix into rational
+    if ring(U)===ZZ then U=matZZtoQQ(U);
     --update to not assume zero mean variables
    n := numRows U;
-   S:=sampleCovarianceMatrix U;
+   S:=(1/n)*U*transpose(U); 
+   --do we require multiplication by (1/n)? there is an error here since n is not defined earlier in this function
+    --S:= U*transpose(U);
+    --V := sampleCovarianceMatrix(U);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- d is equal to the number of vertices in G
@@ -338,7 +309,7 @@ beginDocumentation()
 
 doc ///
     Key
-        GraphicalModelsMLE
+        GraphicalModelsMLEorig
     Headline
         a package for MLE estimates of parameters for statistical graphical models 
     Description        

@@ -214,20 +214,23 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Construct Omega
     -----------------------------------------------------
     -- Kinv
-    Kinv:=inverse substitute(K, FR);
+    K=substitute(K, FR);
+    Kinv:=inverse K;
     P=substitute(P,FR);
-    --P =  matRtolpR(P,FR);
        
      --Omega
-    W:= directSum(Kinv,P);
+    if K==0 then W:=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
+    --W:= directSum(Kinv,P);
     
     -- move to FR, the fraction field of lpR
     L= substitute (L,FR);
     
     -- Sigma
-    IdL := inverse (id_(FR^d)-L);
-    S := (transpose IdL) * W * IdL;
-    Sinv := inverse S; 
+    if L==0 then S:=W else (
+	IdL := inverse (id_(FR^d)-L);
+    	S = (transpose IdL) * W * IdL
+	);
+    if S == Kinv then Sinv:= K else Sinv = inverse S; 
     
     -- Sample covariance matrix
     V := sampleCovarianceMatrix(U);

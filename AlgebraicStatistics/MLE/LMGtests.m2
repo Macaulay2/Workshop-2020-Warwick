@@ -6,8 +6,8 @@ restart
 loadPackage "Graphs"
 loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
-loadPackage "GraphicalModelsMLE"
-debug needsPackage "GraphicalModelsMLE"
+debug loadPackage "GraphicalModelsMLE"
+--debug needsPackage "GraphicalModelsMLE"
 --------------------------
 -- Testing LMG function
 --------------------------
@@ -27,13 +27,20 @@ dim JnoSat
 degree JnoSat
    
 -- Test 2: Input (best to restart and reload packages first)
+restart
+
+loadPackage "Graphs"
+loadPackage "StatGraphs"
+loadPackage "GraphicalModels"
+debug loadPackage "GraphicalModelsMLE"
+
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-G1=graph{{1,2},{2,3},{3,4},{1,4}}
-G2=mixedGraph G1
-R2=gaussianRing(G2)
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+G=mixedGraph G
+R=gaussianRing(G)
 
 -- Test 2: Run with the LMG function
-J=scoreEquationsFromCovarianceMatrix(R2, U)
+J=scoreEquationsFromCovarianceMatrix(R, U)
 assert(dim J===0)
 assert(degree J===5)
 test= ideal(58*k_(4,4)+47*k_(1,4)-21*k_(3,4)-8,

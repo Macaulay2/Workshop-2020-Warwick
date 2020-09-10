@@ -40,9 +40,8 @@ export {
     }
 
 
---check whats the difference between topologicalSort and topSort
 topologicalSort = method()
-topologicalSort Digraph := List => D -> StatGraphs$topologicalSort(D, "")
+topologicalSort Digraph := List => D -> topologicalSort(D, "")
 topologicalSort (Digraph, String) := List => (D,s) -> (
     if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
     s = toLower s;
@@ -175,7 +174,7 @@ toString MixedGraph := g -> concatenate(
     "}"
     )
 
-graph MixedGraph := opts -> g -> g#graph
+graph MixedGraph := opts -> g -> g#graph     	     --should it be g#graph#Graph?
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
 vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))

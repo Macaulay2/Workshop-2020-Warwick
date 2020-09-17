@@ -472,7 +472,7 @@ LineqLists#0
 -------
 restart 
 loadPackage("GraphicalModelsMultiTrek",Reload=>true)
-G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d},{a,e}})
 L = multiTrekSeparation(G,3,3);
 #L
 
@@ -495,11 +495,13 @@ trial (ZZ,List) := List => (k,statements) ->
     ss :=   apply(statements#i#0,l->set(l)); 
     sa :=   apply(statements#i#1,l->set(l)); 
     t := sort  apply(k,j->{{ss_j},{sa_j}}); 
+    print t;
     s = s|{t};
     );   
     T1 := set s;
-    T2 := toList T1;    	       	       --removed the symmetries
-    T3 := apply(T2,l->toList(l));       --converting to the desired form of output
+    T2 := toList T1;  	       	       --removed the symmetries
+   -* T3 := apply(T2,l->toList(l));       --converting to the desired form of output
+    
     
     
     T4 := {};
@@ -516,7 +518,8 @@ trial (ZZ,List) := List => (k,statements) ->
         T4 = T4|{{(slist),(alist)}};
     
     );
-    return T4;    
+    return T4;   *- 
+    return T2; 
 )
 
 L1 = trial(3,L);
@@ -555,3 +558,26 @@ for l in L2 do
     if l#0#0 == {a,b,c,d} then print l;    
 )
 
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
+L = multiTrekSeparation(G,3,3);
+#L
+L1 = trial(3,L);
+#L1
+for l in L1 do print l;
+t = L1#0
+t#0
+
+i = 1;
+for t in L1 do
+(
+    for l in L1 do 
+    (
+     	if(member(t#0#0,l#0) and member(t#0#1,l#0) and member(t#0#2,l#0) and member(t#1,l)) then (print l;print "\n";  i = i + 1;) 
+    
+    );
+);
+
+print i;
+for t in L1 do print t;
+ L1
+set({L1#0,L1#1})

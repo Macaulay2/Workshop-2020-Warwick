@@ -331,4 +331,83 @@ r RR := opts -> x -> (
 r(0.5)
 r(0.5, Test => false)
 
+restart
 
+myFunction = method(Options =>  options saturate ++ {ABC => true} );
+options myFunction
+myFunction (Ideal,Ideal):= opts -> (I,J)->(
+    if opts.ABC then (saturate (I,J, opts)) 
+    else return I;
+    ); 
+R = ZZ/32003[a..d];
+I = ideal(a^3-b, a^4-c);
+Ih = homogenize(I,d);
+saturate(Ih,d)
+J = ideal d
+myFunction(Ih,J)
+myFunction(Ih,J, ABC=> true)
+myFunction(Ih,J, ABC=> false)
+myFunction(Ih,d, ABC=> true, DegreeLimit=>1)
+
+restart
+myFunction1 = method(Options =>  options saturate );
+
+myFunction1 (Ideal,Ideal):= opts -> (I,J)->(
+   saturate (I,J, opts)
+    ); 
+
+R = ZZ/32003[a..d];
+I = ideal(a^3-b, a^4-c);
+Ih = homogenize(I,d);
+saturate(Ih,d)
+J = ideal d
+myFunction1 (Ih,J)
+myFunction1 (Ih,J)===saturate(Ih,d)
+
+myFunction1(Ih,J, DegreeLimit=>1)
+
+restart
+myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
+myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
+    if opts.doSaturate then (
+	g:=opts.saturateOptions  >>opts-> args ->(args, opts);
+	saturate (g(I,J)))
+    else return I
+    ); 
+
+R = ZZ/32003[a..d];
+I = ideal(a^3-b, a^4-c);
+Ih = homogenize(I,d);
+saturate(Ih,d)
+J = ideal d
+myFunction2 (Ih,J)
+myFunction2(Ih,J)===saturate(Ih,d)
+myFunction2(Ih,J, doSaturate=> true)
+myFunction2(Ih,J, doSaturate=> true)===saturate(Ih,d)
+myFunction2(Ih,J, doSaturate=> false)
+myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1})
+myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1})===saturate(Ih,d, DegreeLimit=>1)
+myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})===saturate(Ih,d, DegreeLimit=>1,MinimalGenerators => false )
+
+g=options saturate >>opts-> args ->(args, opts)
+
+g={DegreeLimit=>1,MinimalGenerators => false}>>opts-> args ->(args, opts)
+g x
+g (I,J)
+saturate (g (I,J))
+saturate (I,J)===saturate (g (I,J))
+g (I,J,DegreeLimit=>1)
+g (I,J,DegreeLimit=>1,MinimalGenerators => false)
+g (I,J,{DegreeLimit=>1,MinimalGenerators => false})
+
+g(I,J, {DegreeLimit=>1})
+saturate (I,J,DegreeLimit=>1)===saturate (g (I,J,DegreeLimit=>1))
+
+g(Ih,J)
+
+
+myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
+myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
+    if opts.doSaturate then (saturate (I,J, opts.saturateOptions)) 
+    else return I
+    ); 

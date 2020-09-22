@@ -46,7 +46,8 @@ export {"sampleCovarianceMatrix",
     "PDcheck",
     "MLEsolver",
     "MLEmax",
-    "Saturate"
+    "doSaturate",
+    "saturateOptions"
        	} 
      
 --**************************--
@@ -186,7 +187,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{Saturate => true});
+scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate});
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
  --   R := gaussianRing(G);  
     ----------------------------------------------------
@@ -245,9 +246,22 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
     
     -- Saturate
-    if opts.Saturate then J = saturate(J, prod);
+    if opts.doSaturate then 
+    (
+        argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+	J=saturate (argSaturate(J,prod))
+	);
     return J;
 );
+
+
+myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
+myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
+    if opts.doSaturate then (
+	g:=opts.saturateOptions  >>opts-> args ->(args, opts);
+	saturate (g(I,J)))
+    else return I
+    ); 
 
 --scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (

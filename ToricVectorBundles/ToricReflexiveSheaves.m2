@@ -46,7 +46,9 @@ export {
     "isGloballyGenerated",
     "subspacePoset",  -- is this necessary
     "toricTangentBundle",
-    "toricCotangentBundle"
+    "toricCotangentBundle",
+    "separatesJets",
+    "restrictToCurve"
   }
 ------------------------------------------------------------------------------
 -- CODE

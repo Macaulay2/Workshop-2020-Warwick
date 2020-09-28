@@ -2,50 +2,36 @@ needsPackage "NumericalAlgebraicGeometry"
 
 barebonesP2 = method() -- compute 'satind' from homogenization and compute inputs for barebonesSolve using satind
 barebonesP2 Ideal := J -> ( -- currently assumes dim R = 2 et 2 (nonlinear) equations, homogenizes to P^2
+    I := ideal gens gb J;
     R := ring J;
-    FF := coefficientRing R;
-    Lvar := vars R;
-    xx0 := symbol xx0;
-    nR := FF[xx0,gens R];
-    E0 := homogenize(sub(J_0,nR),xx0);
-    E1 := homogenize(sub(J_1,nR),xx0);
-    JnR := ideal(E0,E1); -- homogenized equations
-    deg := degrees JnR;
-    satind := (deg_0)_0+(deg_1)_0-1;
-    quotientBasis := flatten entries sub(basis(R/J),R);
-    degDmonoms := flatten entries matrix{for d to satind list basis(d,R)};
+    D := max flatten apply(flatten entries gens I, i -> degree i);
+    quotientBasis := flatten entries sub(basis(R/I),R);
+    degDmonoms := flatten entries matrix{for d to D list basis(d,R)};
     S := degDmonoms;
+    maxIdeg := max (J_*/degree/sum);
+    lowerDegGens := select(flatten entries gens I, g -> sum degree g < maxIdeg);
     outputVariables := gens R;
     x := R_0;
-    signature := flatten apply(degDmonoms,m->(apply(J_*,f->(m,f))));
+    signature = flatten apply(degDmonoms,m->(apply(J_*|lowerDegGens,f->(m,f))));
     barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
     )     
 
 
 
 
-barebonesP1P1 = method() -- based on Laurent's code
+barebonesP1P1 = method() 
 barebonesP1P1 Ideal := J -> ( -- currently assumes dim R = 2 et 2 equations, homogenizes to P^1 x P^1
+    I := ideal gens gb J;
     R := ring J;
--*    FF := coefficientRing R;
-    Lvar := vars R;
-    (xx0, yy0) := (symbol xx0, symbol yy0);
-    nR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1)];
-    E0 := homogenize(homogenize(sub(J_0,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
-    E1 := homogenize(homogenize(sub(J_1,nR),xx0,{1,1,0,0}),yy0,{0,0,1,1});
-    JnR := ideal(E0,E1); -- homogenized equations
-    nnR := FF[xx0,Lvar_(0,0),yy0,Lvar_(0,1),Degrees=>{{1,0},{1,0},{0,1},{0,1}}];
-    JnnR := sub(JnR,nnR); -- homogeneized equations in the bigraded ring
-    deg := degrees JnnR;
-    satind := {(deg_0)_0+(deg_1)_0-1,(deg_0)_1+(deg_1)_1-1};*-
-    gbJ := gens gb J;
-    D := max flatten apply(flatten entries gbJ, i -> degree i);
-    quotientBasis := flatten entries sub(basis(R/J),R);
+    D := max flatten apply(flatten entries gens I, i -> degree i);
+    quotientBasis := flatten entries sub(basis(R/I),R);
     degDmonoms := flatten entries matrix{for d to D list basis(d,R)};
     S := degDmonoms;
+    maxIdeg := max (J_*/degree/sum);
+    lowerDegGens := select(flatten entries gens I, g -> sum degree g < maxIdeg);
     outputVariables := gens R;
     x := R_0;
-    signature := flatten apply(degDmonoms,m->(apply((ideal gbJ)_*,f->(m,f))));
+    signature = flatten apply(degDmonoms,m->(apply(J_*|lowerDegGens,f->(m,f))));
     barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis)
     )
 
@@ -129,6 +115,6 @@ A = QQ[x0,x,y0,y,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
 I = ideal(random({2,5},A),random({2,5},A))
 R = QQ[x,y]
 spe = map(R,A,matrix{{1,x,1,y}})
-J=spe I
+J = spe I
 barebonesP1P1 J
 

@@ -187,10 +187,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-<<<<<<< HEAD
-=======
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate});
->>>>>>> bbc620abef8199627906c425ded69b8f842f09f2
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
  --   R := gaussianRing(G);  
     ----------------------------------------------------
@@ -240,19 +237,21 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     V := sampleCovarianceMatrix(U);
      
     -- Compute ideal J   
-    C1 := trace(Sinv * V)/2;
+    C1 := trace(Sinv * V);
     C1derivative := JacobianMatrixOfRationalFunction(C1);
-    LL :=JacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    LL :=JacobianMatrixOfRationalFunction (det Sinv) - det(Sinv)*C1derivative;
+--    LL :=JacobianMatrixOfRationalFunction (det S)*matrix{{-1/det(S)}} - C1derivative;
+--    LL :=JacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
-    prod := product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
     
     -- Saturate
     if opts.doSaturate then 
-    (
+    (	print "Enters in saturate if";
         argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
-	J=saturate (argSaturate(J,prod))
+    	for i from 0 to (#denoms-1) do (J=saturate(J,denoms_i)); 
+	--J=saturate (argSaturate(J,prod))
 	);
     return J;
 );

@@ -636,13 +636,13 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      gg:= graph g;
      --check adequate sorting of vertices
      -- Step 1: vertices of Graph come before vertices of Bigraph
-     LG := sort vertexSet gg#Graph; 
-     LB := sort vertexSet gg#Bigraph;
-     n := #LG-1;
-     if LG_n>LB_0 then error "The vertices adjacent to undirected edges should have lower value than vertices adjacent to bidirected edges.";
+     --LG := sort vertexSet gg#Graph; 
+     --LB := sort vertexSet gg#Bigraph;
+     --n := #LG-1;
+     --if LG_n>LB_0 then error "The vertices adjacent to undirected edges should have lower value than vertices adjacent to bidirected edges.";
      -- Step 2: directed edges are ordered 
-     DE := edges gg#Digraph;
-     for de in DE do if de_0>de_1 then error "Directed edges should all go from low to high value."
+     --DE := edges gg#Digraph;
+     --for de in DE do if de_0>de_1 then error "Directed edges should all go from low to high value."
      --Partition V=U\union W
      if(vertexSet gg#Graph==={}) then W:=vertices g    
      else W=vertexSet gg#Bigraph;

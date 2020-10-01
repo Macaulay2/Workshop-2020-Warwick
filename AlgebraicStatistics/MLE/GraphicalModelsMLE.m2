@@ -254,15 +254,6 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     return J;
 );
 
-
-myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
-myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
-    if opts.doSaturate then (
-	g:=opts.saturateOptions  >>opts-> args ->(args, opts);
-	saturate (g(I,J)))
-    else return I
-    ); 
-
 --scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    X := {};

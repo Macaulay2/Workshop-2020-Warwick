@@ -135,7 +135,7 @@ toString LabeledGraph := g -> concatenate(
     "}"
     )
 
-graph LabeledGraph := opts -> g -> g#graph
+graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph into a hashtable
 
 
 
@@ -174,7 +174,7 @@ toString MixedGraph := g -> concatenate(
     "}"
     )
 
-graph MixedGraph := opts -> g -> g#graph     	     --should it be g#graph#Graph?
+graph MixedGraph := opts -> g -> g#graph     	     --used to transform the MixedGraph into a hashtable
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
 vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))

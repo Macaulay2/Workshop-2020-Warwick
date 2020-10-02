@@ -246,29 +246,18 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     
     -- Saturate
     if opts.doSaturate then 
-    (	print "Enters in saturate if";
-        argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    (   argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
     	for i from 0 to (#denoms-1) do (J=saturate(argSaturate(J,denoms_i))); 
 	);
     return J;
 );
 
-
-myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
-myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
-    if opts.doSaturate then (
-	g:=opts.saturateOptions  >>opts-> args ->(args, opts);
-	saturate (g(I,J)))
-    else return I
-    ); 
-
---scoreEquationsFromCovarianceMatrix(Ring,Matrix) := (R, U) -> (
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    X := {};
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list
    X = for i to n-1 list U^{i};
-   return scoreEquationsFromCovarianceMatrix(R,X,doSaturate=>opts.doSaturate,saturateOptions=>opts.saturateOptions);
+   return scoreEquationsFromCovarianceMatrix(R,X,opts);
 );
 
 

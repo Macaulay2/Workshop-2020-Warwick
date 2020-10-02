@@ -29,7 +29,6 @@ export {
      "topologicalSort",
     "topSort",
     "SortedDigraph",
-    "newDigraph",
     "Bigraph",
     "bigraph",
     "LabeledGraph",
@@ -70,16 +69,18 @@ SortedDigraph = new Type of HashTable;
 --      digraph: the original digraph
 --      NewDigraph: the digraph with vertices labeled as integers obtained from sorting
 --      map: the map giving the sorted order
+
 topSort = method()
 topSort Digraph := SortedDigraph => D -> (
-    L := topologicalSort D;
-    g := graph D;
-    new SortedDigraph from {
-	    digraph => D,
-	    newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
-        map => hashTable apply(#L, i -> L_i => i + 1)
-	    }
-    )
+L := topologicalSort D;
+g := graph D;
+newDigraph := {};
+new SortedDigraph from {
+digraph => D,
+newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
+map => hashTable apply(#L, i -> L_i => i + 1)
+}
+)
 
 
 Bigraph = new Type of Graph

@@ -268,8 +268,7 @@ scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list
    X = for i to n-1 list U^{i};
-   if opts.doSaturate then return scoreEquationsFromCovarianceMatrix(R,X)
-   else return scoreEquationsFromCovarianceMatrix(R,X,doSaturate=>false,saturateOptions=>opts.saturateOptions);
+   return scoreEquationsFromCovarianceMatrix(R,X,doSaturate=>opts.doSaturate,saturateOptions=>opts.saturateOptions);
 );
 
 

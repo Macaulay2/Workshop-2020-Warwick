@@ -239,9 +239,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Compute ideal J   
     C1 := trace(Sinv * V);
     C1derivative := JacobianMatrixOfRationalFunction(C1);
-    LL :=JacobianMatrixOfRationalFunction (det Sinv) - det(Sinv)*C1derivative;
---    LL :=JacobianMatrixOfRationalFunction (det S)*matrix{{-1/det(S)}} - C1derivative;
---    LL :=JacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
+    LL :=JacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
@@ -250,8 +248,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     if opts.doSaturate then 
     (	print "Enters in saturate if";
         argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
-    	for i from 0 to (#denoms-1) do (J=saturate(J,denoms_i)); 
-	--J=saturate (argSaturate(J,prod))
+    	for i from 0 to (#denoms-1) do (J=saturate(argSaturate(J,denoms_i))); 
 	);
     return J;
 );
@@ -271,7 +268,8 @@ scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    n := numRows U;
    -- converting it to list of matrix; rows of matrix correponds to the elements of the list
    X = for i to n-1 list U^{i};
-   return scoreEquationsFromCovarianceMatrix(R,X);
+   if opts.doSaturate then return scoreEquationsFromCovarianceMatrix(R,X)
+   else return scoreEquationsFromCovarianceMatrix(R,X,doSaturate=>false,saturateOptions=>opts.saturateOptions);
 );
 
 

@@ -174,16 +174,16 @@ needsPackage("GraphicalModelsMLE")
 G=graph{{1,2},{2,5},{5,6},{2,4},{4,5},{3,4}}
 g=mixedGraph G
 R2=gaussianRing(g)
-U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
---U={matrix{{1, 2, 9, 6, 0, 0}},matrix{{2, 7, 7, 3, 2, 2}},matrix{{6, 3, 4, 1, 5, 5}},matrix{{5, 5, 8, 8, 7, 6}},matrix{{3, 2, 3, 8, 7, 5}},matrix{{8, 0, 5, 3, 8, 5}}}
+--U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
+U={matrix{{1, 2, 9, 6, 0, 0}},matrix{{2, 7, 7, 3, 2, 2}},matrix{{6, 3, 4, 1, 5, 5}},matrix{{5, 5, 8, 8, 7, 6}},matrix{{3, 2, 3, 8, 7, 5}},matrix{{8, 0, 5, 3, 8, 5}}}
 J2=time scoreEquationsFromCovarianceMatrix(R2,U,doSaturate =>false);
 -- used 3.23437 seconds
 J2=time scoreEquationsFromCovarianceMatrix(R2,U);
 --Enters in saturate if
 -- used 2.9375 seconds
-J2=time scoreEquationsFromCovarianceMatrix(R2,U,saturateOptions =>Elimination);
---Enters in saturate if
--- used 2.375 seconds
+J2=time scoreEquationsFromCovarianceMatrix(R2,U,doSaturate=>true,saturateOptions=>{Strategy => Bayer});
+J2=time scoreEquationsFromCovarianceMatrix(R2,U,saturateOptions=>{Strategy => Eliminate});
+
 
 dim J2, degree J2
 test=ideal{452*k_(5,6)+627, 28733*k_(4,5)+639, 1703*k_(3,4)+72, 28733*k_(2,4)+309,

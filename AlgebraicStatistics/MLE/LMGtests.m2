@@ -7,9 +7,9 @@ loadPackage "Graphs"
 loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
 loadPackage "GraphicalModelsMLE"
-<<<<<<< HEAD
+
 debug loadPackage "GraphicalModelsMLE"
->>>>>>> bbc620abef8199627906c425ded69b8f842f09f2
+
 --------------------------
 -- Testing LMG function
 --------------------------
@@ -17,16 +17,34 @@ debug loadPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 
 -- Test 1: Confirm the function gives correct output
 J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 
+
+restart
+debug needsPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+J1=scoreEquationsFromCovarianceMatrix(R,U1);
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J1===I)
+
+J2=scoreEquationsFromCovarianceMatrix(R,U1,doSaturate=>false);
 -- Test 1: Confirm no saturation works
-JnoSat=scoreEquationsFromCovarianceMatrix(R,U,Saturate=>false);
+JnoSat=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>false);
 dim JnoSat
 degree JnoSat
+
+--Test 1: Confirm saturation options work
+JSatOpts=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false});
+dim JSatOpts
+degree JSatOpts
+
    
 -- Test 2: Input (best to restart and reload packages first)
 restart
@@ -70,11 +88,13 @@ assert(J===test)
 -- Test 3 (Roser)
 restart
  debug needsPackage("GraphicalModelsMLE")
+ t0= cpuTime();
  G=graph{{1,2},{2,5},{5,6},{2,4},{4,5},{3,4}}
  g=mixedGraph G
- R2=gaussianRing(g)
+ R=gaussianRing(g)
  U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
- J2=scoreEquationsFromCovarianceMatrix(R2,U)
+ --J2=time scoreEquationsFromCovarianceMatrix(R2,U)
+ J3= scoreEquationsFromCovarianceMatrix(R,U,doSaturate =>false)
  
  L = directedEdgesMatrix R2
  K= undirectedEdgesMatrix R2 
@@ -114,7 +134,12 @@ restart
     denoms = apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod = product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR))
+    t1=cpuTime();
+    t1-t0
+    -- running line- by-line 484.877033618
+    
     J = saturate(J, prod)
+    
     
     -- Solution
     -- Saturated ideal
@@ -331,88 +356,25 @@ r RR := opts -> x -> (
     return y
     );
 r(0.5)
-<<<<<<< HEAD
-=======
-r(0.5, Test => false)
 
-restart
-
-myFunction = method(Options =>  options saturate ++ {ABC => true} );
-options myFunction
-myFunction (Ideal,Ideal):= opts -> (I,J)->(
-    if opts.ABC then (saturate (I,J, opts)) 
-    else return I;
-    ); 
-R = ZZ/32003[a..d];
-I = ideal(a^3-b, a^4-c);
-Ih = homogenize(I,d);
-saturate(Ih,d)
-J = ideal d
-myFunction(Ih,J)
-myFunction(Ih,J, ABC=> true)
-myFunction(Ih,J, ABC=> false)
-myFunction(Ih,d, ABC=> true, DegreeLimit=>1)
-
-restart
-myFunction1 = method(Options =>  options saturate );
-
-myFunction1 (Ideal,Ideal):= opts -> (I,J)->(
-   saturate (I,J, opts)
+myFunction3 = method(Options =>  {test => true});
+myFunction3 (ZZ):= opts -> (a)->(
+     return opts
     ); 
 
-R = ZZ/32003[a..d];
-I = ideal(a^3-b, a^4-c);
-Ih = homogenize(I,d);
-saturate(Ih,d)
-J = ideal d
-myFunction1 (Ih,J)
-myFunction1 (Ih,J)===saturate(Ih,d)
+myFunction3 (2)
+myFunction3 (2, test=>true)
+myFunction3 (2, test=>false)
 
-myFunction1(Ih,J, DegreeLimit=>1)
+myFunction4  = method( Options =>{doFactor => true});
+myFunction4(ZZ) := opts ->(a) -> (
+    if opts.doFactor then
+    (    print "Enter if";
+	a=factor a);
+    return a;
+    );
 
-restart
-myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
-myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
-    if opts.doSaturate then (
-	g:=opts.saturateOptions  >>opts-> args ->(args, opts);
-	saturate (g(I,J)))
-    else return I
-    ); 
+myFunction4 (2)
+myFunction4 (2, doFactor=>true)
+myFunction4 (78998989898798982, doFactor=>false)
 
-R = ZZ/32003[a..d];
-I = ideal(a^3-b, a^4-c);
-Ih = homogenize(I,d);
-saturate(Ih,d)
-J = ideal d
-myFunction2 (Ih,J)
-myFunction2(Ih,J)===saturate(Ih,d)
-myFunction2(Ih,J, doSaturate=> true)
-myFunction2(Ih,J, doSaturate=> true)===saturate(Ih,d)
-myFunction2(Ih,J, doSaturate=> false)
-myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1})
-myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1})===saturate(Ih,d, DegreeLimit=>1)
-myFunction2(Ih,J, doSaturate=> true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})===saturate(Ih,d, DegreeLimit=>1,MinimalGenerators => false )
-
-g=options saturate >>opts-> args ->(args, opts)
-
-g={DegreeLimit=>1,MinimalGenerators => false}>>opts-> args ->(args, opts)
-g x
-g (I,J)
-saturate (g (I,J))
-saturate (I,J)===saturate (g (I,J))
-g (I,J,DegreeLimit=>1)
-g (I,J,DegreeLimit=>1,MinimalGenerators => false)
-g (I,J,{DegreeLimit=>1,MinimalGenerators => false})
-
-g(I,J, {DegreeLimit=>1})
-saturate (I,J,DegreeLimit=>1)===saturate (g (I,J,DegreeLimit=>1))
-
-g(Ih,J)
-
-
-myFunction2 = method(Options =>  {doSaturate => true, saturateOptions => options saturate});
-myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
-    if opts.doSaturate then (saturate (I,J, opts.saturateOptions)) 
-    else return I
-    ); 
->>>>>>> bbc620abef8199627906c425ded69b8f842f09f2

@@ -189,6 +189,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
 
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate});
 scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
+    t0:= cpuTime();
  --   R := gaussianRing(G);  
     ----------------------------------------------------
     -- Extract information about the graph
@@ -236,6 +237,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Sample covariance matrix
     V := sampleCovarianceMatrix(U);
      
+    print "Start computing J"; 
     -- Compute ideal J   
     C1 := trace(Sinv * V);
     C1derivative := JacobianMatrixOfRationalFunction(C1);
@@ -243,8 +245,10 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-    
-    -- Saturate
+    print "Finish  computing J"; 
+    t1 :=  cpuTime();
+    << t1-t0;
+    --Saturate
     if opts.doSaturate then 
     (   argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
     	for i from 0 to (#denoms-1) do (J=saturate(argSaturate(J,denoms_i))); 

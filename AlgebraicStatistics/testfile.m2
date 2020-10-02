@@ -472,16 +472,20 @@ LineqLists#0
 -------
 restart 
 loadPackage("GraphicalModelsMultiTrek",Reload=>true)
-G  = mixedGraph(digraph {{a,b},{a,c},{a,d},{a,e}})
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
 L = multiTrekSeparation(G,3,3);
 #L
 
 L
-
 L#0
 L#0#0
 L#0#1
 L#1
+
+
+i = 0
+statments = L
+
 
 trial = method() --removing symmetries and also no need to sort the output
 -- the form of output is {{S_1,...,S_k},{A_1,...,A_k}} and so on
@@ -492,15 +496,15 @@ trial (ZZ,List) := List => (k,statements) ->
     s := {};
     for i from 0 to l-1 do
     (
-    ss :=   apply(statements#i#0,l->set(l)); 
-    sa :=   apply(statements#i#1,l->set(l)); 
+    ss :=   apply(statements#i#0,l->sort(l)); 
+    sa :=   apply(statements#i#1,l->sort(l)); 
     t := sort  apply(k,j->{{ss_j},{sa_j}}); 
-    print t;
     s = s|{t};
     );   
     T1 := set s;
-    T2 := toList T1;  	       	       --removed the symmetries
-   -* T3 := apply(T2,l->toList(l));       --converting to the desired form of output
+    
+    T2 := toList T1;	       	       --removed the symmetries
+    T3 := apply(T2,l->toList(l));       --converting to the desired form of output
     
     
     
@@ -518,13 +522,14 @@ trial (ZZ,List) := List => (k,statements) ->
         T4 = T4|{{(slist),(alist)}};
     
     );
-    return T4;   *- 
-    return T2; 
-)
+    return T4;   
+);
 
+L#0
 L1 = trial(3,L);
 L1#0
 #L1
+#L
 L#0
 t = {{{set {c, d}}, {set {c, d}}}, {{set {a, b, c, d}}, {set {}}}, {{set {a, b, c, d}}, {set {}}}}
 set {t} 

@@ -1130,8 +1130,8 @@ multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) ->
        );
     );
     );
-return statements;
-  --return remsymmetries(k,statements);	       --returns output without any symmetries need to check it once again
+--return statements;
+  return remsymmetries(k,statements);	       --returns output without any symmetries need to check it once again
 )
 
 impliesSeparationStatement = method()
@@ -1170,14 +1170,16 @@ remsymmetries (ZZ,List) := List => (k,statements) ->
     s := {};
     for i from 0 to l-1 do
     (
-    ss :=   apply(statements#i#0,l->set(l)); 
-    sa :=   apply(statements#i#1,l->set(l)); 
+    ss :=   apply(statements#i#0,l->sort(l)); 
+    sa :=   apply(statements#i#1,l->sort(l)); 
     t := sort  apply(k,j->{{ss_j},{sa_j}}); 
     s = s|{t};
     );   
     T1 := set s;
-    T2 := toList T1;    	       	       --removed the symmetries
+    
+    T2 := toList T1;	       	       --removed the symmetries
     T3 := apply(T2,l->toList(l));       --converting to the desired form of output
+    
     
     
     T4 := {};
@@ -1194,7 +1196,7 @@ remsymmetries (ZZ,List) := List => (k,statements) ->
         T4 = T4|{{(slist),(alist)}};
     
     );
-    return T4;    
+    return T4;
 )
 
             

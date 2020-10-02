@@ -15,16 +15,34 @@ debug needsPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 
 -- Test 1: Confirm the function gives correct output
 J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 
+
+restart
+debug needsPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+J1=scoreEquationsFromCovarianceMatrix(R,U1);
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J1===I)
+
+J2=scoreEquationsFromCovarianceMatrix(R,U1,doSaturate=>false);
 -- Test 1: Confirm no saturation works
-JnoSat=scoreEquationsFromCovarianceMatrix(R,U,Saturate=>false);
+JnoSat=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>false);
 dim JnoSat
 degree JnoSat
+
+--Test 1: Confirm saturation options work
+JSatOpts=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false});
+dim JSatOpts
+degree JSatOpts
+
    
 -- Test 2: Input (best to restart and reload packages first)
 restart
@@ -68,11 +86,13 @@ assert(J===test)
 -- Test 3 (Roser)
 restart
  debug needsPackage("GraphicalModelsMLE")
+ t0= cpuTime();
  G=graph{{1,2},{2,5},{5,6},{2,4},{4,5},{3,4}}
  g=mixedGraph G
- R2=gaussianRing(g)
+ R=gaussianRing(g)
  U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
- J2=scoreEquationsFromCovarianceMatrix(R2,U)
+ --J2=time scoreEquationsFromCovarianceMatrix(R2,U)
+ J3= scoreEquationsFromCovarianceMatrix(R,U,doSaturate =>false)
  
  L = directedEdgesMatrix R2
  K= undirectedEdgesMatrix R2 
@@ -112,7 +132,12 @@ restart
     denoms = apply(#LL, i -> lift(denominator(LL_i), lpR));
     prod = product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR))
+    t1=cpuTime();
+    t1-t0
+    -- running line- by-line 484.877033618
+    
     J = saturate(J, prod)
+    
     
     -- Solution
     -- Saturated ideal
@@ -411,3 +436,24 @@ myFunction2 (Ideal,Ideal):= opts -> (I,J)->(
     if opts.doSaturate then (saturate (I,J, opts.saturateOptions)) 
     else return I
     ); 
+
+myFunction3 = method(Options =>  {test => true});
+myFunction3 (ZZ):= opts -> (a)->(
+     return opts
+    ); 
+
+myFunction3 (2)
+myFunction3 (2, test=>true)
+myFunction3 (2, test=>false)
+
+myFunction4  = method( Options =>{doFactor => true});
+myFunction4(ZZ) := opts ->(a) -> (
+    if opts.doFactor then
+    (    print "Enter if";
+	a=factor a);
+    return a;
+    );
+
+myFunction4 (2)
+myFunction4 (2, doFactor=>true)
+myFunction4 (78998989898798982, doFactor=>false)

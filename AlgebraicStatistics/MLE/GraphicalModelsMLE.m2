@@ -409,6 +409,9 @@ doc ///
 	    jacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
    ///
 
+-------------------------------------------------------
+-- Documentation scoreEquationsFromCovarianceMatrix ---
+-------------------------------------------------------
 
 doc /// 
     Key
@@ -423,38 +426,61 @@ doc ///
         R:Ring
 	  the Gaussian ring of an underlying loopless mixed graph;
 	U:List 
+	  data given as a list. Can be a list of lists or a list of matrices.
+	  Each element of the list corresponds to an observations vector. 
 	U:Matrix
+	  data given as  a matrix. Each row of the matrix corresponds to 
+	  an observations vector.
+	   
     Outputs
          :Ideal
     Description 
         Text
 	    This function computes the score equations that arise from the 
 	    maximization of the log-likelihood function of a graphical Gaussian
-	    statistical model given in Proposition 7.1.10 (Sullivant, 2018). 
+	    statistical model given in Proposition 7.1.10 (Sullivant, 2018):
 	    
-	    The underlying graph is assumed to be a loopless mixed graph (Sadeghi 
-	    and Lauritzen, 2014) and the covariance matrix Sigma is given by !!NEED 
-	    REFERENCE!! 	
+	    $\ell(\Sigma)=-n/2 log det \Sigma - n/2 tr (S\Sigma^{-1})$
 	    
-	    The function takes two required arguments: 
-	    - a ring, which needs to be the Gaussian ring of
-	    an underlying graph;
-	    -  data, which can be given as a list of lists, list of 
-	    matrices or a matrix. 
+	    The underlying graph is assumed to be a loopless mixed graph G (Sadeghi 
+	    and Lauritzen, 2014). The nodes of $G$ are partitioned as $V = U\cup W$, such that:
+	
+ 	    - if $i-j$ in $G$ then $i,j\in U$
 	    
-	    Each element of the list (or row of the matrix)
-	    correspond to an observations vector.  
+  	    - if $i\leftarrow \rightarrow j$ in $G$ then $i,j\in W$ 
 	    
+	    -  there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
+	    
+	    
+	    The covariance matrix  $\Sigma$ is given by		    	    
+	    
+	    $\Sigma=(I-\Lambda)^{-T} diag(K^{-1}, \Psi) (I-\Lambda)^{-1}$, where
+	    
+	    - $\Lambda $ is a  $\mathbb{R}^{V x V }$ matrix such that $\lambda_{i,j}=0$
+	    whenever $i \rightarrow j$ is not in  $E$;
+	    
+	    - $diag(K^{-1}, \Psi) $ is a block-diagonal $\mathbb{R}^{V x V }$ matrix;
+	    
+	    - $K$ is a  $\mathbb{R}^{U x U }$ matrix such that $k_{i,j}=0$
+	    whenever $i - j$ is not in  $E$;
+	    
+	    - $\Psi$ is a  $\mathbb{R}^{W x W }$ matrix such that $ \psi_{i,j}=0$
+	    whenever $i \leftarrow  \rightarrow  j$ is not in  $E$;
+	    
+	     
+	    	    
 	    The function has two optional arguments:
 	    - doSaturate - a binary variable with default value true, which
 	    allows to decide whether the ideal needs to be saturated with respect
 	    to the denominators of the Jacobian of the log-likelihood function
 	    - saturateOptions - a list of options to set up saturation. All options of 
-	    TO "saturate". 
+	    TO "saturate".
+	    
+	    References: 
 	    
 	    Sadeghi, K. and Lauritzen, S., 2014. Markov properties for mixed graphs. Bernoulli, 20(2), pp.676-696.
 	    
-	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc..
+	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc.
 	
 	Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})

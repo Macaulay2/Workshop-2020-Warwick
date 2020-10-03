@@ -124,7 +124,7 @@ removeSvar = (R) ->(
     -- input -  list of points from solves
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
-genListmatrix = (L,R) ->
+genListMatrix = (L,R) ->
 (
     T := {};
     K:=undirectedEdgesMatrix R;--checks for Graph, should be changed to allow for MixedGraphs
@@ -251,7 +251,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
    X := {};
    n := numRows U;
-   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
    X = for i to n-1 list U^{i};
    return scoreEquationsFromCovarianceMatrix(R,X,opts);
 );
@@ -307,7 +307,7 @@ MLEsolver(Ideal,Ring):= (J,R) -> (
     --solve system with eigensolver
     sols:=zeroDimSolve(J);
     --evaluate matrices on solutions
-    M:=genListmatrix(sols,R);
+    M:=genListMatrix(sols,R);
     --consider only PD matrices
     
     L:=PDcheck M;
@@ -376,6 +376,7 @@ doc ///
 	    The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  The entries here are not the unbiased estimators of the variance/covariance; that is, the entries here correspond to the outputs of the commands VAR.P and COVARIANCE.P in Excel, not VAR and COVARIANCE in Excel.
 	    
 	    We assume that the data vectors are entered as a list of row matrices, all with the same width, or as a matrix.
+	    Each element of the list (or a row of the matrix) correspond to an observations vectors
         Example
           M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
 	  sampleCovarianceMatrix(M)
@@ -413,22 +414,49 @@ doc ///
     Key
         scoreEquationsFromCovarianceMatrix
         (scoreEquationsFromCovarianceMatrix,Ring,List) 
+	(scoreEquationsFromCovarianceMatrix,Ring,Matrix)
     Headline
         computes the score equations that arise from the log likelihood formula in terms of the covariance matrix Sigma
     Usage
         scoreEquationsFromCovarianceMatrix(R,U)
     Inputs
         R:Ring
-	U:List
+	  the Gaussian ring of an underlying loopless mixed graph;
+	U:List 
+	U:Matrix
     Outputs
          :Ideal
     Description 
         Text
-	    This function computes the score equations that arise from the log likelihood formula in terms of the covariance matrix $\Sigma$.  
-	    Suppose we are given a list of data vectors, each a row matrix.  
-	    The log likelihood function we want to maximize is given in Prop. 2.1.12 of Sturmfels's lecture notes (to do: update this reference to the printed version).  
+	    This function computes the score equations that arise from the 
+	    maximization of the log-likelihood function of a graphical Gaussian
+	    statistical model given in Proposition 7.1.10 (Sullivant, 2018). 
 	    
-        Example
+	    The underlying graph is assumed to be a loopless mixed graph (Sadeghi 
+	    and Lauritzen, 2014) and the covariance matrix Sigma is given by !!NEED 
+	    REFERENCE!! 	
+	    
+	    The function takes two required arguments: 
+	    - a ring, which needs to be the Gaussian ring of
+	    an underlying graph;
+	    -  data, which can be given as a list of lists, list of 
+	    matrices or a matrix. 
+	    
+	    Each element of the list (or row of the matrix)
+	    correspond to an observations vector.  
+	    
+	    The function has two optional arguments:
+	    - doSaturate - a binary variable with default value true, which
+	    allows to decide whether the ideal needs to be saturated with respect
+	    to the denominators of the Jacobian of the log-likelihood function
+	    - saturateOptions - a list of options to set up saturation. All options of 
+	    TO "saturate". 
+	    
+	    Sadeghi, K. and Lauritzen, S., 2014. Markov properties for mixed graphs. Bernoulli, 20(2), pp.676-696.
+	    
+	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc..
+	
+	Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}

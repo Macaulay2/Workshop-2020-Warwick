@@ -35,6 +35,7 @@ export {
     "labeledGraph",
     "MixedGraph",
     "mixedGraph",
+    "newDigraph",
     "collateVertices"
     }
 
@@ -74,7 +75,6 @@ topSort = method()
 topSort Digraph := SortedDigraph => D -> (
 L := topologicalSort D;
 g := graph D;
-newDigraph := {};
 new SortedDigraph from {
 digraph => D,
 newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),

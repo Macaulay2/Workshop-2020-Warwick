@@ -40,7 +40,7 @@ newPackage(
      -- by a more efficient solver in the future
      )
 export {"sampleCovarianceMatrix",
-    "JacobianMatrixOfRationalFunction",
+    "jacobianMatrixOfRationalFunction",
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
     "PDcheck",
@@ -124,8 +124,6 @@ removeSvar = (R) ->(
     -- input -  list of points from solves
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
-
--- change input to G instead of R
 genListmatrix = (L,R) ->
 (
     T := {};
@@ -159,7 +157,7 @@ genListmatrix = (L,R) ->
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
-sampleCovarianceMatrix = method();
+sampleCovarianceMatrix = method(TypicalValue =>Matrix);
 sampleCovarianceMatrix(List) := (U) -> (
     n := #U;
     U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
@@ -177,8 +175,8 @@ sampleCovarianceMatrix(Matrix) := (U) -> (
 
 
 
-JacobianMatrixOfRationalFunction = method();
-JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
+jacobianMatrixOfRationalFunction = method(TypicalValue =>Matrix);
+jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     f:=numerator(F);
     g:=denominator(F);
     R:=ring(f);
@@ -188,9 +186,7 @@ JacobianMatrixOfRationalFunction(RingElement) := (F) -> (
 );
 
 scoreEquationsFromCovarianceMatrix = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate});
-scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
-    t0:= cpuTime();
- --   R := gaussianRing(G);  
+scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> ( 
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -237,17 +233,13 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Sample covariance matrix
     V := sampleCovarianceMatrix(U);
      
-    print "Start computing J"; 
     -- Compute ideal J   
     C1 := trace(Sinv * V);
-    C1derivative := JacobianMatrixOfRationalFunction(C1);
-    LL :=JacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
+    C1derivative := jacobianMatrixOfRationalFunction(C1);
+    LL :=jacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
     LL=flatten entries(LL);
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
-    print "Finish  computing J"; 
-    t1 :=  cpuTime();
-    << t1-t0;
     --Saturate
     if opts.doSaturate then 
     (   argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
@@ -289,7 +281,7 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
     return scoreEquationsFromCovarianceMatrixUndir(R,M);
 );
 
-PDcheck = method();
+PDcheck = method(TypicalValue =>List);
 PDcheck(List) := (L) -> (
    mat := {};
     for l in L do
@@ -383,22 +375,22 @@ doc ///
         Text
 	    The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  The entries here are not the unbiased estimators of the variance/covariance; that is, the entries here correspond to the outputs of the commands VAR.P and COVARIANCE.P in Excel, not VAR and COVARIANCE in Excel.
 	    
-	    We assume that the data vectors are entered as a list of row matrices, all with the same width.
+	    We assume that the data vectors are entered as a list of row matrices, all with the same width, or as a matrix.
         Example
-            M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
-	    sampleCovarianceMatrix(M)
-	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}};
-	    sampleCovarianceMatrix(U)	    
+          M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
+	  sampleCovarianceMatrix(M)
+	  U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
+	  sampleCovarianceMatrix(U)	    
      ///
 
 doc /// 
     Key
-        JacobianMatrixOfRationalFunction
-        (JacobianMatrixOfRationalFunction,RingElement) 
+        jacobianMatrixOfRationalFunction
+        (jacobianMatrixOfRationalFunction,RingElement) 
     Headline
         compute the Jacobian matrix of a rational function
     Usage
-        JacobianMatrixOfRationalFunction(F)
+        jacobianMatrixOfRationalFunction(F)
     Inputs
         F:RingElement
     Outputs
@@ -410,10 +402,10 @@ doc ///
 	    R=QQ[x,y];
 	    FR=frac R;
 	    F=1/(x^2+y^2);
-            JacobianMatrixOfRationalFunction(F)
+            jacobianMatrixOfRationalFunction(F)
 	    R=QQ[t_1,t_2,t_3];
 	    FR=frac R;
-	    JacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
+	    jacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
    ///
 
 
@@ -583,7 +575,7 @@ TEST ///
 R=QQ[x,y];
 FR=frac R;
 F=1/(x^2+y^2);
-M=entries JacobianMatrixOfRationalFunction(F);
+M=entries jacobianMatrixOfRationalFunction(F);
 N=transpose {{-2*x/(x^2 + y^2)^2,-2*y/(x^2 + y^2)^2 }};
 assert(M === N)
 ///
@@ -591,7 +583,7 @@ assert(M === N)
 TEST ///
 R=QQ[x_1,x_2,x_3];
 FR=frac R;
-M=entries JacobianMatrixOfRationalFunction( (x_1^2*x_2)/(x_1+x_2^2+x_3^3) );
+M=entries jacobianMatrixOfRationalFunction( (x_1^2*x_2)/(x_1+x_2^2+x_3^3) );
 N=transpose {{2*x_1*x_2/(x_2^2 + x_3^3 + x_1) - x_1^2*x_2/(x_2^2 + x_3^3 + x_1)^2, -2*x_1^2*x_2^2/(x_2^2 + x_3^3 + x_1)^2 + x_1^2/(x_2^2 + x_3^3 + x_1) , -3*x_1^2*x_2*x_3^2/(x_2^2 + x_3^3 + x_1)^2 }};
 assert(M === N)
 /// 
@@ -606,7 +598,14 @@ assert(N===A)
 TEST ///
 X = {matrix {{36, -3, -25, -36}}, matrix {{-10, 11, -29, -20}}, matrix {{-18, 33, -15, -11}}, matrix {{-42, 0, 20, 43}}, matrix {{-30, -26, 32, 2}}, matrix {{2, -38, -24, -43}} };
 Y = sampleCovarianceMatrix(X);
-B = matrix matrix {{5621/9, -1037/18, -7835/18, -10565/18}, {-1037/18, 19505/36, -4897/36, 5147/36}, {-7835/18, -4897/36, 20465/36, 18941/36}, {-10565/18, 5147/36, 18941/36, 28889/36}};
+B = matrix {{5621/9, -1037/18, -7835/18, -10565/18}, {-1037/18, 19505/36, -4897/36, 5147/36}, {-7835/18, -4897/36, 20465/36, 18941/36}, {-10565/18, 5147/36, 18941/36, 28889/36}};
+assert(Y===B)	
+///
+
+TEST ///
+X = matrix{{48,89,27,28},{23,19,29,94},{135,23,44,71},{91,75,24,98}};
+Y = sampleCovarianceMatrix(X);
+B = matrix {{29147/16, -1313/8, 220, 1609/16}, {-1313/8, 3827/4, -155, -3451/8}, {220, -155, 119/2, -63/4}, {1609/16, -3451/8, -63/4, 12379/16}};
 assert(Y===B)	
 ///
 
@@ -627,18 +626,7 @@ J=scoreEquationsFromCovarianceMatrixUndir(R,U)
 assert(dim J===0)
 assert(degree J===5)
 ///   
-
--*
-TEST ///
-needsPackage("Graphs");
-needsPackage("GraphicalModels");
-G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
-U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-J=scoreEquationsCovariance1(G,U);
-I=ideal(16*s_(4,4)-29,32*s_(3,4)+21,64*s_(3,3)-27,4336*s_(2,4)+5,8672*s_(2,3)-25,16*s_(2,2)-5,8672*s_(1,4)+35,17344*s_(1,3)-175,32*s_(1,2)+13,64*s_(1,1)-115);
-assert(J===I)
-///
-*-     
+    
 --------------------------------------
 --------------------------------------
 end--

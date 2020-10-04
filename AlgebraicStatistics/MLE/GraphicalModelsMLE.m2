@@ -34,21 +34,21 @@ newPackage(
 	  },
      Headline => "maximum likelihood estimates for structural equation models",
      DebuggingMode => true,
-     PackageExports => {"GraphicalModels","Graphs","Bertini","EigenSolver","StatGraphs"}
-     -- need to check whether Bertini is actually used
-     -- EigenSolver is used for computing the MLE. May need to be replaced or complemented 
-     -- by a more efficient solver in the future
+     PackageExports => {"GraphicalModels","Graphs","EigenSolver","StatGraphs"}
      )
-export {"sampleCovarianceMatrix",
+export {
+    "checkPD",
+    "checkPSD",
+    "doSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix
     "jacobianMatrixOfRationalFunction",
+    "sampleCovarianceMatrix",
+    "saturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
-    "checkPD",
+    
     "MLEsolver",
-    "MLEmax",
-    "doSaturate",
-    "saturateOptions"
-       	} 
+    "MLEmax"
+     } 
      
 --**************************--
 --  INTERNAL ROUTINES       --
@@ -301,6 +301,25 @@ checkPD(List) := (L) -> (
     return mat;
 );
 
+checkPSD = method(TypicalValue =>List);
+checkPSD(List) := (L) -> (
+   mat := {};
+    for l in L do
+    (
+    	flag := 0;
+    	-- Compute eigenvalues for each matrix
+	L1 := eigenvalues l;
+    	--Check whether all of them are non-negative and real
+	for t in L1 do 
+    	(	 
+	    if 0 > t then flag = 1;
+	    if not isReal t then flag=1;
+     	);
+        if flag == 0 then mat = mat | {l} ;
+    );
+    if mat == {} then print("none of the matrices are psd");
+    return mat;
+);
 
 
 MLEsolver = method();
@@ -599,6 +618,28 @@ doc   ///
     	    checkPD(L)
      	 ///
 
+doc   ///
+    Key
+    	checkPSD
+	(checkPSD,List)
+    Headline
+    	checks which matrices from the list are positive semidefinite
+    Usage
+    	checkPSD(L)
+    Inputs
+    	L: List  
+	    list of matrices
+    Outputs
+    	 : List
+	   list of positive semidefinite matrices
+    Description
+    	Text
+	   This function takes a list of matrices and returns another list with
+	   only positive semidefinite matrices
+      	Example
+	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}				
+    	    checkPSD(L)
+     	 ///
 
 doc ///
     Key
@@ -752,6 +793,14 @@ Y = checkPD(L);
 B = {matrix{{1, 0}, {0, 1}}};
 assert(Y===B)	
 ///
+
+TEST ///
+L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}},matrix{{0,0},{0,0}}};
+Y = checkPD(L);
+B = {matrix{{1, 0}, {0, 1}},matrix{{0,0},{0,0}}};
+assert(Y===B)	
+///
+    
     
 --------------------------------------
 --------------------------------------

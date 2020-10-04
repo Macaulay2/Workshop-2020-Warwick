@@ -43,7 +43,7 @@ export {"sampleCovarianceMatrix",
     "jacobianMatrixOfRationalFunction",
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
-    "PDcheck",
+    "checkPD",
     "MLEsolver",
     "MLEmax",
     "doSaturate",
@@ -281,18 +281,19 @@ scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
     return scoreEquationsFromCovarianceMatrixUndir(R,M);
 );
 
-PDcheck = method(TypicalValue =>List);
-PDcheck(List) := (L) -> (
+checkPD = method(TypicalValue =>List);
+checkPD(List) := (L) -> (
    mat := {};
     for l in L do
     (
     	flag := 0;
     	-- Compute eigenvalues for each matrix
 	L1 := eigenvalues l;
-    	--Check whether all of them are positive
+    	--Check whether all of them are positive and real
 	for t in L1 do 
     	(	 
 	    if 0 >= t then flag = 1;
+	    if not isReal t then flag=1;
      	);
         if flag == 0 then mat = mat | {l} ;
     );
@@ -310,7 +311,7 @@ MLEsolver(Ideal,Ring):= (J,R) -> (
     M:=genListMatrix(sols,R);
     --consider only PD matrices
     
-    L:=PDcheck M;
+    L:=checkPD M;
     --check there is only one PD matrix
     return L;    
 
@@ -577,23 +578,25 @@ doc ///
 
 doc   ///
     Key
-    	PDcheck
-	(PDcheck,List)
+    	checkPD
+	(checkPD,List)
     Headline
     	checks which matrices from the list are positive definite
     Usage
-    	PDcheck(L)
+    	checkPD(L)
     Inputs
     	L: List  
+	    list of matrices
     Outputs
     	 : List
+	   list of positive definite matrices
     Description
     	Text
 	   This function takes a list of matrices and returns another list with
 	   only positive definite matrices
       	Example
-	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}}}				
-    	    PDcheck(L)
+	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}}}				
+    	    checkPD(L)
      	 ///
 
 
@@ -742,6 +745,13 @@ J=scoreEquationsFromCovarianceMatrixUndir(R,U)
 assert(dim J===0)
 assert(degree J===5)
 ///   
+
+TEST ///
+L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}}};
+Y = checkPD(L);
+B = {matrix{{1, 0}, {0, 1}}};
+assert(Y===B)	
+///
     
 --------------------------------------
 --------------------------------------

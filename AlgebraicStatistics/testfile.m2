@@ -586,3 +586,11 @@ print i;
 for t in L1 do print t;
  L1
 set({L1#0,L1#1})
+
+
+---- tests by Tim on 05.10.2020
+restart
+loadPackage("GraphicalModelsMultiTrek",Reload=>true)
+G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
+L = multiTrekSeparation(G,2);
+L2 = multiTrekSeparation(G,3,Bound=>3);

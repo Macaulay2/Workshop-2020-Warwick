@@ -40,6 +40,7 @@ newPackage(
      --DebuggingMode => true
      )
 export {"bidirectedEdgesMatrix",
+       "Bound",
        "Coefficients",
        "conditionalIndependenceIdeal",
        "covarianceMatrix",
@@ -1053,12 +1054,14 @@ trekSeparation MixedGraph := List => (g) -> (
 
 -*
 Input: graph g, integer k
-Output: list of separation statements: in format {Slist,Alist}, where Slist={S1..Sk}, Alist={A1..Ak}
+Optional input: integer Bound
+Output: list of minimal separation statements: in format {Slist,Alist}, where Slist={S1..Sk}, Alist={A1..Ak} TODO explain "minimal"
+If Bound is given: only computes seperation statements with sum of cardinalities of A_i smaller than Bound.
 Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such that it is separated:
-a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)})
+a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)}).
 *-
-multiTrekSeparation = method()
-multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) -> 
+multiTrekSeparation = method(Options=>{Bound=>-1})
+multiTrekSeparation (MixedGraph,ZZ) := List => opts -> (g,k) -> 
 (
  
     G := graph collateVertices g;    	 --outputs the hash table after collating vertices 
@@ -1072,7 +1075,7 @@ multiTrekSeparation (MixedGraph,ZZ,ZZ) := List => (g,k,n) ->
                                                                          --DGhash#(v#1) --returns children of the vertex v#1
     
     for Alist in toList(((set subsets v)^**k)/deepSplice) do(	    	--making k-cartesian product of subsets of v
-    if sum(Alist,el->length el) < n then
+    if (opts.Bound<0) or (sum(Alist,el->length el) < opts.Bound) then
     (	     	     	     	     	     	     	     	     	-- Alist is one of the k-cartesian product of subsets of v
 	SS := apply(k-1,i->delete({},subsetsBetween(Alist#i,v)));       --assume A_i \subset S_i
 	                                                                --subsetsBetween returns all subsets of v containing Alist#i
@@ -2624,11 +2627,11 @@ doc///
 -------------------------------------
 -- Documentation multiTrekSeparation    --
 -------------------------------------
-
+--TODO explain optional input Bound
 doc/// 
    Key
      multiTrekSeparation
-     (multiTrekSeparation,MixedGraph,ZZ,ZZ)
+     (multiTrekSeparation,MixedGraph,ZZ)
    Headline
      the multi-trek separation statements of a mixed graph 
    Usage

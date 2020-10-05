@@ -18,7 +18,7 @@ debug loadPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-S= sampleCovarianceMatrix U
+V= sampleCovarianceMatrix U
 --L={random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4)}
 L={map(QQ^4,QQ^4,{{8/7, 5, 3, 7/5}, {9, 5/2, 1, 2/9}, {2, 2/5, 10/9,
       7/5}, {5/2, 7/3, 1/2, 5/9}}),map(QQ^4,QQ^4,{{1/5, 9/7, 3/2, 1/4},
@@ -28,7 +28,7 @@ L={map(QQ^4,QQ^4,{{8/7, 5, 3, 7/5}, {9, 5/2, 1, 2/9}, {2, 2/5, 10/9,
       {1/2, 6, 3/2, 1/3}, {1/5, 9/8, 10/7, 7/5}, {9/8, 6/7, 1/7,
       8/3}}),map(QQ^4,QQ^4,{{1/7, 5, 9/7, 3/5}, {5/9, 1/3, 1/3, 6/7}, {9/10,
       4, 7/4, 8/9}, {3/5, 5, 1/3, 1}})}
-maxMLE(L,S)
+maxMLE(L,V)
 
     if #L1==0 then  error("No critical points to evaluate");
     if #L1==1 then  E:=inverse L_0;
@@ -65,6 +65,15 @@ U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
+
+V=sampleCovarianceMatrix U
+Jcov=scoreEquationsFromCovarianceMatrix(R,V,sampleData=>false);
+J===Jcov
+
+-- Test1: Input covariance matrix directly
+restart
+debug loadPackage "GraphicalModelsMLE"
+
 
 
 restart

@@ -8,8 +8,50 @@ loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
 loadPackage "GraphicalModelsMLE"
 
-debug loadPackage "GraphicalModelsMLE"
+debug needsPackage "GraphicalModelsMLE"
 
+-----------------------
+--Testing MLEmax function
+-----------------------
+restart
+debug loadPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+S= sampleCovarianceMatrix U
+--L={random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4)}
+L={map(QQ^4,QQ^4,{{8/7, 5, 3, 7/5}, {9, 5/2, 1, 2/9}, {2, 2/5, 10/9,
+      7/5}, {5/2, 7/3, 1/2, 5/9}}),map(QQ^4,QQ^4,{{1/5, 9/7, 3/2, 1/4},
+      {5/4, 1/5, 1/2, 3/10}, {2, 1, 9/2, 4/3}, {5/2, 1, 3/4,
+      3/4}}),map(QQ^4,QQ^4,{{1/7, 5, 9/7, 3/5}, {5/9, 1/3, 1/3, 6/7}, {9/10,
+      4, 7/4, 8/9}, {3/5, 5, 1/3, 1}}),map(QQ^4,QQ^4,{{10/7, 1/3, 8/9, 7/2},
+      {1/2, 6, 3/2, 1/3}, {1/5, 9/8, 10/7, 7/5}, {9/8, 6/7, 1/7,
+      8/3}}),map(QQ^4,QQ^4,{{1/7, 5, 9/7, 3/5}, {5/9, 1/3, 1/3, 6/7}, {9/10,
+      4, 7/4, 8/9}, {3/5, 5, 1/3, 1}})}
+maxMLE(L,S)
+
+    if #L1==0 then  error("No critical points to evaluate");
+    if #L1==1 then  E:=inverse L_0;
+    if #L1>=1 then 
+    	eval:=for K in L1 list log det K- trace (S*K);
+	evalReal:={}
+	for pt in eval do (if isReal pt then evalReal=evalReal  | {pt})
+	if #evalReal==0 then  error("No critical point evaluates to a real solution");
+	indexOptimal:=position(eval, i ->i== max evalReal)
+	E=inverse L1_indexOptimal
+    return E;
+    
+    if #L==0 then  error("No critical points to evaluate")
+    if #L==1 then  E:=inverse L_0
+    if #L>=1 then 
+    	eval:=for K in L list log det K- trace (S*K)
+	evalReal:={}
+	for pt in eval do (if isReal pt then evalReal=evalReal  | {pt})
+	if #evalReal==0 then  error("No critical point evaluates to a real solution")
+	indexOptimal=positions(eval, i ->i== max evalReal)
+        E={};
+	for i in indexOptimal do E=E | {inverse L_i};
+    return E; 
 --------------------------
 -- Testing LMG function
 --------------------------
@@ -378,3 +420,6 @@ myFunction4 (2)
 myFunction4 (2, doFactor=>true)
 myFunction4 (78998989898798982, doFactor=>false)
 
+restart
+installPackage "GraphicalModelsMLE"
+viewHelp checkPSD

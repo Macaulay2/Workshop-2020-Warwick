@@ -386,9 +386,17 @@ restart
 ------------------------------------------------
 -- Tests for gaussianRing, ...EdgesMatrix
 ------------------------------------------------
+restart
+debug loadPackage "StatGraphs"
+
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
+
+mixedGraph(G,B)
+mixedGraph(B,G)
+mixedGraph(G,D,B)
+mixedGraph(D,G,B)
 
 G=graph{{1,2}}
 D=digraph{{1,3},{3,2},{6,7},{7,8},{6,8}}
@@ -499,3 +507,44 @@ myFunction4 (78998989898798982, doFactor=>false)
 restart
 installPackage "GraphicalModelsMLE"
 viewHelp checkPSD
+
+restart
+debug loadPackage "GraphicalModelsMLE"
+myFunction=method(Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true})
+myFunction(Ring,List):=  opts ->(G,U) -> (
+        if opts.doSaturate then (
+	 argSaturate1:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);--,sampleData=>opts.sampleData
+	 << argSaturate1(R,U);
+         J:=scoreEquationsFromCovarianceMatrix(argSaturate1(R,U)););
+    --else J= scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>false, sampleData=>opts.sampleData);
+     return J;
+     );
+ 
+ restart
+ R = ZZ/32003[a..d];
+ I = ideal(a^3-b, a^4-c)
+ Ih = homogenize(I,d)
+ doSaturate=true
+ saturateOptions= options saturate
+ argSaturate:=saturateOptions  >>newOpts-> args ->(args, newOpts);
+ saturateOptions= options saturate
+ argSaturate(Ih,d)
+ saturate(argSaturate(Ih,d))
+
+
+if doSaturate then 
+    (   argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    	 
+	    J=saturate(argSaturate(J,denoms_i))); 
+	);
+    
+-- Test 1: Input
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+--U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+
+-- Test 1: Confirm the function gives correct output
+J=myFunction(R,U);
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J===I)

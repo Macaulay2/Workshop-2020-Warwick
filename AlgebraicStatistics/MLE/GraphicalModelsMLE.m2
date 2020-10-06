@@ -254,7 +254,9 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     if S == Kinv then Sinv:= K else Sinv = inverse S; 
     
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U;
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else 
+    (V=U_0;
+     for i from 1 to  #U-1 do V= V||U_i); -- if U is a list (even if it is inputted as a matrix, see the method scoreEquationsFromCovarianceMatrix(Ring,Matrix))
      
     -- Compute ideal J   
     C1 := trace(Sinv * V);

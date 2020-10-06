@@ -10,6 +10,26 @@ loadPackage "GraphicalModelsMLE"
 
 debug needsPackage "GraphicalModelsMLE"
 
+---------------
+-- Testing noSaturate
+---------------
+restart
+R = ZZ/32003[a..d];
+I = ideal(a^3-b, a^4-c)
+Ih = homogenize(I,d)
+
+saturate(Ih,d)
+
+J={1,3}
+saturate (I,J)
+
+J={a+1-a,b+3-b}
+
+saturate (I, ideal J)
+
+degree J_0
+
+
 -----------------------
 --Testing MLEmax function
 -----------------------
@@ -68,13 +88,60 @@ assert(J===I)
 
 V=sampleCovarianceMatrix U
 Jcov=scoreEquationsFromCovarianceMatrix(R,V,sampleData=>false);
-J===Jcov
+I===Jcov
 
 -- Test1: Input covariance matrix directly
 restart
 debug loadPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U=sampleCovarianceMatrix U
 
+flag=false;
 
+ L = directedEdgesMatrix R;
+    -- K 
+ K= undirectedEdgesMatrix R;
+    -- Psi
+ P = bidirectedEdgesMatrix R;
+    
+ d = numRows L;
+ (F,lpR)=changeRing(d,R);
+    -- create its fraction field
+    FR = frac(lpR);
+    
+    -----------------------------------------------------
+    -- Construct Omega
+    -----------------------------------------------------
+    -- Kinv
+    K=substitute(K, FR);
+    Kinv=inverse K;
+    P=substitute(P,FR);
+       
+     --Omega
+    if K==0 then W=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
+    
+    -- move to FR, the fraction field of lpR
+    L= substitute (L,FR);
+    
+    -- Sigma
+    if L==0 then S=W else (
+	IdL = inverse (id_(FR^d)-L);
+    	S = (transpose IdL) * W * IdL
+	);
+    if S == Kinv then Sinv= K else Sinv = inverse S; 
+    
+    -- Sample covariance matrix
+    if flag then V = sampleCovarianceMatrix(U) else V=U
+    
+     V = sampleCovarianceMatrix(U) 
+    -- Compute ideal J   
+    C1 = trace(Sinv * V)
+C1derivative := jacobianMatrixOfRationalFunction(C1);
+    LL :=jacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
+    LL=flatten entries(LL);
+    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
 
 restart
 debug needsPackage "GraphicalModelsMLE"
@@ -111,7 +178,7 @@ G=mixedGraph G
 R=gaussianRing(G)
 
 -- Test 2: Run with the LMG function
-J=scoreEquationsFromCovarianceMatrix(R, U)
+J=scoreEquationsFromCovarianceMatrix(R, U);
 assert(dim J===0)
 assert(degree J===5)
 test= ideal(58*k_(4,4)+47*k_(1,4)-21*k_(3,4)-8,
@@ -138,11 +205,11 @@ assert(J===test)
 
 -- Test 3 (Roser)
 restart
- debug needsPackage("GraphicalModelsMLE")
+ debug loadPackage("GraphicalModelsMLE")
  t0= cpuTime();
  G=graph{{1,2},{2,5},{5,6},{2,4},{4,5},{3,4}}
  g=mixedGraph G
- R=gaussianRing(g)
+ R2=gaussianRing(g)
  U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
  --J2=time scoreEquationsFromCovarianceMatrix(R2,U)
  J3= scoreEquationsFromCovarianceMatrix(R,U,doSaturate =>false)
@@ -179,10 +246,10 @@ restart
      
     -- Compute ideal J   
     C1 = trace(Sinv * V)/2;
-    C1derivative = JacobianMatrixOfRationalFunction(C1);
-    LL =JacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    C1derivative = jacobianMatrixOfRationalFunction(C1);
+    LL =jacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
-    denoms = apply(#LL, i -> lift(denominator(LL_i), lpR));
+    denoms = apply(#LL, i -> lift(denominator(LL_i), lpR))
     prod = product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR))
     t1=cpuTime();

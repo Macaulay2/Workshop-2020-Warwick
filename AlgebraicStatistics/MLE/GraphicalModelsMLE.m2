@@ -354,9 +354,14 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
     -- compute the sample covariance matrix
-    V:= sampleCovarianceMatrix(U);
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else 
+    (V=U_0;
+     for i from 1 to  #U-1 do V= V||U_i); -- if U is a list (even if it is inputted as a matrix, see the method scoreEquationsFromCovarianceMatrix(Ring,Matrix))
     -- generate the ideal of the score equations
-    J:=scoreEquationsFromCovarianceMatrix(R,U,opts.doSaturate, opts.saturateOptions, sampleData=>false);
+    if opts.doSaturate then (
+	 argSaturate1:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
+         J:=scoreEquationsFromCovarianceMatrix(argSaturate1(R,V));)
+    else J= scoreEquationsFromCovarianceMatrix(R,V,doSaturate=>false, sampleData=>false);
     -- check that the system has finitely many solutions
     if dim J =!= 0 then (
 	print ("the ideal is not zero-dimensional");
@@ -372,6 +377,53 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     optSols:=maxMLE(L,V);
     return optSols);    
 );
+
+solverMLE(Graph,List) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+
+solverMLE(Digraph,List) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Bigraph,List) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Graph,Digraph,List) := opts -> (G,D,U) -> (
+    return solverMLE(mixedGraph (G,D),U, opts);
+    );
+solverMLE(Digraph,Graph,List) := opts -> (D,G,U) -> (
+    return solverMLE(mixedGraph (D,G),U, opts);
+    );
+solverMLE(Digraph,Bigraph,List) := opts -> (D,B,U) -> (
+    return solverMLE(mixedGraph (D,B),U, opts);
+    );
+solverMLE(Bigraph,Digraph,List) := opts -> (B,D,U) -> (
+    return solverMLE(mixedGraph (B,D),U, opts);
+    );
+solverMLE(Graph, Bigraph,List) := opts -> (G,B,U) -> (
+    return solverMLE(mixedGraph (G,B),U, opts);
+    );
+solverMLE(Bigraph,Graph,List) := opts -> (B,G,U) -> (
+    return solverMLE(mixedGraph (B,G),U, opts);
+    );
+solverMLE(Graph, Digraph, Bigraph, List) := opts -> (G,D,B,U) -> (
+    return solverMLE(mixedGraph (G,D,B),U, opts);
+    );
+solverMLE(Digraph, Bigraph, Graph, List) := opts -> (D,B,G,U) -> (
+    return solverMLE(mixedGraph (D,B,G),U, opts);
+    );
+solverMLE(Bigraph, Graph, Digraph, List) := opts -> (B,G,D,U) -> (
+    return solverMLE(mixedGraph (B,G,D),U, opts);
+    );
+solverMLE(Graph,Bigraph, Digraph, List) := opts -> (G,B,D,U) -> (
+    return solverMLE(mixedGraph (G,B,D),U, opts);
+    );
+solverMLE(Bigraph, Digraph,Graph, List) := opts -> (B,D,G,U) -> (
+    return solverMLE(mixedGraph (B,D,G),U, opts);
+    );
+solverMLE(Digraph, Graph, Bigraph, List) := opts -> (D,G,B,U) -> (
+    return solverMLE(mixedGraph (D,G,B),U, opts);
+    );
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    -- 
@@ -397,7 +449,7 @@ doc ///
             scoreEquationsFromCovarianceMatrix(R,U)
 
     Caveat
-        GraphicalModelsMLE requires Graphs.m2 and GraphicalModels.m2. 
+        GraphicalModelsMLE requires  @TO Graphs@,  @TO StatGraphs@ and  @TO GraphicalModels@.
 ///
 
 --------------------------------
@@ -476,11 +528,15 @@ doc ///
         R:Ring
 	  the Gaussian ring of an underlying loopless mixed graph;
 	U:List 
-	  data given as a list. Can be a list of lists or a list of matrices.
+	  If sampleData=>true (the default setting), then this is data given as a list. 
+	  Can be a list of lists or a list of matrices.
 	  Each element of the list corresponds to an observations vector. 
+	  If sampleData=>false, then this is a sample covariance matrix given as a list, 
+	  i.e., each element of the list corresponds to a row in the covariance matrix.
 	U:Matrix
-	  data given as  a matrix. Each row of the matrix corresponds to 
-	  an observations vector.
+	  If sampleData=>true (the default setting), then data given as  a matrix.
+	  Each row of the matrix corresponds to an observations vector. 
+	  If sampleData=>false, then this is a sample covariance matrix.
 	   
     Outputs
          :Ideal
@@ -503,6 +559,8 @@ doc ///
   	    - if $i\leftarrow \rightarrow j$ in $G$ then $i,j\in W$ 
 	    
 	    -  there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
+	    
+	    Vertices that are not adjacent to an undirected or a bidirected edge are assumed to be in U.
 	    
 	    We require that the directed part is a DAG, i.e., there should not be any
 	    directed cycles after the identification of the connected 
@@ -692,10 +750,9 @@ doc ///
 	    See Example 2.1.13 of Sturmfels' lecture notes
 	Example
 	    G=graph{{1,2},{2,3},{3,4},{1,4}}
-	    R=gaussianRing(G)
-	    U=random(ZZ^4,ZZ^4)
-	    J=scoreEquationsFromCovarianceMatrixUndir(R,U)
-	    MLEsolver(J,R)				
+	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+	    --U=random(ZZ^4,ZZ^4)
+	    solverMLE(G,U)				
 ///
 
 --******************************************--

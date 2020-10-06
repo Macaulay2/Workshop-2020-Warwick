@@ -10,6 +10,26 @@ loadPackage "GraphicalModelsMLE"
 
 debug needsPackage "GraphicalModelsMLE"
 
+---------------
+-- Testing noSaturate
+---------------
+restart
+R = ZZ/32003[a..d];
+I = ideal(a^3-b, a^4-c)
+Ih = homogenize(I,d)
+
+saturate(Ih,d)
+
+J={1,3}
+saturate (I,J)
+
+J={a+1-a,b+3-b}
+
+saturate (I, ideal J)
+
+degree J_0
+
+
 -----------------------
 --Testing MLEmax function
 -----------------------
@@ -18,7 +38,7 @@ debug loadPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-S= sampleCovarianceMatrix U
+V= sampleCovarianceMatrix U
 --L={random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4), random(QQ^4,QQ^4)}
 L={map(QQ^4,QQ^4,{{8/7, 5, 3, 7/5}, {9, 5/2, 1, 2/9}, {2, 2/5, 10/9,
       7/5}, {5/2, 7/3, 1/2, 5/9}}),map(QQ^4,QQ^4,{{1/5, 9/7, 3/2, 1/4},
@@ -28,7 +48,7 @@ L={map(QQ^4,QQ^4,{{8/7, 5, 3, 7/5}, {9, 5/2, 1, 2/9}, {2, 2/5, 10/9,
       {1/2, 6, 3/2, 1/3}, {1/5, 9/8, 10/7, 7/5}, {9/8, 6/7, 1/7,
       8/3}}),map(QQ^4,QQ^4,{{1/7, 5, 9/7, 3/5}, {5/9, 1/3, 1/3, 6/7}, {9/10,
       4, 7/4, 8/9}, {3/5, 5, 1/3, 1}})}
-maxMLE(L,S)
+maxMLE(L,V)
 
     if #L1==0 then  error("No critical points to evaluate");
     if #L1==1 then  E:=inverse L_0;
@@ -66,6 +86,62 @@ J=scoreEquationsFromCovarianceMatrix(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 
+V=sampleCovarianceMatrix U
+Jcov=scoreEquationsFromCovarianceMatrix(R,V,sampleData=>false);
+I===Jcov
+
+-- Test1: Input covariance matrix directly
+restart
+debug loadPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U=sampleCovarianceMatrix U
+
+flag=false;
+
+ L = directedEdgesMatrix R;
+    -- K 
+ K= undirectedEdgesMatrix R;
+    -- Psi
+ P = bidirectedEdgesMatrix R;
+    
+ d = numRows L;
+ (F,lpR)=changeRing(d,R);
+    -- create its fraction field
+    FR = frac(lpR);
+    
+    -----------------------------------------------------
+    -- Construct Omega
+    -----------------------------------------------------
+    -- Kinv
+    K=substitute(K, FR);
+    Kinv=inverse K;
+    P=substitute(P,FR);
+       
+     --Omega
+    if K==0 then W=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
+    
+    -- move to FR, the fraction field of lpR
+    L= substitute (L,FR);
+    
+    -- Sigma
+    if L==0 then S=W else (
+	IdL = inverse (id_(FR^d)-L);
+    	S = (transpose IdL) * W * IdL
+	);
+    if S == Kinv then Sinv= K else Sinv = inverse S; 
+    
+    -- Sample covariance matrix
+    if flag then V = sampleCovarianceMatrix(U) else V=U
+    
+     V = sampleCovarianceMatrix(U) 
+    -- Compute ideal J   
+    C1 = trace(Sinv * V)
+C1derivative := jacobianMatrixOfRationalFunction(C1);
+    LL :=jacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
+    LL=flatten entries(LL);
+    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
 
 restart
 debug needsPackage "GraphicalModelsMLE"
@@ -102,7 +178,7 @@ G=mixedGraph G
 R=gaussianRing(G)
 
 -- Test 2: Run with the LMG function
-J=scoreEquationsFromCovarianceMatrix(R, U)
+J=scoreEquationsFromCovarianceMatrix(R, U);
 assert(dim J===0)
 assert(degree J===5)
 test= ideal(58*k_(4,4)+47*k_(1,4)-21*k_(3,4)-8,
@@ -129,11 +205,11 @@ assert(J===test)
 
 -- Test 3 (Roser)
 restart
- debug needsPackage("GraphicalModelsMLE")
+ debug loadPackage("GraphicalModelsMLE")
  t0= cpuTime();
  G=graph{{1,2},{2,5},{5,6},{2,4},{4,5},{3,4}}
  g=mixedGraph G
- R=gaussianRing(g)
+ R2=gaussianRing(g)
  U=matrix{{1, 2, 9, 6, 0, 0}, {2, 7, 7, 3, 2, 2}, {6, 3, 4, 1, 5, 5}, {5, 5, 8, 8, 7, 6}, {3, 2, 3, 8, 7, 5}, {8, 0, 5, 3, 8, 5}}
  --J2=time scoreEquationsFromCovarianceMatrix(R2,U)
  J3= scoreEquationsFromCovarianceMatrix(R,U,doSaturate =>false)
@@ -170,10 +246,10 @@ restart
      
     -- Compute ideal J   
     C1 = trace(Sinv * V)/2;
-    C1derivative = JacobianMatrixOfRationalFunction(C1);
-    LL =JacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
+    C1derivative = jacobianMatrixOfRationalFunction(C1);
+    LL =jacobianMatrixOfRationalFunction (det S)*matrix{{(-1/(2*det(S)))}} - (C1derivative);
     LL=flatten entries(LL);
-    denoms = apply(#LL, i -> lift(denominator(LL_i), lpR));
+    denoms = apply(#LL, i -> lift(denominator(LL_i), lpR))
     prod = product(denoms);
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR))
     t1=cpuTime();
@@ -310,9 +386,17 @@ restart
 ------------------------------------------------
 -- Tests for gaussianRing, ...EdgesMatrix
 ------------------------------------------------
+restart
+debug loadPackage "StatGraphs"
+
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
+
+mixedGraph(G,B)
+mixedGraph(B,G)
+mixedGraph(G,D,B)
+mixedGraph(D,G,B)
 
 G=graph{{1,2}}
 D=digraph{{1,3},{3,2},{6,7},{7,8},{6,8}}
@@ -423,3 +507,44 @@ myFunction4 (78998989898798982, doFactor=>false)
 restart
 installPackage "GraphicalModelsMLE"
 viewHelp checkPSD
+
+restart
+debug loadPackage "GraphicalModelsMLE"
+myFunction=method(Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true})
+myFunction(Ring,List):=  opts ->(G,U) -> (
+        if opts.doSaturate then (
+	 argSaturate1:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);--,sampleData=>opts.sampleData
+	 << argSaturate1(R,U);
+         J:=scoreEquationsFromCovarianceMatrix(argSaturate1(R,U)););
+    --else J= scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>false, sampleData=>opts.sampleData);
+     return J;
+     );
+ 
+ restart
+ R = ZZ/32003[a..d];
+ I = ideal(a^3-b, a^4-c)
+ Ih = homogenize(I,d)
+ doSaturate=true
+ saturateOptions= options saturate
+ argSaturate:=saturateOptions  >>newOpts-> args ->(args, newOpts);
+ saturateOptions= options saturate
+ argSaturate(Ih,d)
+ saturate(argSaturate(Ih,d))
+
+
+if doSaturate then 
+    (   argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    	 
+	    J=saturate(argSaturate(J,denoms_i))); 
+	);
+    
+-- Test 1: Input
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+--U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+
+-- Test 1: Confirm the function gives correct output
+J=myFunction(R,U);
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J===I)

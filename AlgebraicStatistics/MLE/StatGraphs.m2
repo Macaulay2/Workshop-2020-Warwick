@@ -157,8 +157,16 @@ mixedGraph Graph := g -> mixedGraph(g,digraph {}, bigraph {})
 mixedGraph Digraph := d -> mixedGraph(graph {},d, bigraph {})
 mixedGraph Bigraph := b -> mixedGraph(graph {},digraph {}, b)
 mixedGraph (Digraph, Bigraph) := (d,b) -> mixedGraph(graph {},d,b)
+mixedGraph (Bigraph, Digraph) := (b,d) -> mixedGraph(graph {},d,b)
 mixedGraph (Graph, Digraph) := (g,d) -> mixedGraph(g,d,bigraph {})
+mixedGraph (Digraph, Graph) := (d,g) -> mixedGraph(g,d,bigraph {})
 mixedGraph (Graph, Bigraph) := (g,b) -> mixedGraph(g,digraph {},b)
+mixedGraph (Bigraph, Graph) := (b,g) -> mixedGraph(g,digraph {},b)
+mixedGraph (Digraph, Bigraph, Graph) := (d,b,g) -> mixedGraph(g,d,b)
+mixedGraph (Bigraph, Graph, Digraph) := (b,g,d) -> mixedGraph(g,d,b)
+mixedGraph (Graph, Bigraph, Digraph) := (g,b,d) -> mixedGraph(g,d,b)
+mixedGraph (Bigraph, Digraph, Graph) := (b,d,g) -> mixedGraph(g,d,b)
+mixedGraph (Digraph, Graph, Bigraph) := (d,g,b) -> mixedGraph(g,d,b)
 
 net MixedGraph := g -> horizontalJoin flatten (
      net class g,

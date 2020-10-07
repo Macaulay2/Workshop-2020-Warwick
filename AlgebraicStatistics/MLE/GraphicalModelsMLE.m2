@@ -65,7 +65,7 @@ export {
 --------------------------------------------
 
 matZZtoQQ = (M) -> (
-    E:=entries(M);    
+    E:=entries M;   
     return matrix apply(#E, i -> apply(#(E_i), j -> (1/1)*E_i_j))    
 );
 
@@ -184,8 +184,13 @@ maxMLE=(L,V)->(
 sampleCovarianceMatrix = method(TypicalValue =>Matrix);
 sampleCovarianceMatrix(List) := (U) -> (
     n := #U;
+    --If the input is a list of lists we convert it into a list of matrices
+    if class U_0===List then U=apply(#U, i -> matrix{U_i});
+    --Convert from integers to rationals if needed
     U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
+    --Compute the mean vector
     Ubar := matrix{{(1/n)}} * sum(U);
+    --Compute sample covariance matrix
     return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
 );
 

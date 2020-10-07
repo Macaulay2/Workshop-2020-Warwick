@@ -46,6 +46,7 @@ export {
     "saturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "scoreEquationsFromCovarianceMatrix",
     "scoreEquationsFromCovarianceMatrixUndir",
+    "concentrationMatrix",
     "solverMLE"
      } 
      
@@ -70,41 +71,13 @@ matZZtoQQ = (M) -> (
 );
 
 
------------------------------------------
--- move to a new ring, lpR, which does not have the s variables
--- When the function gaussianRing is applied to an object of 
--- class Graph, Digraph and MixedGraph, then it outputs
--- a ring with indeterminates s(i,j) for 1 ≤i ≤j ≤n, and
--- additionally l(i,j), p(i,j) for mixed graphs or k(i,j) for 
--- graphs with 1 ≤i ≤j ≤n where n is the number of vertices in G
--- (see its documentation for details) In our computations, we
--- do not need the indeterminates s(i,j) .  
--- Output is a map F:R-->lpR and the ring lpR.
------------------------------------------
-changeRing=(d,R)->(
-    -- count the number of S variables. d is the number of
-    -- rows in a relevant matrix (clarify!!)
-    numSvars:=lift(d*(d+1)/2,ZZ);
-    --lp ring is the ring without the s variables
-    lpRvarlist:=apply(numgens(R)-numSvars,i->(gens(R))_i);
-    KK:=coefficientRing(R);
-    lpR:=KK[lpRvarlist];
-    -- here i is taken to numgens(R)-numSvars-1 because
-    -- indexing starts from 0. But for subscripts it
-    -- starts from 1.
-    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
-    F:=map(lpR,R,lpRTarget);
-    return (F,lpR)
-    );
-
-
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
     -- input -  list of points from sols
-    --          concentration matrix (or any matrix actually)
+    --          matrix whose entries are variables
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
-genListMatrix = (L,Sinv) ->
+genListMatrix = (L,A) ->
 (
     T := {};
  
@@ -115,7 +88,7 @@ genListMatrix = (L,Sinv) ->
     M := {};
     for t in T do
     (
-    	m := substitute(Sinv,matrix{t});	
+    	m := substitute(A,matrix{t});	
     	M = M|{m};
     );    
     return M
@@ -134,16 +107,16 @@ genListMatrix = (L,Sinv) ->
 ----------------------------------------------
 maxMLE=(L,V)->(
     if #L==0 then  error("No critical points to evaluate");
-    if #L==1 then  return E:=inverse L_0;
-    if #L>=1 then 
-    	eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
+    if #L==1 then  (E:=inverse L_0; maxPt:=log det L_0- trace (V*L_0))
+    else 
+    	(eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
 	evalReal:={};
 	for pt in eval do (if isReal pt then evalReal=evalReal  | {pt});
 	if #evalReal==0 then  error("No critical point evaluates to a real solution");
-	maxPt:=max evalReal;
+	maxPt=max evalReal;
 	indexOptimal:=positions(eval, i ->i== maxPt);
 	E={};
-        for i in indexOptimal do E=E | {L_i};
+        for i in indexOptimal do E=E | {L_i};);
     return (maxPt, E) 
     );
 
@@ -191,19 +164,21 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     ---------------------------------------------------- 
     -- Lambda
     L := directedEdgesMatrix R;
-    -- K 
-    K:= undirectedEdgesMatrix R;
     -- Psi
     P := bidirectedEdgesMatrix R;
     
+    -- If the mixedGraph only has undirected part, call specific function for undir.
+    if L==0 and P==0 then 
+    return scoreEquationsFromCovarianceMatrixUndir(R,U,opts);
+       
+    -- K 
+    K := undirectedEdgesMatrix R;
     ----------------------------------------------------
     -- Create an auxiliary ring and its fraction field
     -- which do not have the s variables
     ----------------------------------------------------
-    -- d is equal to the number of vertices in G
-    d := numRows L;
     -- create a new ring, lpR, which does not have the s variables
-    (F,lpR):=changeRing(d,R);
+    lpR:=coefficientRing(R)[gens R-set support covarianceMatrix R];
     -- create its fraction field
     FR := frac(lpR);
     
@@ -211,23 +186,24 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
     -- Construct Omega
     -----------------------------------------------------
     -- Kinv
-    K=substitute(K, FR);
+    K=sub(K, FR);
     Kinv:=inverse K;
-    P=substitute(P,FR);
+    P=sub(P,FR);
        
      --Omega
     if K==0 then W:=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
     
     -- move to FR, the fraction field of lpR
-    L= substitute (L,FR);
+    L= sub(L,FR);
     
     -- Sigma
+    d:=numcols L;
     if L==0 then S:=W else (
 	IdL := inverse (id_(FR^d)-L);
     	S = (transpose IdL) * W * IdL
 	);
-    if S == Kinv then Sinv:= K else Sinv = inverse S; 
-    
+    Sinv := inverse S; 
+      
     -- Sample covariance matrix
     if opts.sampleData then V := sampleCovarianceMatrix(U) else 
     (V=U_0;
@@ -247,7 +223,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
 	    if degree denoms_i =={0} then J=J else  
 	    J=saturate(argSaturate(J,denoms_i))); 
 	);
-    return (J,Sinv);
+    return J;
 );
 
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
@@ -259,28 +235,31 @@ scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (
 );
 
 
-scoreEquationsFromCovarianceMatrixUndir = method();
-scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := (R, U) -> (
-    --update to not assume zero mean variables
-   n := numRows U;
-   S:=sampleCovarianceMatrix U;
+scoreEquationsFromCovarianceMatrixUndir = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
+scoreEquationsFromCovarianceMatrixUndir(Ring,List) := opts -> (R, U) -> (
+    
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else 
+    (V=U_0;
+     for i from 1 to  #U-1 do V= V||U_i); -- if U is a list (even if it is inputted as a matrix, see the method scoreEquationsFromCovarianceMatrix(Ring,Matrix))
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
-    -- d is equal to the number of vertices in G
-    d := numRows K;
     -- move to a new ring, lpR, which does not have the s variables
-    (F,lpR):=changeRing(d,R);
-    K=F(K);
-    I:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*S)})};
-    J:=saturate(I,ideal{determinant(K)});
+    lpR:=coefficientRing(R)[gens R - set support covarianceMatrix R];
+    K=sub(K,lpR);
+    J:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*V)})};
+    if opts.doSaturate then 
+    (  	argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    	J=saturate(argSaturate(J,ideal{determinant(K)}));
+	);
     return J;
  );
 
-scoreEquationsFromCovarianceMatrixUndir(Ring,List) := (R, U) -> (
-    n := #U;
-    L := for i from 0 to n-1 list {U_i};
-    M := matrix(L);
-    return scoreEquationsFromCovarianceMatrixUndir(R,M);
+scoreEquationsFromCovarianceMatrixUndir(Ring,Matrix) := opts -> (R, U) -> (
+   X := {};
+   n := numRows U;
+   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return scoreEquationsFromCovarianceMatrixUndir(R,X,opts);
 );
 
 checkPD = method(TypicalValue =>List);
@@ -335,8 +314,8 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- generate the ideal of the score equations
     if opts.doSaturate then (
 	 argSaturate1:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
-         J:=scoreEquationsFromCovarianceMatrix(argSaturate1(R,V));)
-    else J= scoreEquationsFromCovarianceMatrix(R,V,doSaturate=>false, sampleData=>false);
+         (J,Sinv):=scoreEquationsFromCovarianceMatrix(argSaturate1(R,V));)
+    else (J,Sinv)= scoreEquationsFromCovarianceMatrix(R,V,doSaturate=>false, sampleData=>false);
     -- check that the system has finitely many solutions
     if dim J =!= 0 then (
 	print ("the ideal is not zero-dimensional");

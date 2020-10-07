@@ -69,16 +69,6 @@ matZZtoQQ = (M) -> (
     return matrix apply(#E, i -> apply(#(E_i), j -> (1/1)*E_i_j))    
 );
 
---------------------------------------------
--- change the entries of matrix M from ring R to ring lpR 
--- via the map F:R-->lpR
---------------------------------------------
-
-matRtolpR = (M,F) -> (
-    E:=entries(M);    
-    return matrix apply(#E, i -> apply(#(E_i), j -> F(E_i_j)))    
-);
-
 
 -----------------------------------------
 -- move to a new ring, lpR, which does not have the s variables
@@ -108,16 +98,6 @@ changeRing=(d,R)->(
     );
 
 
--- alternative function to changeRing, removes s variables and returns a list instead of sequence, I was getting some errors with changeRing
-removeSvar = (R) ->(
-    numSvars := #set support covarianceMatrix R;
-    lpRvarlist := gens R - set support covarianceMatrix R;
-    KK := coefficientRing(R);
-    lpR := KK[lpRvarlist];
-    lpRTarget:=apply(numgens(R),i-> if i<= numgens(R)-numSvars-1 then (gens(lpR))_i else 0);
-    F:=map(lpR,R,lpRTarget);
-    return {F,lpR};
-);
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
     -- input -  list of points from solves
@@ -131,10 +111,8 @@ genListMatrix = (L,R) ->
      -- d is equal to the number of vertices in G
     d := numRows K;
     -- move to a new ring, lpR, which does not have the s variables
-   -- F:=changeRing(d,R);
-   F := removeSvar(R);
-   K = F_0(K);
-   -- K = matRtolpR(K,F);
+   (F,lpR):=changeRing(d,R);
+    K = F(K);
     
     
     --ring mapping ends 

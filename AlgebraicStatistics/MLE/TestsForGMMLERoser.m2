@@ -24,11 +24,11 @@ MLEsolver(J,R)
 
 --Step by step
     --solve system with eigensolver
-    sols=zeroDimSolve(J);
+    sols=zeroDimSolve(J)
     --compute concentration matrix
     K=undirectedEdgesMatrix(R)
     --evaluate concentration matrix on solutions
-    M=evalConcentrationMatrix(sols,R);
+    M=genListMatrix(sols,R)
     --consider only PD matrices
     L=PDcheck M
     E=inverse L_0
@@ -40,9 +40,9 @@ needsPackage("GraphicalModelsMLE")
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 g=mixedGraph G
 R2=gaussianRing(g)
-U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+--U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
-J2=time scoreEquationsFromCovarianceMatrix(R2,U)
+(J2,Sinv)=time scoreEquationsFromCovarianceMatrix(R2,U)
 --with usual saturation
 -- used 11.1563 seconds
 --iterating saturation (denoms)
@@ -508,3 +508,19 @@ R=R2
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
     
+restart
+debug loadPackage("GraphicalModelsMLE")
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+(J,Sinv)=scoreEquationsFromCovarianceMatrix(R,U);
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J===I)
+
+sols=zeroDimSolve(J)
+--evaluate concentration matrix on solutions
+M=genListMatrix(sols,Sinv)
+L=checkPD M
+V=sampleCovarianceMatrix(U)
+optSols=maxMLE(L,V)
+ 

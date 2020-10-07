@@ -100,22 +100,14 @@ changeRing=(d,R)->(
 
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
-    -- input -  list of points from solves
+    -- input -  list of points from sols
+    --          concentration matrix (or any matrix actually)
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
-genListMatrix = (L,R) ->
+genListMatrix = (L,Sinv) ->
 (
     T := {};
-    K:=undirectedEdgesMatrix R;--checks for Graph, should be changed to allow for MixedGraphs
-    --ring mapping begins
-     -- d is equal to the number of vertices in G
-    d := numRows K;
-    -- move to a new ring, lpR, which does not have the s variables
-   (F,lpR):=changeRing(d,R);
-    K = F(K);
-    
-    
-    --ring mapping ends 
+ 
     for l in L do
     (
     	T = T|{coordinates(l)};	
@@ -123,7 +115,7 @@ genListMatrix = (L,R) ->
     M := {};
     for t in T do
     (
-    	m := substitute(K,matrix{t});	
+    	m := substitute(Sinv,matrix{t});	
     	M = M|{m};
     );    
     return M
@@ -142,7 +134,7 @@ genListMatrix = (L,R) ->
 ----------------------------------------------
 maxMLE=(L,V)->(
     if #L==0 then  error("No critical points to evaluate");
-    if #L==1 then  E:=inverse L_0;
+    if #L==1 then  return E:=inverse L_0;
     if #L>=1 then 
     	eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
 	evalReal:={};
@@ -255,7 +247,7 @@ scoreEquationsFromCovarianceMatrix(Ring,List) := opts ->(R, U) -> (
 	    if degree denoms_i =={0} then J=J else  
 	    J=saturate(argSaturate(J,denoms_i))); 
 	);
-    return J;
+    return (J,Sinv);
 );
 
 scoreEquationsFromCovarianceMatrix(Ring,Matrix) := opts -> (R, U) -> (

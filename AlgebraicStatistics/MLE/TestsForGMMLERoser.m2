@@ -13,22 +13,27 @@ restart
 needsPackage("GraphicalModelsMLE")
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 R=gaussianRing(G)
--- U=random(ZZ^4,ZZ^4)
+U=random(ZZ^4,ZZ^4)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 --Generate score equations for an undirected graph on 4 nodes  with random observations
 J=time scoreEquationsFromCovarianceMatrixUndir(R,U)
--- used 0.125 seconds
+-- used 0.078125 seconds
+J=time scoreEquationsFromCovarianceMatrixUndir(R,U,doSaturate=>false)
+J=time scoreEquationsFromCovarianceMatrixUndir(R,U,saturateOptions=>{Strategy=>Eliminate})
+J=time scoreEquationsFromCovarianceMatrixUndir(R,U,saturateOptions=>{Strategy=>Bayer})
+
 dim J, degree J
 --Find the optimal covariance matrix
 MLEsolver(J,R)
 
 --Step by step
     --solve system with eigensolver
-    sols=zeroDimSolve(J);
+    sols=zeroDimSolve(J)
     --compute concentration matrix
     K=undirectedEdgesMatrix(R)
     --evaluate concentration matrix on solutions
-    M=evalConcentrationMatrix(sols,R);
+    M=genListMatrix(sols,R)
     --consider only PD matrices
     L=PDcheck M
     E=inverse L_0
@@ -41,16 +46,22 @@ G=graph{{1,2},{2,3},{3,4},{1,4}}
 g=mixedGraph G
 R2=gaussianRing(g)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 J2=time scoreEquationsFromCovarianceMatrix(R2,U)
 --with usual saturation
 -- used 11.1563 seconds
 --iterating saturation (denoms)
 -- used 0.421875 seconds
+-- redirected to Undir
+-- used 0.078125 seconds
 J2=time scoreEquationsFromCovarianceMatrix(R2,U,doSaturate =>false)
 -- used 0.3125 seconds
 -- does not enter in saturate if
 --iterating saturation (denoms)
 -- used 0.25 seconds
+-- redirected to Undir
+-- used 0.03125 seconds
+J2=time scoreEquationsFromCovarianceMatrix(R2,U,saturateOptions=>{Strategy =>Eliminate})
 dim J2, degree J2
 test=ideal{58*k_(4,4)+47*k_(1,4)-21*k_(3,4)-8, 27*k_(3,3)+14*k_(2,3)-42*k_(3,4)-16,
      10*k_(2,2)-13*k_(1,2)+7*k_(2,3)-8, 115*k_(1,1)-26*k_(1,2)+94*k_(1,4)-16,
@@ -506,3 +517,25 @@ R=R2
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
+    
+restart
+debug loadPackage("GraphicalModelsMLE")
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+J=scoreEquationsFromCovarianceMatrix(R,U)
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J===I)
+
+sols=zeroDimSolve(J)
+--evaluate concentration matrix on solutions
+M=genListMatrix(sols,Sinv)
+L=checkPD M
+V=sampleCovarianceMatrix(U)
+optSols=maxMLE(L,V)
+
+restart
+loadPackage("GraphicalModelsMLE")
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+solverMLE(G,U) 

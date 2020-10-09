@@ -163,6 +163,7 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     ----------------------------------------------------
     if R.?graph then return scoreEquationsUndir(R,U,opts);
     if not R.?mixedGraph then error "Expected a ring created with gaussianRing of a Graph or MixedGraph";
+    if not #U==#vertices R.mixedGraph then error "Size of sample data does not match the MixedGraph.";
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -246,7 +247,12 @@ scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
 
 scoreEquationsUndir = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
 scoreEquationsUndir(Ring,List) := opts -> (R, U) -> (
-    
+    ----------------------------------------------------
+    -- Previous checks 
+    ----------------------------------------------------
+    if not R.?graph then error "Expected gaussianRing created from a graph."
+    if not #U==#vertices R.graph then error "Size of sample data does not match the Graph.";
+    ----------------------------------------------------   
     if opts.sampleData then V := sampleCovarianceMatrix(U) else (
 	--If the input is a list of lists we convert it into a list of matrices
        if class U_0===List then U=apply(#U, i -> matrix{U_i});

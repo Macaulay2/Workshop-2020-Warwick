@@ -70,10 +70,23 @@ matZZtoQQ = (M) -> (
 );
 
 
+----------------------------------------------
+-- convert a matrix inputted as a list into a matrix
+----------------------------------------------
+listToMatrix=(L)->(
+    --If the input is a list of lists we convert it into a list of matrices
+       if class L_0===List then L=apply(#L, i -> matrix{L_i});
+       -- convert list of matrices into a matrix
+       V=L_0;
+       for i from 1 to  #U-1 do V= V||L_i;
+       return V
+);
+
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
     -- input -  list of points from sols
     --          matrix whose entries are variables
+    --          (expect it to be an inverse of a covariance matrix, Sin)
     -- output - list of matrices after substituting these values
 ------------------------------------------------------
 genListMatrix = (L,A) ->
@@ -118,7 +131,6 @@ maxMLE=(L,V)->(
         for i in indexOptimal do E=E | {L_i};);
     return (maxPt, E) 
     );
-
 
 -------------------------------------------
 -- scoreEquationsInternal - function that returns
@@ -179,13 +191,8 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     Sinv := inverse S; 
       
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else (
-       --If the input is a list of lists we convert it into a list of matrices
-       if class U_0===List then U=apply(#U, i -> matrix{U_i});
-       -- convert list of matrices into a matrix
-       V=U_0;
-       for i from 1 to  #U-1 do V= V||U_i
-       ); 
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else
+    	V=listToMatrix U; 
    
     -- Compute ideal J   
     C1 := trace(Sinv * V);
@@ -352,9 +359,9 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
      for i from 1 to  #U-1 do V= V||U_i); -- if U is a list (even if it is inputted as a matrix, see the method scoreEquationsFromCovarianceMatrix(Ring,Matrix))
     -- generate the ideal of the score equations
     if opts.doSaturate then (
-	 argSaturate1:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
-         J:=scoreEquations(argSaturate1(R,V));)
-    else J= scoreEquations(R,V,doSaturate=>false, sampleData=>false);
+	 argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
+         (J,SInv):=scoreEquationsInternal(argSaturate(R,V));)
+    else (J,SInv)= scoreEquationsInternal(R,V,doSaturate=>false, sampleData=>false);
     -- check that the system has finitely many solutions
     if dim J =!= 0 then (
 	print ("the ideal is not zero-dimensional");
@@ -363,7 +370,7 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- solve system with eigensolver
     sols:=zeroDimSolve(J);
     --evaluate matrices on solutions
-    M:=genListMatrix(sols,R);
+    M:=genListMatrix(sols,SInv);
     --consider only PD matrices    
     L:=checkPD M;
     --find the optimal points

@@ -120,44 +120,13 @@ maxMLE=(L,V)->(
     );
 
 
---**************************--
---  METHODS 	      	   	  --
---**************************--
-sampleCovarianceMatrix = method(TypicalValue =>Matrix);
-sampleCovarianceMatrix(List) := (U) -> (
-    n := #U;
-    --If the input is a list of lists we convert it into a list of matrices
-    if class U_0===List then U=apply(#U, i -> matrix{U_i});
-    --Convert from integers to rationals if needed
-    U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
-    --Compute the mean vector
-    Ubar := matrix{{(1/n)}} * sum(U);
-    --Compute sample covariance matrix
-    return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
-);
-
-sampleCovarianceMatrix(Matrix) := (U) -> (
-   X := {};
-   n := numRows U;
-   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
-   X = for i to n-1 list U^{i};
-   return sampleCovarianceMatrix(X);
-);
-
-
-
-jacobianMatrixOfRationalFunction = method(TypicalValue =>Matrix);
-jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
-    f:=numerator(F);
-    g:=denominator(F);
-    R:=ring(f);
-    answer:=diff(vars(R), f) * g - diff(vars(R), g)*f;
-    answer=substitute(answer, ring(F));
-    return transpose(matrix({{(1/g)^2}})*answer)
-);
-
-scoreEquations = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
-scoreEquations(Ring,List) := opts ->(R, U) -> ( 
+-------------------------------------------
+-- scoreEquationsInternal - function that returns
+-- both the ideal and the corresponding SInv matrix.
+-- The user-facing scoreEquations method returns only 
+-- the ideal, whereas SInv is used in solverMLE
+-------------------------------------------
+scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Previous checks 
     ----------------------------------------------------
@@ -233,8 +202,54 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
 	    J=saturate(argSaturate(J,denoms_i))
 	    ); 
 	);
+    return (J,Sinv);
+);
+
+--**************************--
+--  METHODS 	      	   	  --
+--**************************--
+sampleCovarianceMatrix = method(TypicalValue =>Matrix);
+sampleCovarianceMatrix(List) := (U) -> (
+    n := #U;
+    --If the input is a list of lists we convert it into a list of matrices
+    if class U_0===List then U=apply(#U, i -> matrix{U_i});
+    --Convert from integers to rationals if needed
+    U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
+    --Compute the mean vector
+    Ubar := matrix{{(1/n)}} * sum(U);
+    --Compute sample covariance matrix
+    return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
+);
+
+sampleCovarianceMatrix(Matrix) := (U) -> (
+   X := {};
+   n := numRows U;
+   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return sampleCovarianceMatrix(X);
+);
+
+
+
+jacobianMatrixOfRationalFunction = method(TypicalValue =>Matrix);
+jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
+    f:=numerator(F);
+    g:=denominator(F);
+    R:=ring(f);
+    answer:=diff(vars(R), f) * g - diff(vars(R), g)*f;
+    answer=substitute(answer, ring(F));
+    return transpose(matrix({{(1/g)^2}})*answer)
+);
+
+scoreEquations = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
+scoreEquations(Ring,List) := opts ->(R, U) -> ( 
+    (J,Sinv):=scoreEquationsInternal(R,U,opts);
     return J;
 );
+
+scoreEquations(List,Ring) := opts ->(U,R) -> ( 
+    return scoreEquations(R,U,opts);
+    );
 
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
    X := {};
@@ -244,13 +259,18 @@ scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
    return scoreEquations(R,X,opts);
 );
 
+scoreEquations(Matrix,Ring) := opts ->(U,R) -> ( 
+    return scoreEquations(R,U,opts);
+    );
+
+
 
 scoreEquationsUndir = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
 scoreEquationsUndir(Ring,List) := opts -> (R, U) -> (
     ----------------------------------------------------
     -- Previous checks 
     ----------------------------------------------------
-    if not R.?graph then error "Expected gaussianRing created from a graph."
+    if not R.?graph then error "Expected gaussianRing created from a graph.";
     if not #U==#vertices R.graph then error "Size of sample data does not match the Graph.";
     ----------------------------------------------------   
     if opts.sampleData then V := sampleCovarianceMatrix(U) else (

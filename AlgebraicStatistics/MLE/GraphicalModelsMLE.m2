@@ -97,11 +97,11 @@ toMixedGraphRing=(R)->(
 verticesInRing=(R)->(
     if R.?mixedGraph then V:=vertices R.mixedGraph
     else ( 
-	if R.?graph then V:=vertices R.graph
+	if R.?graph then V=vertices R.graph
 	else (
-	    if R.?bigraph then V:=vertices R.bigraph
+	    if R.?bigraph then V=vertices R.bigraph
 	    else (
-		if R.?digraph then V:=vertices R.digraph
+		if R.?digraph then V=vertices R.digraph
 		else error "Not a Gaussian ring";
 		)
 	    )	
@@ -182,7 +182,7 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     
     -- If the mixedGraph only has undirected part, call specific function for undirected.
     if L==0 and P==0 then 
-    return scoreEquationsUndir(R,U,opts);
+    return scoreEquationsInternalUndir(R,U,opts);
        
     -- K 
     K := undirectedEdgesMatrix R;
@@ -309,7 +309,7 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     (J,Sinv):=scoreEquationsInternalUndir(R,U,opts)
     else (
     if not R.?mixedGraph then R=toMixedGraphRing R;    	
-    (J,Sinv) =scoreEquationsInternal(R,U,opts);)
+    (J,Sinv) =scoreEquationsInternal(R,U,opts));
     return J;
 );
 

@@ -77,8 +77,8 @@ listToMatrix=(L)->(
     --If the input is a list of lists we convert it into a list of matrices
        if class L_0===List then L=apply(#L, i -> matrix{L_i});
        -- convert list of matrices into a matrix
-       V=L_0;
-       for i from 1 to  #U-1 do V= V||L_i;
+       V:=L_0;
+       for i from 1 to  #L-1 do V= V||L_i;
        return V
 );
 
@@ -191,8 +191,7 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     Sinv := inverse S; 
       
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else
-    	V=listToMatrix U; 
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U; 
    
     -- Compute ideal J   
     C1 := trace(Sinv * V);
@@ -353,10 +352,8 @@ solverMLE = method(TypicalValue =>List, Options =>{doSaturate => true, saturateO
 solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
-    -- compute the sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else 
-    (V=U_0;
-     for i from 1 to  #U-1 do V= V||U_i); -- if U is a list (even if it is inputted as a matrix, see the method scoreEquationsFromCovarianceMatrix(Ring,Matrix))
+    -- sample covariance matrix
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U;
     -- generate the ideal of the score equations
     if opts.doSaturate then (
 	 argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
@@ -377,6 +374,18 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     optSols:=maxMLE(L,V);
     return optSols);    
 );
+
+-- Allow Matrix instead of List
+
+solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
+   X := {};
+   n := numRows U;
+   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
+   X = for i to n-1 list U^{i};
+   return solverMLE(R,X,opts);
+);
+
+-- Permutations of input
 
 solverMLE(Graph,List) := opts -> (G, U) -> (
     return solverMLE(mixedGraph (G),U, opts);
@@ -422,6 +431,155 @@ solverMLE(Bigraph, Digraph,Graph, List) := opts -> (B,D,G,U) -> (
     return solverMLE(mixedGraph (B,D,G),U, opts);
     );
 solverMLE(Digraph, Graph, Bigraph, List) := opts -> (D,G,B,U) -> (
+    return solverMLE(mixedGraph (D,G,B),U, opts);
+    );
+
+solverMLE(List,MixedGraph) := opts -> (U,G) -> (
+    return solverMLE(G,U, opts);
+    );
+
+solverMLE(List,Graph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+
+solverMLE(List,Digraph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(List,Bigraph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(List,Graph,Digraph) := opts -> (U,G,D) -> (
+    return solverMLE(mixedGraph (G,D),U, opts);
+    );
+solverMLE(List,Digraph,Graph) := opts -> (U,D,G) -> (
+    return solverMLE(mixedGraph (D,G),U, opts);
+    );
+solverMLE(List,Digraph,Bigraph) := opts -> (U,D,B) -> (
+    return solverMLE(mixedGraph (D,B),U, opts);
+    );
+solverMLE(List,Bigraph,Digraph) := opts -> (U,B,D) -> (
+    return solverMLE(mixedGraph (B,D),U, opts);
+    );
+solverMLE(List,Graph, Bigraph) := opts -> (U,G,B) -> (
+    return solverMLE(mixedGraph (G,B),U, opts);
+    );
+solverMLE(List,Bigraph,Graph) := opts -> (U,B,G) -> (
+    return solverMLE(mixedGraph (B,G),U, opts);
+    );
+solverMLE(List,Graph, Digraph, Bigraph) := opts -> (U,G,D,B) -> (
+    return solverMLE(mixedGraph (G,D,B),U, opts);
+    );
+solverMLE(List,Digraph, Bigraph, Graph) := opts -> (U,D,B,G) -> (
+    return solverMLE(mixedGraph (D,B,G),U, opts);
+    );
+solverMLE(List,Bigraph, Graph, Digraph) := opts -> (U,B,G,D) -> (
+    return solverMLE(mixedGraph (B,G,D),U, opts);
+    );
+solverMLE(List,Graph,Bigraph, Digraph) := opts -> (U,G,B,D) -> (
+    return solverMLE(mixedGraph (G,B,D),U, opts);
+    );
+solverMLE(List,Bigraph, Digraph,Graph) := opts -> (U,B,D,G) -> (
+    return solverMLE(mixedGraph (B,D,G),U, opts);
+    );
+solverMLE(List,Digraph, Graph, Bigraph) := opts -> (U,D,G,B) -> (
+    return solverMLE(mixedGraph (D,G,B),U, opts);
+    );
+
+solverMLE(Graph,Matrix) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+
+solverMLE(Digraph,Matrix) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Bigraph,Matrix) := opts -> (G, U) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Graph,Digraph,Matrix) := opts -> (G,D,U) -> (
+    return solverMLE(mixedGraph (G,D),U, opts);
+    );
+solverMLE(Digraph,Graph,Matrix) := opts -> (D,G,U) -> (
+    return solverMLE(mixedGraph (D,G),U, opts);
+    );
+solverMLE(Digraph,Bigraph,Matrix) := opts -> (D,B,U) -> (
+    return solverMLE(mixedGraph (D,B),U, opts);
+    );
+solverMLE(Bigraph,Digraph,Matrix) := opts -> (B,D,U) -> (
+    return solverMLE(mixedGraph (B,D),U, opts);
+    );
+solverMLE(Graph, Bigraph,Matrix) := opts -> (G,B,U) -> (
+    return solverMLE(mixedGraph (G,B),U, opts);
+    );
+solverMLE(Bigraph,Graph,Matrix) := opts -> (B,G,U) -> (
+    return solverMLE(mixedGraph (B,G),U, opts);
+    );
+solverMLE(Graph, Digraph, Bigraph, Matrix) := opts -> (G,D,B,U) -> (
+    return solverMLE(mixedGraph (G,D,B),U, opts);
+    );
+solverMLE(Digraph, Bigraph, Graph, Matrix) := opts -> (D,B,G,U) -> (
+    return solverMLE(mixedGraph (D,B,G),U, opts);
+    );
+solverMLE(Bigraph, Graph, Digraph, Matrix) := opts -> (B,G,D,U) -> (
+    return solverMLE(mixedGraph (B,G,D),U, opts);
+    );
+solverMLE(Graph,Bigraph, Digraph, Matrix) := opts -> (G,B,D,U) -> (
+    return solverMLE(mixedGraph (G,B,D),U, opts);
+    );
+solverMLE(Bigraph, Digraph,Graph, Matrix) := opts -> (B,D,G,U) -> (
+    return solverMLE(mixedGraph (B,D,G),U, opts);
+    );
+solverMLE(Digraph, Graph, Bigraph, Matrix) := opts -> (D,G,B,U) -> (
+    return solverMLE(mixedGraph (D,G,B),U, opts);
+    );
+
+solverMLE(Matrix,MixedGraph) := opts -> (U,G) -> (
+    return solverMLE(G,U, opts);
+    );
+
+solverMLE(Matrix,Graph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+
+solverMLE(Matrix,Digraph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Matrix,Bigraph) := opts -> (U,G) -> (
+    return solverMLE(mixedGraph (G),U, opts);
+    );
+solverMLE(Matrix,Graph,Digraph) := opts -> (U,G,D) -> (
+    return solverMLE(mixedGraph (G,D),U, opts);
+    );
+solverMLE(Matrix,Digraph,Graph) := opts -> (U,D,G) -> (
+    return solverMLE(mixedGraph (D,G),U, opts);
+    );
+solverMLE(Matrix,Digraph,Bigraph) := opts -> (U,D,B) -> (
+    return solverMLE(mixedGraph (D,B),U, opts);
+    );
+solverMLE(Matrix,Bigraph,Digraph) := opts -> (U,B,D) -> (
+    return solverMLE(mixedGraph (B,D),U, opts);
+    );
+solverMLE(Matrix,Graph, Bigraph) := opts -> (U,G,B) -> (
+    return solverMLE(mixedGraph (G,B),U, opts);
+    );
+solverMLE(Matrix,Bigraph,Graph) := opts -> (U,B,G) -> (
+    return solverMLE(mixedGraph (B,G),U, opts);
+    );
+solverMLE(Matrix,Graph, Digraph, Bigraph) := opts -> (U,G,D,B) -> (
+    return solverMLE(mixedGraph (G,D,B),U, opts);
+    );
+solverMLE(Matrix,Digraph, Bigraph, Graph) := opts -> (U,D,B,G) -> (
+    return solverMLE(mixedGraph (D,B,G),U, opts);
+    );
+solverMLE(Matrix,Bigraph, Graph, Digraph) := opts -> (U,B,G,D) -> (
+    return solverMLE(mixedGraph (B,G,D),U, opts);
+    );
+solverMLE(Matrix,Graph,Bigraph, Digraph) := opts -> (U,G,B,D) -> (
+    return solverMLE(mixedGraph (G,B,D),U, opts);
+    );
+solverMLE(Matrix,Bigraph, Digraph,Graph) := opts -> (U,B,D,G) -> (
+    return solverMLE(mixedGraph (B,D,G),U, opts);
+    );
+solverMLE(Matrix,Digraph, Graph, Bigraph) := opts -> (U,D,G,B) -> (
     return solverMLE(mixedGraph (D,G,B),U, opts);
     );
 

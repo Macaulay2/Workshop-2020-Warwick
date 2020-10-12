@@ -441,20 +441,24 @@ debug loadPackage "GraphicalModelsMLE"
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
-R=mixedGraph(G,B)
+G1=mixedGraph(G,B)
+R=gaussianRing G1
 
 R.?graph
 R.?mixedGraph
 
-R=mixedGraph(B,G)
+G1=mixedGraph(B,G)
+R=gaussianRing G1
 R.?graph
 R.?mixedGraph
 
-R=mixedGraph(G,D,B)
+G1=mixedGraph(G,D,B)
+R=gaussianRing G1
 R.?graph
 R.?mixedGraph
 
-R=mixedGraph(D,G,B)
+G1=mixedGraph(D,G,B)
+R=gaussianRing G1
 R.?graph
 R.?mixedGraph
 

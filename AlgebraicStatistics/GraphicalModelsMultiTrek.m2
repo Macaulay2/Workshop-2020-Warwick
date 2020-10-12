@@ -1056,6 +1056,7 @@ trekSeparation MixedGraph := List => (g) -> (
 Input: graph g, integer k
 Optional input: integer Bound
 Output: list of minimal separation statements: in format {Slist,Alist}, where Slist={S1..Sk}, Alist={A1..Ak} TODO explain "minimal"
+TODO: up to symmetry
 If Bound is given: only computes seperation statements with sum of cardinalities of A_i smaller than Bound.
 Strategy: Loop over all A_1..A_k and all S_1..S_(k-1), find the maximal S_k such that it is separated:
 a vertex w can not be in S_k if and only if it is a descendant of a t in tops(g,k-1,{A_1..A_(k-1)},{S_1..S_(k-1)}).
@@ -2639,9 +2640,10 @@ doc///
    Inputs
      G:MixedGraph
        mixed graph with directed edges
+     k:ZZ
    Outputs
      :List
-        of lists \{(S_1,\dots,S_k),(A_1,\dots,A_k\}, where (A_1,dots,A_k) $k$-trek-separates (S_1,\dots,S_k).
+        of lists \{(S_1,\dots,S_k),(A_1,\dots,A_k)\}, where (A_1,dots,A_k) $k$-trek-separates (S_1,\dots,S_k).
    Description 
      Text
        A $k$-trek in a DAG $G$ between k nodes $v_1,\dots,v_k$ is an ordered collection of $k$ directed paths $(P_1,\dots,P_k)$, where 
@@ -2658,11 +2660,18 @@ doc///
        since $\{(S_{1},\dots,S_{k}),(A_{1},\dots,A_{k})\}$\,is a $k$-trek-separation statement if and only if 
        $\{(S_{\sigma(1)},\dots,S_{\sigma(k)}),(A_{\sigma(1)},\dots,A_{\sigma(k)})\}$ is a $k$-trek-separation for some permutation $\sigma on [k]$.
 
-       These defintions and conventions are taken from this paper \url{https://arxiv.org/pdf/2001.10426.pdf}.
+       These definitions and conventions are taken from the paper \url{https://arxiv.org/pdf/2001.10426.pdf}.
      
      Example
        G = mixedGraph(digraph {{a,b},{b,d},{a,c},{c,e}})
        S = multiTrekSeparation(G,2)
+       
+     Text 
+       If the optional argument @Bound@ is given, then only seperation statements for which $\sum_i{|A_i|}$ is smaller than the bound are computed.
+       
+     Example
+       G  = mixedGraph(digraph {{a,b},{a,c},{a,d}})
+       L2 = multiTrekSeparation(G,3,Bound=>3)
 
    Caveat
        {\tt multiTrekSeparation} $G$ is only implemented for mixedGraphs with directed edges.    

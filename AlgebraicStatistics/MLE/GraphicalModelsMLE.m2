@@ -45,7 +45,6 @@ export {
     "sampleData",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "saturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "scoreEquations",
-    "scoreEquationsUndir",
     "solverMLE"
      } 
      
@@ -81,6 +80,35 @@ listToMatrix=(L)->(
        for i from 1 to  #L-1 do V= V||L_i;
        return V
 );
+
+----------------------------------------------
+-- convert gaussianRing of Bigraph or Digraph to a gaussianRing of MixedGraph 
+----------------------------------------------
+toMixedGraphRing=(R)->(
+    if R.?bigraph then R=gaussianRing(mixedGraph (R.bigraph))
+    else R=gaussianRing(mixedGraph (R.digraph));
+    return R;
+    );
+
+----------------------------------------------
+-- extract the vertices of a Gaussian ring
+
+----------------------------------------------
+verticesInRing=(R)->(
+    if R.?mixedGraph then V:=vertices R.mixedGraph
+    else ( 
+	if R.?graph then V:=vertices R.graph
+	else (
+	    if R.?bigraph then V:=vertices R.bigraph
+	    else (
+		if R.?digraph then V:=vertices R.digraph
+		else error "Not a Gaussian ring";
+		)
+	    )	
+	);
+    return V;
+    );
+
 
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
@@ -133,18 +161,17 @@ maxMLE=(L,V)->(
     );
 
 -------------------------------------------
+-- 
+-------------------------------------------
+
+-------------------------------------------
 -- scoreEquationsInternal - function that returns
 -- both the ideal and the corresponding SInv matrix.
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
 scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(
-    ----------------------------------------------------
-    -- Previous checks 
-    ----------------------------------------------------
-    if R.?graph then return scoreEquationsUndir(R,U,opts);
-    if not R.?mixedGraph then error "Expected a ring created with gaussianRing of a Graph or MixedGraph";
-    if not #U==#vertices R.mixedGraph then error "Size of sample data does not match the MixedGraph.";
+
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -211,6 +238,25 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     return (J,Sinv);
 );
 
+--------------------------------
+--scoreEquationsInternalUndir for undirected graphs
+--------------------------------
+scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(    
+    -- Sample covariance matrix
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U; 
+    -- Concentration matrix K
+    K:=undirectedEdgesMatrix R;
+    -- move to a new ring, lpR, which does not have the s variables
+    lpR:=coefficientRing(R)[gens R - set support covarianceMatrix R];
+    K=sub(K,lpR);
+    J:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*V)})};
+    if opts.doSaturate then 
+    (  	argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    	J=saturate(argSaturate(J,ideal{determinant(K)}));
+	);
+    return J;
+ );
+
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
@@ -249,7 +295,21 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
 
 scoreEquations = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
 scoreEquations(Ring,List) := opts ->(R, U) -> ( 
-    (J,Sinv):=scoreEquationsInternal(R,U,opts);
+    ----------------------------------------------------
+    --Check input
+    ----------------------------------------------------
+    if not (R.?mixedGraph or R.?graph or R.?bigraph or R.?digraph)  then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
+    if not #U==#verticesInRing R then error "Size of sample data does not match the graph.";    
+        
+    ---------------------------------------------------
+    -- Apply appropriate scoreEquations routine
+    ---------------------------------------------------
+    if R.?graph 
+    then 
+    (J,Sinv):=scoreEquationsInternalUndir(R,U,opts)
+    else (
+    if not R.?mixedGraph then R=toMixedGraphRing R;    	
+    (J,Sinv) =scoreEquationsInternal(R,U,opts);)
     return J;
 );
 
@@ -268,44 +328,6 @@ scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
 scoreEquations(Matrix,Ring) := opts ->(U,R) -> ( 
     return scoreEquations(R,U,opts);
     );
-
-
-
-scoreEquationsUndir = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
-scoreEquationsUndir(Ring,List) := opts -> (R, U) -> (
-    ----------------------------------------------------
-    -- Previous checks 
-    ----------------------------------------------------
-    if not R.?graph then error "Expected gaussianRing created from a graph.";
-    if not #U==#vertices R.graph then error "Size of sample data does not match the Graph.";
-    ----------------------------------------------------   
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else (
-	--If the input is a list of lists we convert it into a list of matrices
-       if class U_0===List then U=apply(#U, i -> matrix{U_i});
-       -- convert list of matrices into a matrix
-       V=U_0;
-       for i from 1 to  #U-1 do V= V||U_i
-       ); 
-    -- Concentration matrix K
-    K:=undirectedEdgesMatrix R;
-    -- move to a new ring, lpR, which does not have the s variables
-    lpR:=coefficientRing(R)[gens R - set support covarianceMatrix R];
-    K=sub(K,lpR);
-    J:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*V)})};
-    if opts.doSaturate then 
-    (  	argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
-    	J=saturate(argSaturate(J,ideal{determinant(K)}));
-	);
-    return J;
- );
-
-scoreEquationsUndir(Ring,Matrix) := opts -> (R, U) -> (
-   X := {};
-   n := numRows U;
-   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
-   X = for i to n-1 list U^{i};
-   return scoreEquationsUndir(R,X,opts);
-);
 
 checkPD = method(TypicalValue =>List);
 checkPD(List) := (L) -> (
@@ -382,7 +404,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
    n := numRows U;
    -- converting U to list of matrices; rows of matrix correponds to the elements of the list
    X = for i to n-1 list U^{i};
-   return solverMLE(R,X,opts);
+   return solverMLE(G,X,opts);
 );
 
 -- Permutations of input
@@ -816,30 +838,6 @@ doc ///
      doSaturate
      saturate	
 ///
-
-doc ///
-    Key
-    	scoreEquationsUndir
-	(scoreEquationsUndir,Ring,Matrix)
-    Headline
-    	computes the score equations for undirected graphs
-    Usage
-    	scoreEquationsUndir(R,U)
-    Inputs
-    	R:Ring
-	U:List
-    Outputs
-    	:Ideal
-    Description
-    	Text
-	    This function computes the score equations for undirected graphs. 
-	    See Example 2.1.13 of Sturmfels' lecture notes
-	Example
-	    G=graph{{1,2},{2,3},{3,4},{1,4}}
-	    R=gaussianRing(G)
-	    U=random(ZZ^4,ZZ^4)
-	    scoreEquationsUndir(R,U)				
-     ///
 
 doc   ///
     Key

@@ -218,7 +218,7 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     Sinv := inverse S; 
       
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U; 
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U; 
    
     -- Compute ideal J   
     C1 := trace(Sinv * V);
@@ -243,7 +243,7 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
 --------------------------------
 scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(    
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U; 
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U; 
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
@@ -254,7 +254,7 @@ scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options satu
     (  	argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
     	J=saturate(argSaturate(J,ideal{determinant(K)}));
 	);
-    return J;
+    return (J,K);
  );
 
 --**************************--
@@ -299,7 +299,12 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     --Check input
     ----------------------------------------------------
     if not (R.?mixedGraph or R.?graph or R.?bigraph or R.?digraph)  then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
-    if not #U==#verticesInRing R then error "Size of sample data does not match the graph.";    
+    if not #U==#verticesInRing R then error "Size of sample data does not match the graph.";  
+    
+    ---------------------------------------------------
+    -- Convert sample covariance data to matrix
+    ---------------------------------------------------
+    if not opts.sampleData then U=listToMatrix U;
         
     ---------------------------------------------------
     -- Apply appropriate scoreEquations routine
@@ -317,7 +322,7 @@ scoreEquations(List,Ring) := opts ->(U,R) -> (
     return scoreEquations(R,U,opts);
     );
 
-scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
+scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
    X := {};
    n := numRows U;
    -- converting U to list of matrices; rows of matrix correponds to the elements of the list
@@ -370,8 +375,10 @@ checkPSD(List) := (L) -> (
 );
 
 
-solverMLE = method(TypicalValue =>List, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});-- add a choice of and sigmaInverse solver e,sigmaInverse=>true
+solverMLE = method(TypicalValue =>Sequence, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});-- add a choice of and sigmaInverse solver e,sigmaInverse=>true
 solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
+    -- check input
+    if not #U==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
     -- sample covariance matrix
@@ -639,7 +646,8 @@ doc ///
 doc /// 
     Key
         sampleCovarianceMatrix
-        (sampleCovarianceMatrix,List) 
+        (sampleCovarianceMatrix, List) 
+	(sampleCovarianceMatrix, Matrix) 
     Headline
         compute the sample covariance matrix of a list of data vectors or a matrix
     Usage
@@ -698,10 +706,12 @@ doc ///
 doc /// 
     Key
         scoreEquations
-        (scoreEquations,Ring,List) 
-	(scoreEquations,Ring,Matrix)
+        (scoreEquations, Ring, List) 
+	(scoreEquations, Ring, Matrix)
+	(scoreEquations, List, Ring)
+	(scoreEquations, Matrix, Ring) 
     Headline
-        computes the score equations that arise from the log-likelihood function of $\Sigma^{-1}$ of a Gaussian model
+        computes the score equations that arise from the log-likelihood function of the concentration matrix $\Sigma^{-1}$ of a Gaussian model
     Usage
         scoreEquations(R,U)
     Inputs
@@ -781,14 +791,17 @@ doc ///
     optional input to cancel the saturation of the ideal generated of the Jacobian by its denominators
   SeeAlso
      scoreEquations
+     solverMLE
    ///
 doc ///
   Key
     [scoreEquations, doSaturate]
+    [solverMLE, doSaturate]
   Headline
      optional input to cancel the saturation of the ideal generated of the Jacobian by its denominators
   Usage
-    scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>true)  
+    scoreEquations(R,U,doSaturate=>true)
+    solverMLE(G,U,doSaturate=>true)  
   Inputs 
     true: Boolean
     
@@ -800,8 +813,14 @@ doc ///
      JnoSat=scoreEquations(R,U,doSaturate=>false);
      dim JnoSat  
      degree JnoSat
+     
+    Example
+     G=graph{{1,2},{2,3},{3,4},{1,4}}
+     U=random(ZZ^4,ZZ^4)
+     solverMLE(G,U,doSaturate=>false)     
   SeeAlso
-     scoreEquations 	
+     scoreEquations
+     solverMLE 	
 ///
 
 doc ///
@@ -811,16 +830,19 @@ doc ///
     optional input to set up saturation, use any option from saturate
   SeeAlso
      scoreEquations
+     solverMLE
      doSaturate
      saturate
    ///
 doc ///
   Key
     [scoreEquations,  saturateOptions]
+    [solverMLE,  saturateOptions]
   Headline
     optional input to set up saturation, use any option from saturate
   Usage
-    scoreEquations(R,U,saturateOptions=>{options saturate})  
+    scoreEquations(R,U,saturateOptions=>{options saturate})
+    solverMLE(G,U,saturateOptions=>{options saturate})  
   Inputs 
     L: List
      list of options to set up the saturation. Accepts any option from the function
@@ -828,16 +850,65 @@ doc ///
     
   Description
     Example
-     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
-     R=gaussianRing(G);
-     U=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
-     J=scoreEquations(R,U,saturateOptions => {DegreeLimit=>1, MinimalGenerators => false});
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+     R=gaussianRing(G)
+     U=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+     J=scoreEquations(R,U,saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})
+    
+    Example
+     G=graph{{1,2},{2,3},{3,4},{1,4}}
+     U=random(ZZ^4,ZZ^4)
+     solverMLE(G,U,saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})     
 
   SeeAlso
      scoreEquations   
      doSaturate
-     saturate	
+     saturate
+     solverMLE	
 ///
+doc ///
+  Key
+    sampleData
+  Headline
+    optional parameter to declare whether the user inputs data or a sample covariance matrix
+  SeeAlso
+     scoreEquations
+     solverMLE
+   ///
+doc ///
+  Key
+    [scoreEquations, sampleData]
+    [solverMLE, sampleData]
+  Headline
+    optional parameter to declare whether the user inputs data or a sample covariance matrix
+  Usage
+    scoreEquations(R,U,sampleData=>true)
+    solverMLE(G,U,sampleData=>true)  
+  Inputs 
+    true: Boolean
+    
+  Description
+    Example
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+     R=gaussianRing(G);
+     U=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
+     J=scoreEquations(R,U,sampleData=>true)
+     
+     V=sampleCovarianceMatrix(U)
+     I=scoreEquations(R,V,sampleData=>false)
+     
+    Example
+     G=graph{{1,2},{2,3},{3,4},{1,4}}
+     U=random(ZZ^4,ZZ^4)
+     solverMLE(G,U,sampleData=>true)
+     
+     V=sampleCovarianceMatrix(U)
+     solverMLE(G,V,sampleData=>false)     
+  SeeAlso
+     scoreEquations
+     solverMLE 	
+///
+
 
 doc   ///
     Key
@@ -889,15 +960,82 @@ doc ///
     Key
         solverMLE
 	(solverMLE,MixedGraph,List)
+	(solverMLE, MixedGraph, Matrix)
+	(solverMLE, Graph, List)
+	(solverMLE, Digraph, List)
+	(solverMLE, Bigraph, List)
+	(solverMLE, Graph, Digraph,List)
+	(solverMLE, Digraph, Graph,List)
+	(solverMLE, Digraph, Bigraph, List)
+	(solverMLE, Bigraph, Digraph, List)
+	(solverMLE, Graph, Bigraph, List)
+	(solverMLE, Bigraph, Graph, List)
+	(solverMLE, Graph, Digraph, Bigraph, List)
+	(solverMLE, Digraph, Bigraph, Graph, List)
+	(solverMLE, Bigraph, Graph, Digraph, List)
+	(solverMLE, Graph, Bigraph, Digraph, List)
+	(solverMLE, Bigraph, Digraph, Graph, List)
+	(solverMLE, Digraph, Graph, Bigraph, List)
+	(solverMLE, List, MixedGraph)
+	(solverMLE, List, Graph)
+	(solverMLE, List, Digraph)
+	(solverMLE, List, Bigraph)
+	(solverMLE, List, Graph, Digraph)
+	(solverMLE, List, Digraph,Graph)
+	(solverMLE, List, Digraph,Bigraph)
+	(solverMLE, List, Bigraph,Digraph)
+	(solverMLE, List, Graph, Bigraph)
+	(solverMLE, List, Bigraph, Graph)
+	(solverMLE, List, Graph, Digraph, Bigraph)
+	(solverMLE, List, Digraph, Bigraph, Graph)
+	(solverMLE, List, Bigraph, Graph, Digraph)
+	(solverMLE, List, Graph, Bigraph, Digraph)
+	(solverMLE, List, Bigraph, Digraph, Graph)
+	(solverMLE, List, Digraph, Graph, Bigraph)
+	(solverMLE, Graph, Matrix)
+	(solverMLE, Digraph, Matrix)
+	(solverMLE, Bigraph, Matrix)
+	(solverMLE, Graph, Digraph,Matrix)
+	(solverMLE, Digraph, Graph,Matrix)
+	(solverMLE, Digraph, Bigraph, Matrix)
+	(solverMLE, Bigraph, Digraph, Matrix)
+	(solverMLE, Graph, Bigraph, Matrix)
+	(solverMLE, Bigraph, Graph, Matrix)
+	(solverMLE, Graph, Digraph, Bigraph, Matrix)
+	(solverMLE, Digraph, Bigraph, Graph, Matrix)
+	(solverMLE, Bigraph, Graph, Digraph, Matrix)
+	(solverMLE, Graph, Bigraph, Digraph, Matrix)
+	(solverMLE, Bigraph, Digraph, Graph, Matrix)
+	(solverMLE, Digraph, Graph, Bigraph, Matrix)
+	(solverMLE, Matrix, MixedGraph)
+	(solverMLE, Matrix, Graph)
+	(solverMLE, Matrix, Digraph)
+	(solverMLE, Matrix, Bigraph)
+	(solverMLE, Matrix, Graph, Digraph)
+	(solverMLE, Matrix, Digraph,Graph)
+	(solverMLE, Matrix, Digraph,Bigraph)
+	(solverMLE, Matrix, Bigraph,Digraph)
+	(solverMLE, Matrix, Graph, Bigraph)
+	(solverMLE, Matrix, Bigraph, Graph)
+	(solverMLE, Matrix, Graph, Digraph, Bigraph)
+	(solverMLE, Matrix, Digraph, Bigraph, Graph)
+	(solverMLE, Matrix, Bigraph, Graph, Digraph)
+	(solverMLE, Matrix, Graph, Bigraph, Digraph)
+	(solverMLE, Matrix, Bigraph, Digraph, Graph)
+	(solverMLE, Matrix, Digraph, Graph, Bigraph)
     Headline
-    	computes MLE from a @TO MixedGraph@ and a data sample (or sample covariance matrix)
+    	computes MLE from a loopless mixed graph and a data sample (or sample covariance matrix)
     Usage
     	solverMLE(G,U)
     Inputs
     	G: MixedGraph
+	G: Graph
+	G: Digraph
+	G: Bigraph
       	U: List 
     Outputs
-        : List
+        : Sequence
+	  (attained maximum, list of argmax)
 	
     Description
     	Text

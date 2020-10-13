@@ -427,6 +427,7 @@ R.?mixedGraph
 R=gaussianRing D
 R.?digraph
 R.?mixedGraph
+R.?gaussianRingData
 
 restart
 debug loadPackage "GraphicalModelsMLE"
@@ -436,6 +437,7 @@ R=gaussianRing B
 R.?bigraph
 R.?mixedGraph
 
+R.?gaussianRingData
 restart
 debug loadPackage "GraphicalModelsMLE"
 G=graph{{1,2},{1,3},{2,3}}
@@ -446,6 +448,7 @@ R=gaussianRing G1
 
 R.?graph
 R.?mixedGraph
+R.?gaussianRingData
 
 G1=mixedGraph(B,G)
 R=gaussianRing G1

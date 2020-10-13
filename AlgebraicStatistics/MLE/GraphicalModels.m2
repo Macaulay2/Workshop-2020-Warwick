@@ -814,7 +814,13 @@ markovMatrices(Ring,List) := (R,Stmts) -> (
 		      		 prob(R,e))))))))
     )
 
-
+------------------------------------------------------------------
+--inverseCovarianceMatrix(Ring)
+------------------------------------------------------------------
+--covarianceMatrix = method()
+--covarianceMatrix(Ring) := Matrix => (R) -> (
+    
+--    )
 
 ------------------------------------------------------------------
 -- covarianceMatrix(Ring)

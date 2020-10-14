@@ -82,7 +82,7 @@ U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3
 U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 
 -- Test 1: Confirm the function gives correct output
-J=scoreEquationsFromCovarianceMatrix(R,U);
+J=scoreEquations(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 
@@ -148,18 +148,27 @@ debug needsPackage "GraphicalModelsMLE"
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 R=gaussianRing(G)
 U1=matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
-J1=scoreEquationsFromCovarianceMatrix(R,U1);
+J1=scoreEquations(R,U1);
+
+J1=scoreEquations(U1,R);
+
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+J =scoreEquations(R,U);
+J =scoreEquations(U,R);
+
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J1===I)
+assert(J===I)
 
-J2=scoreEquationsFromCovarianceMatrix(R,U1,doSaturate=>false);
+
+J2=scoreEquations(R,U1,doSaturate=>false);
 -- Test 1: Confirm no saturation works
-JnoSat=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>false);
+JnoSat=scoreEquations(R,U1,doSaturate=>false);
 dim JnoSat
 degree JnoSat
 
 --Test 1: Confirm saturation options work
-JSatOpts=scoreEquationsFromCovarianceMatrix(R,U,doSaturate=>true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false});
+JSatOpts=scoreEquations(R,U1,doSaturate=>true, saturateOptions => {DegreeLimit=>1, MinimalGenerators => false});
 dim JSatOpts
 degree JSatOpts
 
@@ -383,25 +392,87 @@ restart
       k_(3,4)^2*k_(5,6)^2-36*k_(1,1)*k_(2,2)*k_(3,3)*k_(4,4)*k_(5,6)+36*k_(3,3)*k_(4,4)*k_(1,2)^2
       *k_(5,6)+36*k_(1,1)*k_(3,3)*k_(2,4)^2*k_(5,6)+36*k_(1,1)*k_(2,2)*k_(3,4)^2*k_(5,6)-36*k_(1,
       2)^2*k_(3,4)^2*k_(5,6))
+-------------------------------------------------
+-- Tests for solverMLE
+------------------------------------------------
+restart
+debug needsPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+solverMLE(G,U)
+
+restart
+debug needsPackage "GraphicalModelsMLE"
+G=graph{{1,2}}
+D=digraph{{1,3},{3,2},{6,7},{7,8},{6,8}}
+B=bigraph{{5,4}}
+
+
+R.?graph
+
 ------------------------------------------------
 -- Tests for gaussianRing, ...EdgesMatrix
 ------------------------------------------------
 restart
-debug loadPackage "StatGraphs"
+debug loadPackage "GraphicalModelsMLE"
 
 G=graph{{1,2},{1,3},{2,3}}
 D=digraph{{1,6},{4,7}}
 B=bigraph{{5,6},{6,7}}
 
-mixedGraph(G,B)
-mixedGraph(B,G)
-mixedGraph(G,D,B)
-mixedGraph(D,G,B)
+R=gaussianRing G
+R.?graph
+R.?mixedGraph
 
+R=gaussianRing D
+R.?digraph
+R.?mixedGraph
+R.?gaussianRingData
+
+restart
+debug loadPackage "GraphicalModelsMLE"
+B=bigraph{{5,6},{6,7}}
+R=gaussianRing B
+
+R.?bigraph
+R.?mixedGraph
+
+R.?gaussianRingData
+restart
+debug loadPackage "GraphicalModelsMLE"
+G=graph{{1,2},{1,3},{2,3}}
+D=digraph{{1,6},{4,7}}
+B=bigraph{{5,6},{6,7}}
+G1=mixedGraph(G,B)
+R=gaussianRing G1
+
+R.?graph
+R.?mixedGraph
+R.?gaussianRingData
+
+G1=mixedGraph(B,G)
+R=gaussianRing G1
+R.?graph
+R.?mixedGraph
+
+G1=mixedGraph(G,D,B)
+R=gaussianRing G1
+R.?graph
+R.?mixedGraph
+
+G1=mixedGraph(D,G,B)
+R=gaussianRing G1
+R.?graph
+R.?mixedGraph
+
+restart
+debug needsPackage "GraphicalModelsMLE"
 G=graph{{1,2}}
 D=digraph{{1,3},{3,2},{6,7},{7,8},{6,8}}
 B=bigraph{{5,4}}
 
+
+R.?graph
 -- MixedGraph with all components
 g=mixedGraph(G,D,B)
 R=gaussianRing g
@@ -548,3 +619,106 @@ U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3
 J=myFunction(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
+
+-------------------------------
+--scoreEquationsInternal
+-------------------------------
+
+restart
+loadPackage "Graphs"
+loadPackage "StatGraphs"
+loadPackage "GraphicalModels"
+loadPackage "GraphicalModelsMLE"
+
+debug needsPackage "GraphicalModelsMLE"
+
+scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(
+    << opts;
+    ----------------------------------------------------
+    -- Previous checks 
+    ----------------------------------------------------
+    if R.?graph then return scoreEquationsUndir(R,U,opts);
+    if not R.?mixedGraph then error "Expected a ring created with gaussianRing of a Graph or MixedGraph";
+    if not #U==#vertices R.mixedGraph then error "Size of sample data does not match the MixedGraph.";
+    ----------------------------------------------------
+    -- Extract information about the graph
+    ---------------------------------------------------- 
+    -- Lambda
+    L := directedEdgesMatrix R;
+    -- Psi
+    P := bidirectedEdgesMatrix R;
+    
+    -- If the mixedGraph only has undirected part, call specific function for undirected.
+    if L==0 and P==0 then 
+    return scoreEquationsUndir(R,U,opts);
+       
+    -- K 
+    K := undirectedEdgesMatrix R;
+    ----------------------------------------------------
+    -- Create an auxiliary ring and its fraction field
+    -- which do not have the s variables
+    ----------------------------------------------------
+    -- create a new ring, lpR, which does not have the s variables
+    lpR:=coefficientRing(R)[gens R-set support covarianceMatrix R];
+    -- create its fraction field
+    FR := frac(lpR);
+    
+    -----------------------------------------------------
+    -- Construct Omega
+    -----------------------------------------------------
+    -- Kinv
+    K=sub(K, FR);
+    Kinv:=inverse K;
+    P=sub(P,FR);
+       
+     --Omega
+    if K==0 then W:=P else (if P==0 then W=Kinv else W = directSum(Kinv,P));
+    
+    -- move to FR, the fraction field of lpR
+    L= sub(L,FR);
+    
+    -- Sigma
+    d:=numcols L;
+    if L==0 then S:=W else (
+	IdL := inverse (id_(FR^d)-L);
+    	S = (transpose IdL) * W * IdL
+	);
+    Sinv := inverse S; 
+      
+    -- Sample covariance matrix
+    if opts.sampleData then V := sampleCovarianceMatrix(U) else (
+       --If the input is a list of lists we convert it into a list of matrices
+       if class U_0===List then U=apply(#U, i -> matrix{U_i});
+       -- convert list of matrices into a matrix
+       V=U_0;
+       for i from 1 to  #U-1 do V= V||U_i
+       ); 
+   
+    -- Compute ideal J   
+    C1 := trace(Sinv * V);
+    C1derivative := jacobianMatrixOfRationalFunction(C1);
+    LL :=jacobianMatrixOfRationalFunction (det Sinv)*matrix{{1/det(Sinv)}} - C1derivative;
+    LL=flatten entries(LL);
+    denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
+    J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
+    --Saturate
+    if opts.doSaturate then (
+        argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    	for i from 0 to (#denoms-1) do (
+	    if degree denoms_i =={0} then J=J else  
+	    J=saturate(argSaturate(J,denoms_i))
+	    ); 
+	);
+    return (J,Sinv);
+);
+
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
+R=gaussianRing(G)
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+(J,SInv)=scoreEquationsInternal(R,U);
+J
+SInv
+I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
+assert(J===I)
+
+(J,SInv)=scoreEquationsInternal(R,U,doSaturate=>false)

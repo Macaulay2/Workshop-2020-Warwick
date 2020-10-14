@@ -1266,7 +1266,9 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
      if not A.?markovRingData then error "expected a ring created with markovRing";
      d := A.markovRingData;
      e := drop(d, {v,v});
-     S := markovRing (e);
+      -- issue #1362 in github
+     S := markovRing (e, Coefficients=>coefficientRing(A)); 
+     -- S := markovRing (e);
      dv := d#v;
      F := toList apply(((#e):1) .. e, i -> (
 	       sum(apply(toList(1..dv), j -> (

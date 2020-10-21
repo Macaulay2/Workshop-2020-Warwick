@@ -651,6 +651,7 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      -- create gaussianRingData hashTable
      D := new MutableHashTable;
      D#nn=#vv;
+     D#sVar=s;
      R.gaussianRingData=new HashTable from D;
      -- create attributes of the ring containing class and graph
      R.graphType=class G;
@@ -662,16 +663,15 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
+     -- check graph is simple
+     if isMixedGraphSimple g ==false then error "MixedGraph should be simple.";
+     -- compute partition V=U\cup W
+     (U,W):=partitionLMG g;
      -- convert mixedGraph to hash table
      gg:= graph g;
-     --check adequate sorting of vertices
-     -- WIP 
-     --Partition V=U\union W
-     if(vertexSet gg#Graph==={}) then W:=vertices g    
-     else W=vertexSet gg#Bigraph;
-     U:=vertices g-set W;
      -- sort vertices (only according to vertex number)
      vv := sort vertices g;
+     --vv := join(sort U,sort W);
      -- add all vertices to all graphs and convert them to hash tables
      G := graph collateVertices g;
      dd := graph G#Digraph;

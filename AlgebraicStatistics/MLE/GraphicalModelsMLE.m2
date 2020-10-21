@@ -82,30 +82,12 @@ listToMatrix=(L)->(
 );
 
 ----------------------------------------------
--- convert gaussianRing of Bigraph or Digraph to a gaussianRing of MixedGraph 
-----------------------------------------------
-toMixedGraphRing=(R)->(
-    if R.?bigraph then R=gaussianRing(mixedGraph (R.bigraph))
-    else R=gaussianRing(mixedGraph (R.digraph));
-    return R;
-    );
-
-----------------------------------------------
 -- extract the vertices of a Gaussian ring
 
 ----------------------------------------------
 verticesInRing=(R)->(
-    if R.?mixedGraph then V:=vertices R.mixedGraph
-    else ( 
-	if R.?graph then V=vertices R.graph
-	else (
-	    if R.?bigraph then V=vertices R.bigraph
-	    else (
-		if R.?digraph then V=vertices R.digraph
-		else error "Not a Gaussian ring";
-		)
-	    )	
-	);
+    if R.?graph then V:=vertices R.graph
+    else error "Not a Gaussian ring";
     return V;
     );
 
@@ -298,7 +280,7 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     ----------------------------------------------------
     --Check input
     ----------------------------------------------------
-    if not (R.?mixedGraph or R.?graph or R.?bigraph or R.?digraph)  then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
+    if not R.?graph then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
     if not #U==#verticesInRing R then error "Size of sample data does not match the graph.";  
     
     ---------------------------------------------------
@@ -309,12 +291,9 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     ---------------------------------------------------
     -- Apply appropriate scoreEquations routine
     ---------------------------------------------------
-    if R.?graph 
-    then 
-    (J,Sinv):=scoreEquationsInternalUndir(R,U,opts)
-    else (
-    if not R.?mixedGraph then R=toMixedGraphRing R;    	
-    (J,Sinv) =scoreEquationsInternal(R,U,opts));
+    if R.graphType===Graph 
+    then (J,Sinv):=scoreEquationsInternalUndir(R,U,opts)
+    else (J,Sinv)=scoreEquationsInternal(R,U,opts);
     return J;
 );
 

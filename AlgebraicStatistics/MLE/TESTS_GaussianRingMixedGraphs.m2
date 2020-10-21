@@ -279,12 +279,24 @@ R.gaussianVariables
 restart
 needsPackage "GraphicalModels"
 B=bigraph{{5,6},{6,7}} 
-gaussianRing mixedGraph B
-gaussianRing B
+mixedGraph B
+R=gaussianRing mixedGraph B
+describe R
+R.graph#graph#Graph
+graph{}
+R.graph#graph#Graph===graph{}
+R.graph#graph#Bigraph===bigraph{}
+R.graph#graph#Digraph===digraph{}
+R2=gaussianRing B
+describe R2
+R2.gaussianRingData
 
 G=graph{{1,2},{1,3},{2,3}}
 gaussianRing mixedGraph G
 gaussianRing G
+
+
+
 
 -- Olga's tests in issue #100
 restart
@@ -295,8 +307,77 @@ R4.gaussianRingData
 R4.gaussianVariables
 keys R4.gaussianVariables
 covarianceMatrix R4
+undirectedEdgesMatrix R4
+directedEdgesMatrix R4
+bidirectedEdgesMatrix R4
+time gaussianVanishingIdeal R4
+time gaussianVanishingIdeal(R4, oldVersion=>true)
+conditionalIndependenceIdeal R4
+Stmts = {{{1,6},{7},{4}}}
+gaussianMatrices(R4,Stmts)
+conditionalIndependenceIdeal(R4,Stmts)
+
+debug needsPackage "GraphicalModelsMLE"
+verticesInRing R4
+
+R=R4
+
+G = R.graph#graph#Digraph
+vv = sort vertices G
+n = #vv
+v = (topSort G)#map
+v = hashTable apply(keys v, i->v#i=>i)
+v = apply(n,i->v#(i+1))
+P = toList apply(v, i -> toList parents(G,i))
+s = R.gaussianRingData#sVar
+L = select(gens R, v -> first baseName v==s)
+nx =#L -- Careful! old gaussianRing Digraph only had s variables
+ny = max(P/(p->#p))
+x := local x
+y := local y
+S = (coefficientRing R)[x_0 .. x_(nx-1),y_0 .. y_(ny-1)]
+newvars = apply(ny, i -> y_i)
+H = hashTable apply(nx,i->L#i=>x_i)
+pos = (h, xx) -> position(h, i->i===xx)
+sp = (i,j) -> if pos(vv,i) > pos(vv,j) then H#(s_(j,i)) else H#(s_(i,j));
+I = trim ideal(0_S)
+for i from 1 to n-1 do (
+    J = ideal apply(i, j -> sp(v#j,v#i) - sum apply(#P#i, k ->y_k * sp(v#j,P#i#k)));
+    I = eliminate(newvars, I + J);
+)
+F = map(R,S,apply(nx,i->x_i=>R.gaussianVariables#(L_i))|apply(newvars,i->i=>0))
+F(I)
+
+sp(v#1,v#1)     
+s
+s_(1,1)
+L
+H
+H#(s_(1,1))
+L_0
+H#(L_0)
+R.gaussianVariables#(L_0)
+
+gens R
+gens S
+apply(nx,i->x_i=>L_i)
+apply(newvars,i->i=>0)
+
+
 
 R=gaussianRing mixedGraph D
 R.gaussianVariables
 keys R.gaussianVariables
 covarianceMatrix R4
+
+
+restart
+needsPackage "GraphicalModels"
+D=digraph{{1,6},{4,7}}
+R4=gaussianRing D
+time gaussianVanishingIdeal R4
+
+
+R=gaussianRing mixedGraph D
+time gaussianVanishingIdeal R
+

@@ -36,7 +36,9 @@ export {
     "MixedGraph",
     "mixedGraph",
     "newDigraph",
-    "collateVertices"
+    "collateVertices",
+    "partitionLMG",
+    "isMixedGraphSimple"
     }
 
 
@@ -215,3 +217,61 @@ collateVertices MixedGraph := g -> (
     scan(v,j->if x#?j then hh#j=x#j else hh#j={});
     bb := bigraph(new HashTable from hh);
     mixedGraph(gg,dd,bb))
+
+
+-- Makes a partition U\cup W of the vertices V of a loopless mixed graph (inputed as a mixedGraph) 
+-- such that U contains all the vertices adjacent to undirected edges, 
+-- W contains all the vertices adjacent to bidirected edges 
+-- and there are no directed edges from W to U
+-- and all vertices in U have lower value than those in W.
+partitionLMG = method()
+partitionLMG MixedGraph := g -> (
+   --check it's a simple graph
+   if isMixedGraphSimple(g)==false then error ("The input should be a simple mixedGraph.");
+   --retrieve graph, bigraph and digraph
+   G:= g#graph#Graph;
+   B:= g#graph#Bigraph;
+   D:= g#graph#Digraph;
+   --check D is a DAG: IS THIS ENOUGH???
+   if isCyclic D==true then error ("The directed part of the mixedGraph contains cycles.");
+   --naive partition (vertices only adjacent to directed edges are not considered) 
+   U:=vertices G;
+   W:=vertices B;
+   --check there are no common vertices for undirected and bidirected edges
+   if not (set U * set W===set {}) then 
+   error("Vertices cannot be adjacent to bidirected and undirected edges simultaneously.");
+   --check that vertices in U (undir) have lower value than vertices in W (bidir):
+   if max U > min W then error ("Vertex ordering issues: vertices adjacent to undirected edges should have lower value than vertices adjacent to bidirected edges");
+   --check there are no directed edges from set U to set W
+   for e in edges D do (if (member(e_0,set W) and member(e_1,set U)) 
+   then error("Directed edges cannot go from vertices adjacent to a bidirected edge to vertices adjacent to an undirected edge"));
+   --check directed edges always go from lower value to higher value
+   for e in edges D do (
+       if e_0 > e_1 then error ("Vertex ordering issues: directed edges must go from low to high");
+   );
+   --check whether there are remaining vertices (only adjacent to directed edges)
+   V:=set vertices g-set W-set U;
+   if V===set{} then return (U,W);
+   --place remaining vertices in either U or W depending on their value
+   for v in toList V do (if v < max U then U=append(U,v) else W=append(W,v););
+   U,W
+)
+
+--Check whether a mixedGraph is simple
+isMixedGraphSimple = method()
+isMixedGraphSimple MixedGraph := Boolean => g -> (
+   --retrieve graph, digraph and bigraph
+   G:= g#graph#Graph;
+   B:= g#graph#Bigraph;
+   D:= g#graph#Digraph;
+   --retrieve underlying undirected edges 	
+   edG:=edges G;
+   edD:=edges underlyingGraph D;
+   edB:=edges B;
+   --build list of underlying edges with and without repetitions
+   ed:=join(edG,edD,edB);
+   e:=unique(ed);
+   --check there are no loops and no repetitions
+   isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) and #ed==#e
+   )
+

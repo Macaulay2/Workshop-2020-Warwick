@@ -11,34 +11,13 @@ help GraphicalModelsMLE
 --EXAMPLE 2.1.13 OWL
 restart
 needsPackage("GraphicalModelsMLE")
+debug needsPackage("GraphicalModelsMLE")
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 R=gaussianRing(G)
 U=random(ZZ^4,ZZ^4)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 --Generate score equations for an undirected graph on 4 nodes  with random observations
-J=time scoreEquationsUndir(R,U)
--- used 0.078125 seconds
-J=time scoreEquationsUndir(R,U,doSaturate=>false)
-J=time scoreEquationsUndir(R,U,saturateOptions=>{Strategy=>Eliminate})
-J=time scoreEquationsUndir(R,U,saturateOptions=>{Strategy=>Bayer})
-
-dim J, degree J
---Find the optimal covariance matrix
-MLEsolver(J,R)
-
---Step by step
-    --solve system with eigensolver
-    sols=zeroDimSolve(J)
-    --compute concentration matrix
-    K=undirectedEdgesMatrix(R)
-    --evaluate concentration matrix on solutions
-    M=genListMatrix(sols,R)
-    --consider only PD matrices
-    L=PDcheck M
-    E=inverse L_0
-       
-
 J2=time scoreEquations(R,U)
 J=time scoreEquations(R,U,doSaturate=>false)
 J=time scoreEquations(R,U,saturateOptions=>{Strategy=>Eliminate})

@@ -93,7 +93,8 @@ export {"bidirectedEdgesMatrix",
        "lVar",
        "nn",
        "compU",
-       "compW"
+       "compW",
+       "oldVersion" --optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs
 	} 
 
 markovRingData = local markovRingData
@@ -649,42 +650,24 @@ gaussianRing Graph := Ring => opts -> (g) -> (
 
 --gaussianRing Digraph :=  GaussianRing => opts -> (G) -> (
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
-     s := toSymbol opts.sVariableName;
-     kk := opts.Coefficients;
-     vv := sort vertices G; 
-     if (not gaussianRingList#?(kk,s,vv)) then ( 
-	  --(kk,s,vv) uniquely identifies gaussianRing in case of Digraph input.
-     w := delete(null, flatten apply(vv, i -> apply(vv, j -> if pos(vv,i)>pos(vv,j) then null else (i,j))));
-     v := apply (w, ij -> s_ij);
-     R := kk(monoid [v, MonomialSize=>16]);
-     -- create gaussianVariables hash table: (symbol s)_(i,j) => ring var with the same name, same for l, p.
-     H := new HashTable from apply(#w, i -> w#i => R_i); 
-     R.gaussianVariables = H;
-     -- create gaussianRingData hashTable
-     D := new MutableHashTable;
-     D#nn=#vv;
-     R.gaussianRingData=new HashTable from D;
-     -- create attributes of the ring containing class and graph
-     R.graphType=class G;
-     R.graph= G;
-     -- fill into internal gaussianRingList
-     gaussianRingList#((kk,s,vv)) = R;); 
-     gaussianRingList#((kk,s,vv))
-     --new GaussianRing from gaussianRingList#((kk,s,vv))
+    return gaussianRing (mixedGraph G, opts);
      )
 
+gaussianRing Bigraph :=  Ring => opts -> (G) -> (
+    return gaussianRing (mixedGraph G, opts);
+     )
 --gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
+
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
+     -- check graph is simple
+     if isMixedGraphSimple g ==false then error "MixedGraph should be simple.";
+     -- compute partition V=U\cup W
+     (U,W):=partitionLMG g;
      -- convert mixedGraph to hash table
      gg:= graph g;
-     --check adequate sorting of vertices
-     -- WIP 
-     --Partition V=U\union W
-     if(vertexSet gg#Graph==={}) then W:=vertices g    
-     else W=vertexSet gg#Bigraph;
-     U:=vertices g-set W;
      -- sort vertices (only according to vertex number)
      vv := sort vertices g;
+     --vv := join(sort U,sort W);
      -- add all vertices to all graphs and convert them to hash tables
      G := graph collateVertices g;
      dd := graph G#Digraph;
@@ -979,31 +962,33 @@ gaussianParametrization Ring := Matrix => opts -> R -> (
 -- without undirected edges
 ------------------------------------------------------------------
 
-gaussianVanishingIdeal=method()
-gaussianVanishingIdeal Ring := Ideal => R -> (
-    if not R.?gaussianRingData then error "expected a ring created with gaussianRing";
+gaussianVanishingIdeal=method(TypicalValue => Ideal, Options=>{oldVersion => false})
+gaussianVanishingIdeal Ring := opts -> R -> (
+    if not R.?graph then error "expected a ring created with gaussianRing";
     if R.graphType === Graph then (    
        K:= undirectedEdgesMatrix R;
        adjK := sub(det(K)*inverse(sub(K,frac R)), R);
        Itemp:=saturate(ideal (det(K)*covarianceMatrix(R) - adjK), det(K));
        ideal selectInSubring(1, gens gb Itemp))
-    else if R.graphType === Digraph then (
-       G := R.graph;
+    --check if gaussianRing comes only from Digraph and user asked for optional method of previous versions
+    else if (opts.oldVersion and R.graphType === MixedGraph and R.graph#graph#Graph===graph{} and R.graph#graph#Bigraph===bigraph{}) then (
+       G := R.graph#graph#Digraph; --retrieve digraph from mixedGraph
        vv := sort vertices G;
        n := #vv;
        v := (topSort G)#map;
        v = hashTable apply(keys v, i->v#i=>i);
        v = apply(n,i->v#(i+1));
        P := toList apply(v, i -> toList parents(G,i));
-       nx := # gens R;
+       s := R.gaussianRingData#sVar; --retrieve name of variable used for sVar as symbol
+       L := select(keys R.gaussianVariables, v -> first baseName v==s); --select sVar from variables in R as indexed variables
+       nx :=#L; -- number of sVar
        ny := max(P/(p->#p));
        x := local x;
        y := local y;
        S := (coefficientRing R)[x_0 .. x_(nx-1),y_0 .. y_(ny-1)];
        newvars := apply(ny, i -> y_i);
-       L := keys R.gaussianVariables;
-       s := hashTable apply(nx,i->L#i=>x_i);
-       sp := (i,j) -> if pos(vv,i) > pos(vv,j) then s#(j,i) else s#(i,j);
+       H := hashTable apply(nx,i->L#i=>x_i); --convert sVar to x_i
+       sp := (i,j) -> if pos(vv,i) > pos(vv,j) then H#(s_(j,i)) else H#(s_(i,j));
        I := trim ideal(0_S);
        for i from 1 to n-1 do (
      	   J := ideal apply(i, j -> sp(v#j,v#i) - sum apply(#P#i, k ->y_k * sp(v#j,P#i#k)));
@@ -1023,7 +1008,7 @@ gaussianVanishingIdeal Ring := Ideal => R -> (
        m:= (R#numberOfEliminationVariables)-1;
        elimvarlist := flatten entries (vars(R))_{0..m};
        I = trim ideal(0_R);
-       I = eliminate(elimvarlist,tempideal)
+       I = eliminate(elimvarlist,tempideal)     
      )
  else error " gaussianVanishingIdeal expected a ring created with gaussianRing of a Graph or Digraph or MixedGraph"    
 )
@@ -1242,7 +1227,9 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
      if not A.?markovRingData then error "expected a ring created with markovRing";
      d := A.markovRingData;
      e := drop(d, {v,v});
-     S := markovRing (e);
+      -- issue #1362 in github
+     S := markovRing (e, Coefficients=>coefficientRing(A)); 
+     -- S := markovRing (e);
      dv := d#v;
      F := toList apply(((#e):1) .. e, i -> (
 	       sum(apply(toList(1..dv), j -> (

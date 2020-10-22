@@ -2,8 +2,8 @@
 
 newPackage(
      "GraphicalModels",
-     Version => "1.0",
-     Date => "April, 2013",
+     Version => "2.0",
+     Date => "November, 2020",
      Authors => {
           {Name=> "Carlos Amendola", 
 	   Email=> "carlos.amendola@tum.de",
@@ -64,13 +64,15 @@ export {"bidirectedEdgesMatrix",
        "gaussianParametrization",
        "gaussianVanishingIdeal",
        "gaussianRing", 
+       --"GaussianRing",
        "globalMarkov",
        "hiddenMap",
        "identifyParameters", 
        "inverseMarginMap",
        "localMarkov",
        "markovMatrices", 
-       "markovRing",        
+       "markovRing", 
+       "MarkovRing",       
        "marginMap", 
        --"newDigraph",
        "pairMarkov", 
@@ -366,6 +368,7 @@ removeRedundants = (Ds) -> (
 -- pairMarkov Graph does the following:
 -- given a graph G, returns a list of triples {A,B,C}
 -- where A,B,C are disjoint sets of the form:
+
 -- for all non-edges {i,j}:  {i,j, all other vertices} 
 -- pairMarkov Digraph does the following:
 -- given a digraph G, returns a list of triples {A,B,C}
@@ -498,8 +501,10 @@ toSymbol = (p) -> (
 
 markovRingList := new MutableHashTable;
 
+MarkovRing = new Type of PolynomialRing;
+
 markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> "p"})
-markovRing Sequence := Ring => opts -> d -> (
+markovRing Sequence := MarkovRing => opts -> d -> (
      if any(d, di -> not instance(di,ZZ) or di <= 0)
           then error "markovRing expected positive integers";
      kk := opts.Coefficients;
@@ -513,8 +518,8 @@ markovRing Sequence := Ring => opts -> d -> (
 	  R.markovVariables = H;
 	  markovRingList#(d,kk,p) = R;
 	  );
-     markovRingList#(d,kk,p))
-
+     new MarkovRing from markovRingList#(d,kk,p))
+    
 
 
 ------------------------------------------------------------------------------------------------------------------------------------
@@ -579,8 +584,11 @@ connectedComponentsMG := (g) -> (
 
 gaussianRingList := new MutableHashTable;
 
+--GaussianRing = new Type of PolynomialRing;
+
 gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
 	  pVariableName=>"p", kVariableName=>"k"})
+--gaussianRing ZZ :=  GaussianRing => opts -> (n) -> (  
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -601,9 +609,11 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,n)) = R;); 
      gaussianRingList#((kk,s,n))
+     --new GaussianRing from gaussianRingList#((kk,s,n))     
      )
 
-gaussianRing Graph := Ring => opts -> (g) -> (
+--gaussianRing Graph := GaussianRing => opts -> (g) -> (
+gaussianRing Graph := Ring => opts -> (g) -> (    
     bb := graph g;
     vv := sort vertices g;
     s := toSymbol opts.sVariableName;
@@ -633,9 +643,11 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R.graph= g;
     -- fill into internal gaussianRingList
     gaussianRingList#((kk,s,k,bb)) = R;); 
+    --new GaussianRing from gaussianRingList#((kk,s,k,bb))
     gaussianRingList#((kk,s,k,bb))
     )
 
+--gaussianRing Digraph :=  GaussianRing => opts -> (G) -> (
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
      s := toSymbol opts.sVariableName;
      kk := opts.Coefficients;
@@ -658,9 +670,10 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,vv)) = R;); 
      gaussianRingList#((kk,s,vv))
+     --new GaussianRing from gaussianRingList#((kk,s,vv))
      )
 
-
+--gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- convert mixedGraph to hash table
      gg:= graph g;
@@ -715,7 +728,8 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      R.graph= g;
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,k,l,p,vv)) = R;); 
-     gaussianRingList#((kk,s,k,l,p,vv)) 
+     gaussianRingList#((kk,s,k,l,p,vv))
+     --new GaussianRing from gaussianRingList#((kk,s,k,l,p,vv)) 
      )
 
 
@@ -779,7 +793,8 @@ directedEdgesMatrix Ring := Matrix => R -> (
 
 bidirectedEdgesMatrix = method()
 bidirectedEdgesMatrix Ring := Matrix => R -> (
-     if not (R.graphType === MixedGraph) then error "expected a ring created with gaussianRing of a MixedGraph";     
+     if not (R.graphType === MixedGraph) then error "expected a ring created with gaussianRing of a MixedGraph. 
+     Bigraphs alone are not accepted. If you need to work with one, please reformulate it as a Graph. ";     
      g := R.graph;     
      G := graph collateVertices g;
      bb := graph G#Bigraph;
@@ -802,7 +817,7 @@ bidirectedEdgesMatrix Ring := Matrix => R -> (
 
 markovMatrices = method()
 markovMatrices(Ring,List,List) := (R,Stmts,VarNames) -> (
-     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
+     -- R should be a markovRing and Stmts a list of independence statements.
      if not R.?markovRingData then error "expected a ring created with markovRing";
      d := R.markovRingData;
      if not isSubset ( set unique flatten flatten Stmts,  set VarNames)  then error "variables names in statements do not match list of random variable names";
@@ -818,7 +833,7 @@ markovMatrices(Ring,List,List) := (R,Stmts,VarNames) -> (
     )
 
 markovMatrices(Ring,List) := (R,Stmts) -> (
-     -- R should be a markovRing, G a digraph, and Stmts a list of independence statements.
+     -- R should be a markovRin and Stmts a list of independence statements.
      if not R.?markovRingData then error "expected a ring created with markovRing";
      d := R.markovRingData;
      if not isSubset ( set unique flatten flatten Stmts,  set( 1..#d) )  then error "variables names in statements do not match list of random variable names";
@@ -1767,7 +1782,7 @@ doc ///
     d:Sequence
       with positive integer entries $(d_1,\dots ,d_r)$
   Outputs
-    :Ring
+    :MarkovRing
       a polynomial ring with $d_1*d_2*\dots   *d_r$ variables $p_{i_1,\dots ,i_r}$,
       with each $i_j$ satisfying $1\leq i_j \leq d_j$.
   Consequences
@@ -1958,7 +1973,7 @@ doc ///
       @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
-    :Ring
+    :GaussianRing
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
       additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
       with $1 \leq i \leq j \leq n$ where $n$ is the number of vertices in $G$.      

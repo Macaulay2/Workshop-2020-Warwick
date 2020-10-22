@@ -1960,7 +1960,7 @@ doc ///
       @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
-    :GaussianRing
+    :Ring
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
       additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
       with $1 \leq i \leq j \leq n$ where $n$ is the number of vertices in $G$.      

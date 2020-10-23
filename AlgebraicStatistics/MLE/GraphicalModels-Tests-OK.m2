@@ -153,16 +153,65 @@ gaussianParametrization R3
 gaussianParametrization gaussianRing mixedGraph D
 
 -- test discreteVanishingIdeal
-discreteVanishingIdeal 
+discreteVanishingIdeal (QQ[x],D)
+d=(2,3,4,5);
+R = markovRing d
+discreteVanishingIdeal (R,D)
 
+restart
+debug loadPackage "GraphicalModels"
+D1 = digraph {{1,{}}, {2,{}}}
+Rnew = markovRing (2,2)
+discreteVanishingIdeal (Rnew,D1)
+discreteVanishingIdeal (Rnew,G)
 -- test trekSeparation
 
+GTS = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+S = trekSeparation GTS
+
+GTS = mixedGraph(digraph {{b,{c,d}},{c,{d}}})
+S = trekSeparation GTS
+
+GTS = mixedGraph(bigraph {{a,d}})
+S = trekSeparation GTS
 -- test trekIdeal
+G= mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R=gaussianRing GTI
+T=trekIdeal(RTI,GTI)
+
+g = graph{{a,b},{b,c},{c,d},{a,d}}
+R = gaussianRing g
+T = trekIdeal(R,g)
+
+g = mixedGraph(graph{{a,b},{b,c},{c,d},{a,d}})
+R = gaussianRing g
+T = trekIdeal(R,g)
+
+g = digraph{{1,{4}},{2,{4}},{3,{4,5}},{4,{5}}}
+R = gaussianRing g
+T = trekIdeal(R,g)
+
+g=mixedGraph(g)
+R = gaussianRing g
+T = trekIdeal(R,g)
 
 -- test marginMap
+d=(2,3,4,5);
+R = markovRing d
+marginMap(1,R)
+marginMap(5,R)
 
 -- test inverseMarginMap
+d=(2,3,4,5);
+R = markovRing d
+inverseMarginMap(1,R)
+inverseMarginMap(5,R)
 
 -- test hiddenMap
+hiddenMap(1,R)
+hiddenMap(5,R)
 
 -- test identifyParameters
+G = mixedGraph(digraph {{a,{b}},{b,{c}}},bigraph {{a,c}, {b,c}})
+R = gaussianRing G
+H = identifyParameters R

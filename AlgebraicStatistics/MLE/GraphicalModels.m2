@@ -64,7 +64,6 @@ export {"bidirectedEdgesMatrix",
        "gaussianParametrization",
        "gaussianVanishingIdeal",
        "gaussianRing", 
-       --"GaussianRing",
        "globalMarkov",
        "hiddenMap",
        "identifyParameters", 
@@ -585,11 +584,8 @@ connectedComponentsMG := (g) -> (
 
 gaussianRingList := new MutableHashTable;
 
---GaussianRing = new Type of PolynomialRing;
-
 gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
-	  pVariableName=>"p", kVariableName=>"k"})
---gaussianRing ZZ :=  GaussianRing => opts -> (n) -> (  
+	  pVariableName=>"p", kVariableName=>"k"}) 
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -609,11 +605,9 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
      R.gaussianVariables = H;
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,n)) = R;); 
-     gaussianRingList#((kk,s,n))
-     --new GaussianRing from gaussianRingList#((kk,s,n))     
+     gaussianRingList#((kk,s,n))   
      )
 
---gaussianRing Graph := GaussianRing => opts -> (g) -> (
 gaussianRing Graph := Ring => opts -> (g) -> (    
     bb := graph g;
     vv := sort vertices g;
@@ -644,11 +638,9 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R.graph= g;
     -- fill into internal gaussianRingList
     gaussianRingList#((kk,s,k,bb)) = R;); 
-    --new GaussianRing from gaussianRingList#((kk,s,k,bb))
     gaussianRingList#((kk,s,k,bb))
     )
 
---gaussianRing Digraph :=  GaussianRing => opts -> (G) -> (
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
     return gaussianRing (mixedGraph G, opts);
      )
@@ -656,7 +648,6 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 gaussianRing Bigraph :=  Ring => opts -> (G) -> (
     return gaussianRing (mixedGraph G, opts);
      )
---gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- check graph is simple
@@ -712,7 +703,6 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,k,l,p,vv)) = R;); 
      gaussianRingList#((kk,s,k,l,p,vv))
-     --new GaussianRing from gaussianRingList#((kk,s,k,l,p,vv)) 
      )
 
 
@@ -1960,7 +1950,7 @@ doc ///
       @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
-    :GaussianRing
+    :Ring
       a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
       additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
       with $1 \leq i \leq j \leq n$ where $n$ is the number of vertices in $G$.      

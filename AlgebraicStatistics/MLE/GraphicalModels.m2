@@ -964,7 +964,7 @@ gaussianParametrization Ring := Matrix => opts -> R -> (
 
 gaussianVanishingIdeal=method(TypicalValue => Ideal, Options=>{oldVersion => false})
 gaussianVanishingIdeal Ring := opts -> R -> (
-    if not R.?graph then error "expected a ring created with gaussianRing";
+    if not R.?graph then error "expected a ring created with gaussianRing of a Graph, Digraph, Bigraph or MixedGraph";
     if R.graphType === Graph then (    
        K:= undirectedEdgesMatrix R;
        adjK := sub(det(K)*inverse(sub(K,frac R)), R);
@@ -1009,8 +1009,7 @@ gaussianVanishingIdeal Ring := opts -> R -> (
        elimvarlist := flatten entries (vars(R))_{0..m};
        I = trim ideal(0_R);
        I = eliminate(elimvarlist,tempideal)     
-     )
- else error " gaussianVanishingIdeal expected a ring created with gaussianRing of a Graph or Digraph or MixedGraph"    
+     )   
 )
 
 ------------------------------------------------------------------

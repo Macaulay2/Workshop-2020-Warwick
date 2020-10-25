@@ -26,6 +26,8 @@ newPackage(
         )
 
 export {
+    "graphComponents",
+    "graphFunctions",
      "topologicalSort",
     "topSort",
     "SortedDigraph",
@@ -38,7 +40,9 @@ export {
     "newDigraph",
     "collateVertices",
     "partitionLMG",
-    "isMixedGraphSimple"
+    "isMixedGraphSimple",
+    "indexLabelMixedGraph",
+    "noDirCycles"
     }
 
 
@@ -87,9 +91,12 @@ map => hashTable apply(#L, i -> L_i => i + 1)
 
 Bigraph = new Type of Graph
 
-bigraph = method(Options => {Singletons => null})
+bigraph = method(Options => {Singletons => null, EntryMode => "auto"})
 bigraph HashTable := opts -> g -> new Bigraph from graph(g, opts)
-bigraph List := opts -> g -> new Bigraph from graph(g, opts)
+bigraph List := opts -> L -> new Bigraph from graph(L, opts)
+bigraph (List, List):= opts -> (V,L) -> new Bigraph from graph(V,L, opts)
+bigraph (List, Matrix) :=  opts -> (V,A) -> new Bigraph from graph(V,A, opts)
+bigraph Matrix := opts -> A -> new Bigraph from graph(A, opts)
 
 
 graphData = "graphData"
@@ -219,6 +226,28 @@ collateVertices MixedGraph := g -> (
     mixedGraph(gg,dd,bb))
 
 
+indexLabelMixedGraph = method()
+indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
+    V := vertices G;
+    h := hashTable apply(#V, i -> V_i => i);
+    U := G#graph#Graph;
+    B := G#graph#Bigraph;
+    D := G#graph#Digraph;
+    
+    inputG:=new MutableHashTable;
+    inputG#graphComponents={U,B,D};
+    inputG#graphFunctions={graph,bigraph,digraph};
+    inputG=new HashTable from inputG;
+    
+    G=mixedGraph toSequence(
+      for i to #inputG#graphComponents-1 list (
+      E := apply(toList \ edges inputG#graphComponents_i, e -> {h#(e_0), h#(e_1)});
+      inputG#graphFunctions_i(flatten E, E,EntryMode => "edges")
+      )
+     )
+    );
+
+
 -- Makes a partition U\cup W of the vertices V of a loopless mixed graph (inputed as a mixedGraph) 
 -- such that U contains all the vertices adjacent to undirected edges, 
 -- W contains all the vertices adjacent to bidirected edges 
@@ -232,8 +261,8 @@ partitionLMG MixedGraph := g -> (
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
-   --check D is a DAG: IS THIS ENOUGH???
-   if isCyclic D==true then error ("The directed part of the mixedGraph contains cycles.");
+   --check there are no directed cycles
+   if not noDirCycles g  then error ("A loopless mixed graph should not contain directed cycles.");
    --naive partition (vertices only adjacent to directed edges are not considered) 
    U:=vertices G;
    W:=vertices B;
@@ -257,7 +286,7 @@ partitionLMG MixedGraph := g -> (
    U,W
 )
 
---Check whether a mixedGraph is simple
+--Check whether a MixedGraph is simple
 isMixedGraphSimple = method()
 isMixedGraphSimple MixedGraph := Boolean => g -> (
    --retrieve graph, digraph and bigraph
@@ -274,4 +303,29 @@ isMixedGraphSimple MixedGraph := Boolean => g -> (
    --check there are no loops and no repetitions
    isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) and #ed==#e
    )
+
+-- Check whether a Mixed Graph does not contain any directed loops
+noDirCycles=method()
+noDirCycles MixedGraph := Boolean => g -> (
+    G:=indexLabelMixedGraph g;
+    U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
+    B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
+    D:= digraph(sort vertices G#graph#Digraph,edges G#graph#Digraph);
+    compU:=connectedComponents U;
+    compB:=connectedComponents B;
+    vertOnlyDir:=vertices D - set vertices U - set vertices B;
+    allComp:=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)};
+    n:=# compU + # compB + #vertOnlyDir;
+    adjMG:=mutableMatrix(ZZ,n,n);
+    -- form the adjacency matrix of the graph of chain components 
+    for i from 0 to  n - 1 do
+	   (
+	       for j from 0 to  n - 1 do
+	       (if not submatrix(adjacencyMatrix D, toList(set(allComp_i)*set(vertices D)), toList(set(allComp_j)*set(vertices D)))==0 then adjMG_(i,j)=1 else adjMG_(i,j)=0
+	       ));
+
+    adjMG=matrix adjMG;
+    not isCyclic (digraph adjMG)  
+    );
+
 

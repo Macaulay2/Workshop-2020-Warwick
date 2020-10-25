@@ -40,7 +40,7 @@ export {
     "newDigraph",
     "collateVertices",
     "partitionLMG",
-    "isMixedGraphSimple",
+    "isMixedGraphLoopless",
     "indexLabelMixedGraph",
     "noDirCycles"
     }
@@ -256,7 +256,7 @@ indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
 partitionLMG = method()
 partitionLMG MixedGraph := g -> (
    --check it's a simple graph
-   if isMixedGraphSimple(g)==false then error ("The input should be a simple mixedGraph.");
+   if isMixedGraphLoopless(g)==false then error ("The input should be a simple mixedGraph.");
    --retrieve graph, bigraph and digraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
@@ -286,22 +286,22 @@ partitionLMG MixedGraph := g -> (
    U,W
 )
 
---Check whether a MixedGraph is simple
-isMixedGraphSimple = method()
-isMixedGraphSimple MixedGraph := Boolean => g -> (
+--Check whether a MixedGraph is loopless in each type of edges
+isMixedGraphLoopless = method()
+isMixedGraphLoopless MixedGraph := Boolean => g -> (
    --retrieve graph, digraph and bigraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
    --retrieve underlying undirected edges 	
-   edG:=edges G;
-   edD:=edges underlyingGraph D;
-   edB:=edges B;
+   --edG:=edges G;
+   --edD:=edges underlyingGraph D;
+   --edB:=edges B;
    --build list of underlying edges with and without repetitions
-   ed:=join(edG,edD,edB);
-   e:=unique(ed);
+   --ed:=join(edG,edD,edB);
+   --e:=unique(ed);
    --check there are no loops and no repetitions
-   isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) and #ed==#e
+   isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) --and #ed==#e
    )
 
 -- Check whether a Mixed Graph does not contain any directed loops
@@ -310,12 +310,13 @@ noDirCycles MixedGraph := Boolean => g -> (
     G:=indexLabelMixedGraph g;
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
-    D:= digraph(sort vertices G#graph#Digraph,edges G#graph#Digraph);
+    D:= digraph(vertices G,edges G#graph#Digraph);
     compU:=connectedComponents U;
     compB:=connectedComponents B;
     vertOnlyDir:=vertices D - set vertices U - set vertices B;
     allComp:=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)};
     n:=# compU + # compB + #vertOnlyDir;
+    if n==1 then edges D=={} else(
     adjMG:=mutableMatrix(ZZ,n,n);
     -- form the adjacency matrix of the graph of chain components 
     for i from 0 to  n - 1 do
@@ -325,7 +326,7 @@ noDirCycles MixedGraph := Boolean => g -> (
 	       ));
 
     adjMG=matrix adjMG;
-    not isCyclic (digraph adjMG)  
+    not isCyclic (digraph adjMG))  
     );
 
 

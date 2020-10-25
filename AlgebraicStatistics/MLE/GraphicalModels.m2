@@ -659,8 +659,8 @@ gaussianRing Bigraph :=  Ring => opts -> (G) -> (
 --gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
-     -- check graph is simple
-     if isMixedGraphSimple g ==false then error "MixedGraph should be simple.";
+     -- check graph is loopless in each type of edges
+     if isMixedGraphLoopless g ==false then error "MixedGraph should be loopless in each type of edges.";
      -- compute partition V=U\cup W
      (U,W):=partitionLMG g;
      -- convert mixedGraph to hash table
@@ -1243,7 +1243,7 @@ hiddenMap(ZZ,Ring) := RingMap => (v,A) -> (
 
 identifyParameters = method()
 identifyParameters Ring := HashTable => R -> (
-     if not R.graphType === mixedGraph then error "must be a gaussianRing created with a mixed graph";     
+     if not R.graphType === MixedGraph then error "must be a gaussianRing created with a mixed graph";     
      g := R.graph;
      -- Not yet implemented for mixedGraphs with undirected edges
      if not g#graph#Graph === graph{} then error "Function not implemented for mixed graphs with undirected edges";  

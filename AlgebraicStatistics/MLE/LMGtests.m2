@@ -4,11 +4,96 @@ restart
 --installPackage "GraphicalModels"
 
 loadPackage "Graphs"
-loadPackage "StatGraphs"
+debug loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
 loadPackage "GraphicalModelsMLE"
 
 debug needsPackage "GraphicalModelsMLE"
+
+indexLabelMixedGraph = method()
+indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
+    V := vertices G;
+    h := hashTable apply(#V, i -> V_i => i);
+    U:= g#graph#Graph;
+    B:= g#graph#Bigraph;
+    D:= g#graph#Digraph;
+    EU := apply(toList \ edges U, e -> {h#(e_0), h#(e_1)});
+    U=graph(toList(0..<#V), EU, EntryMode => "edges");
+    ED := apply(toList \ edges D, e -> {h#(e_0), h#(e_1)});
+    D=graph(toList(0..<#V), ED, EntryMode => "edges");
+    )
+
+ G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+ h=indexLabelMixedGraph G 
+ confirmNoDirCycles G
+peel h 
+peek h
+h#args
+h#func
+keys h
+values h
+    V = vertices G
+    h = hashTable apply(#V, i -> V_i => i)
+    U = G#graph#Graph;
+    B = G#graph#Bigraph;
+    D = G#graph#Digraph;
+    
+    inputGraph=new MutableHashTable
+    inputGraph#args={U,B,D}
+    inputGraph#func={graph,bigraph,digraph}
+    inputGraph=new HashTable from inputGraph
+    
+    G=mixedGraph toSequence(
+	for i to #inputGraph#args-1 list (
+     	E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     	inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     	)
+      )
+ 
+ 
+ V = vertices G
+ h = hashTable apply(#V, i -> V_i => i)
+ U = G#graph#Graph
+ B= G#graph#Bigraph
+ D= G#graph#Digraph
+ 
+ inputGraph=new MutableHashTable
+ inputGraph#args={U,B,D}
+ inputGraph#func={graph,bigraph,digraph}
+ 
+ --inputGraph=new HashTable from inputGraph
+
+ mixedGraph toSequence(for i to #inputGraph#args-1 list (
+     E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     ))
+ 
+ for i to 2 list i
+
+-------------
+-- Testing confirmNoDirCycles
+-------------
+
+ G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+ G=indexLabelMixedGraph G 
+ U= G#graph#Graph
+ B= G#graph#Bigraph
+ D= G#graph#Digraph
+ compU1=connectedComponents U
+ compB1=connectedComponents B
+ vertOnlyDir=vertices D - set vertices U - set vertices B
+ allComp=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)}
+ n=# allComp
+ adjMG=mutableMatrix(ZZ,n,n)
+    -- form the adjacency matrix of the graph of chain components 
+    for i from 0 to  n - 1 do
+	   (
+	       for j from 0 to  n - 1 do
+	       (if not submatrix(adjacencyMatrix D, toList(set(allComp_i)*set(vertices D)), toList(set(allComp_j)*set(vertices D)))==0 then adjMG_(i,j)=1 else adjMG_(i,j)=0
+	       ));
+     -- check that the graph of chain components is acyclic
+     adjMG=matrix adjMG
+       if isCyclic (digraph adjMG) then error("a loopless mixed graph should not contain directed cycles");
 
 ---------------
 -- Testing noSaturate

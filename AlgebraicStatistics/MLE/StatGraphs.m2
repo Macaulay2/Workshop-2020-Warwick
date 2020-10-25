@@ -310,12 +310,13 @@ noDirCycles MixedGraph := Boolean => g -> (
     G:=indexLabelMixedGraph g;
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
-    D:= digraph(sort vertices G#graph#Digraph,edges G#graph#Digraph);
+    D:= digraph(vertices G,edges G#graph#Digraph);
     compU:=connectedComponents U;
     compB:=connectedComponents B;
     vertOnlyDir:=vertices D - set vertices U - set vertices B;
     allComp:=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)};
     n:=# compU + # compB + #vertOnlyDir;
+    if n==1 then edges D=={} else(
     adjMG:=mutableMatrix(ZZ,n,n);
     -- form the adjacency matrix of the graph of chain components 
     for i from 0 to  n - 1 do
@@ -325,7 +326,7 @@ noDirCycles MixedGraph := Boolean => g -> (
 	       ));
 
     adjMG=matrix adjMG;
-    not isCyclic (digraph adjMG)  
+    not isCyclic (digraph adjMG))  
     );
 
 

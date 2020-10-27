@@ -899,7 +899,7 @@ doc ///
   Key
     chooseSolver 
   Headline
-    optional parameter to choose the numertical solver
+    optional parameter to choose the numerical solver
   SeeAlso
     solverMLE
     EigenSolver
@@ -911,7 +911,7 @@ doc ///
   Key
     [solverMLE, chooseSolver]
   Headline
-    optional parameter to choose the numertical solver
+    optional parameter to choose the numerical solver
   Usage
     solverMLE(G,U,chooseSolver=>"EigenSolver")  
   Inputs 

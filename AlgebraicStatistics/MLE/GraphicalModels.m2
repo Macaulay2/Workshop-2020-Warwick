@@ -664,8 +664,6 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      uu := graph G#Graph;
      -- compute partition V=U\cup W
      if g#graph#Graph===graph{} then (U:={}; W:=vv) else (
-     -- check graph is loopless in each type of edges
-     if isMixedGraphLoopless g ==false then error "MixedGraph should be loopless in each type of edges.";
      -- compute partition V=U\cup W
      (U,W)=partitionLMG g; 
      );
@@ -2985,7 +2983,8 @@ assert(ideal gens R == ideal flatten correctOutput )
 TEST /// 
 G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
 R = gaussianRing G
-assert(sort gens R === sort {s_(a,a), s_(a,b), s_(a,c), s_(a,d), s_(b,b), s_(b,c), s_(b,d), s_(c,c), s_(c,d), s_(d,d)})
+assert(sort gens R === sort {l_(a,c),l_(a,b),l_(b,c),l_(b,d),p_(a,a),p_(b,b),p_(c,c),p_(d,d),s_(a,a),s_(a,b),
+     s_(a,c),s_(a,d),s_(b,b),s_(b,c),s_(b,d),s_(c,c),s_(c,d),s_(d,d)})
 ///
 
 TEST ///

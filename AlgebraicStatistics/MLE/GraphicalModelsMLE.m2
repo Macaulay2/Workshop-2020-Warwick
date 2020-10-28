@@ -1267,7 +1267,7 @@ TEST ///
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 R=gaussianRing(G)
 U=random(ZZ^4,ZZ^4)
-J=scoreEquationsUndir(R,U)
+J=scoreEquations(R,U)
 assert(dim J===0)
 assert(degree J===5)
 ///   
@@ -1281,7 +1281,7 @@ assert(Y===B)
 
 TEST ///
 L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}},matrix{{0,0},{0,0}}};
-Y = checkPD(L);
+Y = checkPSD(L);
 B = {matrix{{1, 0}, {0, 1}},matrix{{0,0},{0,0}}};
 assert(Y===B)	
 ///

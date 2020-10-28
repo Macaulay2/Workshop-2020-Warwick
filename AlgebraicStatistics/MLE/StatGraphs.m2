@@ -256,13 +256,13 @@ indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
 partitionLMG = method()
 partitionLMG MixedGraph := g -> (
    --check it's a simple graph
-   if isMixedGraphLoopless(g)==false then error ("The input should be a simple mixedGraph.");
+   if isMixedGraphLoopless(g)==false then print ("Warning: the expected input is a loopless mixed graph.");
    --retrieve graph, bigraph and digraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
    --check there are no directed cycles
-   if not noDirCycles g  then error ("A loopless mixed graph should not contain directed cycles.");
+   if not noDirCycles g  then print ("Warning: the expected input is a loopless mixed graph without partially directed cycles.");
    --naive partition (vertices only adjacent to directed edges are not considered) 
    U:=vertices G;
    W:=vertices B;

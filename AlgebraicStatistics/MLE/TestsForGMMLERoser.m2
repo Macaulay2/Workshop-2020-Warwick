@@ -18,10 +18,31 @@ U=random(ZZ^4,ZZ^4)
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 --Generate score equations for an undirected graph on 4 nodes  with random observations
-J2=time scoreEquations(R,U)
+J=time scoreEquations(R,U)
 J=time scoreEquations(R,U,doSaturate=>false)
 J=time scoreEquations(R,U,saturateOptions=>{Strategy=>Eliminate})
 J=time scoreEquations(R,U,saturateOptions=>{Strategy=>Bayer})
+solverMLE(G,U)
+solverMLE(G,U,concentrationMatrix=>false)
+
+
+--piecewise
+restart
+debug needsPackage("GraphicalModelsMLE")
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+R=gaussianRing(mixedGraph(G))
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+(J,Sinv)=scoreEquationsInternal(R,U)
+sols=zeroDimSolve(J)
+M=genListMatrix(sols,Sinv)
+L=checkPD M
+V=sampleCovarianceMatrix(U)
+optSols=maxMLE(L,V)
+optSols_1
+optSols_0
+inverse optSols_1
+
+solverMLE(G,U,concentrationMatrix=>false)
 
 -- test for undirected as  mixedGraph
 restart
@@ -523,3 +544,37 @@ loadPackage("GraphicalModelsMLE")
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
 solverMLE(G,U) 
+
+
+-- Carlos example
+restart
+needsPackage "GraphicalModelsMLE"
+g=mixedGraph(bigraph{{3,4}},digraph{{1,3},{2,4}})
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+U2=random(ZZ^4,ZZ^4)
+solverMLE(g,U)
+solverMLE(g,U2)
+solverMLE(g,U2,concentrationMatrix=>false)
+--GraphicalModelsMLE.m2:401:34:(3):[6]: error: no method found for applying inverse to:
+--    argument   :  {| .434161  -.127581 .395536 .352088  |} (of class List)
+--                    | -.127581 .231305  -.18865 -.362366 |
+--                    | .395536  -.18865  .584866 .520622  |
+--                    | .352088  -.362366 .520622 1.00003  |
+
+
+restart
+debug needsPackage("GraphicalModelsMLE")
+g=mixedGraph(bigraph{{3,4}},digraph{{1,3},{2,4}})
+U2=random(ZZ^4,ZZ^4)
+R=gaussianRing g
+(J,Sinv)=scoreEquationsInternal(R,U2)
+sols=zeroDimSolve(J)
+M=genListMatrix(sols,Sinv)
+L=checkPD M
+V=sampleCovarianceMatrix(U2)
+optSols=maxMLE(L,V)
+optSols_1
+optSols_0
+inverse optSols_1
+
+solverMLE(G,U2,concentrationMatrix=>false)

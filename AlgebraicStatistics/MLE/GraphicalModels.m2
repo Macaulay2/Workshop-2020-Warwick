@@ -1136,14 +1136,17 @@ trekSeparation MixedGraph := List => (g) -> (
 trekIdeal = method()
 trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      if not R.?gaussianRingData  then error "expected a ring created with gaussianRing";
-     if R.?graphType then (if not sort (vertices (R.graph))  === sort (vertices (g)) then 
-	  error "vertex labels of graph do not match labels in ring")
+     if R.?graphType then (
+	  if not sort (vertices (R.graph))  === sort (vertices (g)) 
+	  then error "vertex labels of graph do not match labels in ring";
+	  if (R.graph#graph#Digraph===digraph{} and R.graph#graph#Bigraph===bigraph{}) 
+	  then return trekIdeal(R,R.graph#graph#Graph))
      else if not ( 1..R.gaussianRingData#nn === sort vertices(g))  then 
          error "variables names do not match variable names in the Gaussian ring";
      Stmts:= trekSeparation g;
      vv := sort vertices g;
      SM := covarianceMatrix R ;	
-     if Stmts == () then (
+     if Stmts == {} then (
          ideal 0 )
      else 
         sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x)))))

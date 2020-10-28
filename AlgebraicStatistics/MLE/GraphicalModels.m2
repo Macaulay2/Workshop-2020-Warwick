@@ -663,7 +663,7 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      bb := graph G#Bigraph;
      uu := graph G#Graph;
      -- compute partition V=U\cup W
-     if G#Graph===graph{} then (U:={}; W:=vv) else (
+     if g#graph#Graph===graph{} then (U:={}; W:=vv) else (
      -- check graph is loopless in each type of edges
      if isMixedGraphLoopless g ==false then error "MixedGraph should be loopless in each type of edges.";
      -- compute partition V=U\cup W
@@ -1355,6 +1355,7 @@ doc ///
      GraphicalModels requires Graphs.m2. This package allows the user to create graphs whose vertices are labeled arbitrarily. 
      However, several functions in GraphicalModels sort the vertices of the graph. Hence, graphs used as input to methods 
      in GraphicalModels must have sortable vertex labels, e.g., all numbers or all letters. 
+     GraphicalModels also requires StatGraphs.m2. This package allows the user to work with objects such as bigraphs and mixedGraphs.
 ///;
 
 --------------------------------

@@ -113,7 +113,24 @@ U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3
 scoreEquations(R,U)
 solverMLE(G,U)	    
 
+------------------
+---#Issue 115----- 
+------------------
+restart
+needsPackage "GraphicalModelsMLE"
 
+G= mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+R=gaussianRing G
+T=trekIdeal(R,G)
+--stdio:4:3:(3): error: expected argument 2 to be a visible list
+R.gaussianRingData
+R.?gaussianRingData
+R.?graphType
+R.graphType
+Stmts=trekSeparation G
+vv=sort vertices G
+SM=covarianceMatrix R
+Stmts=={} --The issue was () instead of {}
 ----------------------------------------------
 ----------------------------------------------
 ----------------------------------------------

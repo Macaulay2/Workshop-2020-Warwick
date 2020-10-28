@@ -398,8 +398,7 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     --find the optimal points
     (maxPt, E):=maxMLE(L,V);
     if not opts.concentrationMatrix then (
-	if #(maxPt, E)==2 then E=inverse E else
-	E=(for e in E list e=inverse e)
+	if class E=== List then 	E=(for e in E list e=inverse e) else  E=inverse E
 	);
     return  (maxPt, E));    
 );

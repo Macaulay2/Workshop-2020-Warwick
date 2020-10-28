@@ -34,20 +34,24 @@ newPackage(
 	  },
      Headline => "maximum likelihood estimates for graphical statistical models",
      DebuggingMode => true,
-     PackageExports => {"GraphicalModels","Graphs","EigenSolver","StatGraphs"}
+     PackageExports => {"GraphicalModels","Graphs","EigenSolver","NumericalAlgebraicGeometry","StatGraphs"}
      )
 export {
     "checkPD",
     "checkPSD",
+    "chooseSolver",--optional argument in solverMLE
+    "concentrationMatrix",-- optional argument in solverMLE
     "doSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "jacobianMatrixOfRationalFunction",
+    "optionsES",--optional argument in solverMLE
+    "optionsNAG4M2",--optional argument in solverMLE
     "sampleCovarianceMatrix",
     "sampleData",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "saturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "scoreEquations",
     "solverMLE"
      } 
-     
+
 --**************************--
 --  INTERNAL ROUTINES       --
 --**************************--
@@ -354,7 +358,7 @@ checkPSD(List) := (L) -> (
 );
 
 
-solverMLE = method(TypicalValue =>Sequence, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});-- add a choice of and sigmaInverse solver e,sigmaInverse=>true
+solverMLE = method(TypicalValue =>Sequence, Options =>{doSaturate => true, saturateOptions => options saturate, chooseSolver=>"EigenSolver", optionsES => options zeroDimSolve, optionsNAG4M2=> options solveSystem, sampleData=>true, concentrationMatrix=>true});
 solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- check input
     if not #U==#vertices G then error "Size of sample data does not match the graph."; 
@@ -372,15 +376,32 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
 	print ("the ideal is not zero-dimensional");
 	return J;
 	) else (
-    -- solve system with eigensolver
-    sols:=zeroDimSolve(J);
+    -- solve system 
+    if opts.chooseSolver=="EigenSolver" then(
+	argES:=opts.optionsES  >>newOpts-> args ->(args, newOpts);
+        sols:=zeroDimSolve(argES(J));
+	) else (
+	if opts.chooseSolver=="NAG4M2" then (
+	   sys:= (for i to (numcols gens J)-1 list (gens J)_(0,i)); 
+	   argNAG4M2:=opts.optionsNAG4M2 >>newOpts-> args ->(args, newOpts);
+           sols=solveSystem(argNAG4M2(sys));
+	    )
+	else error "Accepted solver options are EigenSolver 
+	(which uses function zeroDimSolve) or NAG4M2 (which uses solveSystem). Options should 
+	be given as strings.";  
+	);
+   
     --evaluate matrices on solutions
     M:=genListMatrix(sols,SInv);
     --consider only PD matrices    
     L:=checkPD M;
     --find the optimal points
-    optSols:=maxMLE(L,V);
-    return optSols);    
+    (maxPt, E):=maxMLE(L,V);
+    if not opts.concentrationMatrix then (
+	if #(maxPt, E)==2 then E=inverse E else
+	E=(for e in E list e=inverse e)
+	);
+    return  (maxPt, E));    
 );
 
 -- Allow Matrix instead of List
@@ -612,8 +633,35 @@ doc ///
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
 	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
-            scoreEquationsFromCovarianceMatrix(R,U)
-
+            scoreEquations(R,U)
+	    
+	    
+       Example
+           G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+           solverMLE (G, random(QQ^7,QQ^7))
+    		   	    
+       Example
+           M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
+	   sampleCovarianceMatrix(M)
+	   U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
+	   sampleCovarianceMatrix(U)
+	   
+       Example
+	   R=QQ[x,y];
+	   FR=frac R;
+	   F=1/(x^2+y^2);
+           jacobianMatrixOfRationalFunction(F)
+	   R=QQ[t_1,t_2,t_3];
+	   FR=frac R;
+	   jacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
+	   
+      Example
+	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}}}				
+    	    checkPD(L)
+       
+      Example
+	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}				
+    	    checkPSD(L)	   	
     Caveat
         GraphicalModelsMLE requires  @TO Graphs@,  @TO StatGraphs@ and  @TO GraphicalModels@.
 ///
@@ -650,7 +698,8 @@ doc ///
           M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
 	  sampleCovarianceMatrix(M)
 	  U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
-	  sampleCovarianceMatrix(U)	    
+	  sampleCovarianceMatrix(U)
+	  	    
      ///
 
 doc /// 
@@ -820,8 +869,8 @@ doc ///
   Headline
     optional input to set up saturation, use any option from saturate
   Usage
-    scoreEquations(R,U,saturateOptions=>{options saturate})
-    solverMLE(G,U,saturateOptions=>{options saturate})  
+    scoreEquations(R,U,saturateOptions=>options saturate)
+    solverMLE(G,U,saturateOptions=>options saturate)  
   Inputs 
     L: List
      list of options to set up the saturation. Accepts any option from the function
@@ -845,6 +894,114 @@ doc ///
      saturate
      solverMLE	
 ///
+
+doc ///
+  Key
+    chooseSolver 
+  Headline
+    optional parameter to choose the numerical solver
+  SeeAlso
+    solverMLE
+    EigenSolver
+    NumericalAlgebraicGeometry
+    zeroDimSolve
+    solveSystem 
+   ///
+doc ///
+  Key
+    [solverMLE, chooseSolver]
+  Headline
+    optional parameter to choose the numerical solver
+  Usage
+    solverMLE(G,U,chooseSolver=>"EigenSolver")  
+  Inputs 
+    P: String
+       name of the corresponding package
+    
+  Description
+    Text
+      This option allows to choose which numerical solver to use to estimate the critical
+      points. There are two options: "EigenSolver" or "NAG4M2".
+      
+      The default and strongly recommended option is "EigenSolver", in which case
+      the function @TO zeroDimSolve@. If "NAG4M2" is chosen, then @TO solveSystem@ is used.	  
+    Example
+     G=mixedGraph(graph{{a,b},{b,c}})
+     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver")
+     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"NAG4M2")  
+  SeeAlso
+     solverMLE
+     EigenSolver
+     NumericalAlgebraicGeometry
+     zeroDimSolve
+     solveSystem 	
+///
+
+doc ///
+  Key
+    optionsES
+  Headline
+    optional parameter to set the parameters of zeroDimSolve in EigenSolver
+  SeeAlso
+    solverMLE
+    EigenSolver
+    zeroDimSolve
+   ///
+doc ///
+  Key
+    [solverMLE, optionsES]
+  Headline
+    optional parameter to set the parameters of zeroDimSolve in EigenSolver
+  Usage
+    solverMLE(G,U,chooseSolver=>"EigenSolver",optionsES=>options zeroDimSolve)
+  Inputs 
+    L: List
+       list of optional inputs to @TO zeroDimSolve@
+    
+  Description
+    Example
+     G=mixedGraph(graph{{a,b},{b,c}})
+     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver",optionsES=>{Multiplier =>1, Strategy=>"Stickelberger"})  
+     
+  SeeAlso
+     solverMLE
+     EigenSolver
+     zeroDimSolve	
+///
+
+doc ///
+  Key
+   optionsNAG4M2
+  Headline
+   optional parameter to set the parameters of solveSystem in NumericalAlgebraicGeometry
+  SeeAlso
+   solverMLE
+   NumericalAlgebraicGeometry
+   solveSystem
+   ///
+   
+doc ///
+  Key
+    [solverMLE, optionsNAG4M2]
+  Headline
+    optional parameter to set the parameters of solveSystem in NumericalAlgebraicGeometry
+  Usage
+    solverMLE(G,U,chooseSolver=>"NAG4M2",optionsES=>options solveSystem)
+  Inputs 
+    L: List
+       list of optional inputs to @TO solveSystem@
+    
+  Description
+    Example
+     G=mixedGraph(graph{{a,b},{b,c}})
+     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"NAG4M2",optionsNAG4M2=>{tStep =>.01,numberSuccessesBeforeIncrease => 5})  
+     
+  SeeAlso
+     solverMLE
+     NumericalAlgebraicGeometry
+     solveSystem	
+///
+
 doc ///
   Key
     sampleData
@@ -885,6 +1042,33 @@ doc ///
      solverMLE(G,V,sampleData=>false)     
   SeeAlso
      scoreEquations
+     solverMLE 	
+///
+
+doc ///
+  Key
+    concentrationMatrix
+  Headline
+    optional parameter to declare whether the output should be given in terms of concentration matrices or covariance matrices
+  SeeAlso
+    solverMLE
+   ///
+doc ///
+  Key
+    [solverMLE, concentrationMatrix]
+  Headline
+    optional parameter to declare whether the output should be given in terms of concentration matrices or covariance matrices
+  Usage
+    solverMLE(G,U,concentrationMatrix=>true)  
+  Inputs 
+    true: Boolean
+    
+  Description
+    Example
+      G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+      solverMLE (G, random(QQ^7,QQ^7), concentrationMatrix=>true)
+      solverMLE (G, random(QQ^7,QQ^7), concentrationMatrix=>false)    
+  SeeAlso
      solverMLE 	
 ///
 

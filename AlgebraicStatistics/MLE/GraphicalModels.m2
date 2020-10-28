@@ -64,17 +64,14 @@ export {"bidirectedEdgesMatrix",
        "gaussianParametrization",
        "gaussianVanishingIdeal",
        "gaussianRing", 
-       --"GaussianRing",
        "globalMarkov",
        "hiddenMap",
        "identifyParameters", 
        "inverseMarginMap",
        "localMarkov",
        "markovMatrices", 
-       "markovRing", 
-       "MarkovRing",       
+       "markovRing",     
        "marginMap", 
-       --"newDigraph",
        "pairMarkov", 
        "trekIdeal", 
        "trekSeparation",
@@ -502,10 +499,8 @@ toSymbol = (p) -> (
 
 markovRingList := new MutableHashTable;
 
-MarkovRing = new Type of PolynomialRing;
-
 markovRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ,VariableName=> "p"})
-markovRing Sequence := MarkovRing => opts -> d -> (
+markovRing Sequence := Ring => opts -> d -> (
      if any(d, di -> not instance(di,ZZ) or di <= 0)
           then error "markovRing expected positive integers";
      kk := opts.Coefficients;
@@ -519,9 +514,7 @@ markovRing Sequence := MarkovRing => opts -> d -> (
 	  R.markovVariables = H;
 	  markovRingList#(d,kk,p) = R;
 	  );
-     new MarkovRing from markovRingList#(d,kk,p))
-    
-
+    markovRingList#(d,kk,p))
 
 ------------------------------------------------------------------------------------------------------------------------------------
 -- gaussianRing ZZ
@@ -659,10 +652,6 @@ gaussianRing Bigraph :=  Ring => opts -> (G) -> (
 --gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
-     -- check graph is loopless in each type of edges
-     if isMixedGraphLoopless g ==false then error "MixedGraph should be loopless in each type of edges.";
-     -- compute partition V=U\cup W
-     (U,W):=partitionLMG g;
      -- convert mixedGraph to hash table
      gg:= graph g;
      -- sort vertices (only according to vertex number)
@@ -673,6 +662,13 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      dd := graph G#Digraph;
      bb := graph G#Bigraph;
      uu := graph G#Graph;
+     -- compute partition V=U\cup W
+     if G#Graph===graph{} then (U:={}; W:=vv) else (
+     -- check graph is loopless in each type of edges
+     if isMixedGraphLoopless g ==false then error "MixedGraph should be loopless in each type of edges.";
+     -- compute partition V=U\cup W
+     (U,W)=partitionLMG g; 
+     );
      -- set ring variables
      s := toSymbol opts.sVariableName;
      l := toSymbol opts.lVariableName;
@@ -1019,6 +1015,7 @@ gaussianVanishingIdeal Ring := opts -> R -> (
 discreteVanishingIdeal=method()
 discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      if not (R.?markovRingData) then error "expected a ring created with markovRing";
+     if not (class G===Digraph) then error "expected a Digraph";
      d := R.markovRingData;
      n := #d; 
      if not (#vertices(G) == n) then error "Number of vertices of graph does not match size of ring";
@@ -1768,7 +1765,7 @@ doc ///
     d:Sequence
       with positive integer entries $(d_1,\dots ,d_r)$
   Outputs
-    :MarkovRing
+    :Ring  
       a polynomial ring with $d_1*d_2*\dots   *d_r$ variables $p_{i_1,\dots ,i_r}$,
       with each $i_j$ satisfying $1\leq i_j \leq d_j$.
   Consequences

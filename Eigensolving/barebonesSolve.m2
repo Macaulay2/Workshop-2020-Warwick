@@ -36,18 +36,21 @@ opts -> (I,S,x,signature) -> (
     Icoeffs := coeffs_{#S..(numcols coeffs - 1)};
     Scoeffs := coeffs_{0..#S-1};
     L := image Scoeffs;
+    if debugLevel > 0 then print (numgens L, numcols monoms);
     projL := (last SVD sub(transpose mingens L,CC))^{0..numgens L-1}; -- orthogonal projection to L
+    if debugLevel > 0 then print numcols projL;
     IcapL := intersect(L, image Icoeffs); -- this should be done numerically
+    if debugLevel > 0 then print numgens IcapL;
     projC := (last SVD(transpose(projL*sub(mingens IcapL,CC))))^{numgens IcapL..numgens L-1}; -- orthogonal projection to (I \cap L)^\perp
     assert(numrows projC == #quotientBasis); --TO DO: error message
     ind := new HashTable from apply(#S,i->S_i=>i);
     projection := projC*projL; -- this is an ofthodonal projection (but doesn't need to be)  
     A := projection*Scoeffs_(apply(quotientBasis,g->ind#g));
     assert(det A!=0); --TO DO: numerical check instead
-    xA := projection*Scoeffs_(apply(x*quotientBasis,g->ind#g));
+    xA := projection*Scoeffs_(apply(x*quotientBasis,g->ind#g)); -- probably, we should compute multiplication matrices for each variable
     -- solve the eigen-problem: xA - a*A drops rank 
     (E,V) := eigenvectors(inverse A * xA); --TO DO: generalized e-solver
-    assert isSubset(outputVariables,quotientBasis); --TO DO: in fact, this is not necessary
+--    assert isSubset(outputVariables,quotientBasis); --TO DO: in fact, this is not necessary
     apply(numcols V,i->apply(outputVariables, y->(
     		    yA := projection*Scoeffs_(apply(y*quotientBasis,g->ind#g));
     	    	    (solve(A*V_{i},yA*V_{i},ClosestFit=>true))_(0,0)

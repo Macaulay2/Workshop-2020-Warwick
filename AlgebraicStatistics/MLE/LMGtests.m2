@@ -1,14 +1,36 @@
 restart
 --installPackage "Graphs"
---installPackage "StatGraphs"
---installPackage "GraphicalModels"
+installPackage "StatGraphs"
+installPackage "GraphicalModels"
 
 loadPackage "Graphs"
 debug loadPackage "StatGraphs"
 loadPackage "GraphicalModels"
 loadPackage "GraphicalModelsMLE"
 
-debug needsPackage "GraphicalModelsMLE"
+debug loadPackage "GraphicalModelsMLE"
+installPackage "GraphicalModelsMLE"
+
+-- Testing solver alternatives
+G=mixedGraph(graph{{a,b},{b,c}})
+solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}})
+solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver")
+solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"NAG4M2")
+solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"test")
+solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver",optionsES=>options zeroDimSolve)
+solverMLE(G,U,chooseSolver=>"EigenSolver",optionsES=>{Multiplier =>1, Strategy=>"Stickelberger"})  
+I=scoreEquations(gaussianRing G, matrix{{1,0,0},{0,1,0},{0,0,1}})
+
+G=mixedGraph(graph{{a,b},{b,c}})
+solverMLE(G,U,chooseSolver=>"NAG4M2",optionsNAG4M2=>{tStep =>.01,numberSuccessesBeforeIncrease => 5})  
+needsPackage "NumericalAlgebraicGeometry"
+solveSystem I
+-- Testing concentrationMatrix
+ G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+(v,a)= solverMLE (G, random(QQ^7,QQ^7))
+ solverMLE (G, random(QQ^7,QQ^7), concentrationMatrix=>false)
+indexLabelMixedGraph G 
+-- Testing indexLabelMixedGraph 
 
 indexLabelMixedGraph = method()
 indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
@@ -25,7 +47,7 @@ indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
 
  G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
  h=indexLabelMixedGraph G 
- confirmNoDirCycles G
+noDirCycles G
 peel h 
 peek h
 h#args
@@ -73,7 +95,154 @@ values h
 -------------
 -- Testing confirmNoDirCycles
 -------------
+ G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+	    --U=random(ZZ^4,ZZ^4)
+	    S=solverMLE(G,U)
+S_1
+indexLabelMixedGraph = method()
+indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
+    V := vertices G;
+    h := hashTable apply(#V, i -> V_i => i);
+    U:= g#graph#Graph;
+    B:= g#graph#Bigraph;
+    D:= g#graph#Digraph;
+    EU := apply(toList \ edges U, e -> {h#(e_0), h#(e_1)});
+    U=graph(toList(0..<#V), EU, EntryMode => "edges");
+    ED := apply(toList \ edges D, e -> {h#(e_0), h#(e_1)});
+    D=graph(toList(0..<#V), ED, EntryMode => "edges");
+    )
 
+ G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+ h=indexLabelMixedGraph G 
+ noDirCycles G
+ partitionLMG G
+  
+ G= mixedGraph(graph{{a,b}},digraph {{a,d},{c,b}},bigraph {{c,d}})
+ noDirCycles G    
+ 
+peel h 
+peek h
+h#args
+h#func
+keys h
+values h
+    V = vertices G
+    h = hashTable apply(#V, i -> V_i => i)
+    U = G#graph#Graph;
+    B = G#graph#Bigraph;
+    D = G#graph#Digraph;
+    
+    inputGraph=new MutableHashTable
+    inputGraph#args={U,B,D}
+    inputGraph#func={graph,bigraph,digraph}
+    inputGraph=new HashTable from inputGraph
+    
+    G=mixedGraph toSequence(
+	for i to #inputGraph#args-1 list (
+     	E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     	inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     	)
+      )
+ 
+ 
+ V = vertices G
+ h = hashTable apply(#V, i -> V_i => i)
+ U = G#graph#Graph
+ B= G#graph#Bigraph
+ D= G#graph#Digraph
+ 
+ inputGraph=new MutableHashTable
+ inputGraph#args={U,B,D}
+ inputGraph#func={graph,bigraph,digraph}
+ 
+ --inputGraph=new HashTable from inputGraph
+
+ mixedGraph toSequence(for i to #inputGraph#args-1 list (
+     E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     ))
+ 
+ for i to 2 list i
+
+-------------
+-- Testing confirmNoDirCycles
+-------------
+ G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+	    --U=random(ZZ^4,ZZ^4)
+	    S=solverMLE(G,U)
+S_1
+indexLabelMixedGraph = method()
+indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
+    V := vertices G;
+    h := hashTable apply(#V, i -> V_i => i);
+    U:= g#graph#Graph;
+    B:= g#graph#Bigraph;
+    D:= g#graph#Digraph;
+    EU := apply(toList \ edges U, e -> {h#(e_0), h#(e_1)});
+    U=graph(toList(0..<#V), EU, EntryMode => "edges");
+    ED := apply(toList \ edges D, e -> {h#(e_0), h#(e_1)});
+    D=graph(toList(0..<#V), ED, EntryMode => "edges");
+    )
+
+ G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+ h=indexLabelMixedGraph G 
+ noDirCycles G
+ partitionLMG G
+  
+ G= mixedGraph(graph{{a,b}},digraph {{a,d},{c,b}},bigraph {{c,d}})
+ noDirCycles G    
+ 
+peel h 
+peek h
+h#args
+h#func
+keys h
+values h
+    V = vertices G
+    h = hashTable apply(#V, i -> V_i => i)
+    U = G#graph#Graph;
+    B = G#graph#Bigraph;
+    D = G#graph#Digraph;
+    
+    inputGraph=new MutableHashTable
+    inputGraph#args={U,B,D}
+    inputGraph#func={graph,bigraph,digraph}
+    inputGraph=new HashTable from inputGraph
+    
+    G=mixedGraph toSequence(
+	for i to #inputGraph#args-1 list (
+     	E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     	inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     	)
+      )
+ 
+ 
+ V = vertices G
+ h = hashTable apply(#V, i -> V_i => i)
+ U = G#graph#Graph
+ B= G#graph#Bigraph
+ D= G#graph#Digraph
+ 
+ inputGraph=new MutableHashTable
+ inputGraph#args={U,B,D}
+ inputGraph#func={graph,bigraph,digraph}
+ 
+ --inputGraph=new HashTable from inputGraph
+
+ mixedGraph toSequence(for i to #inputGraph#args-1 list (
+     E = apply(toList \ edges inputGraph#args_i, e -> {h#(e_0), h#(e_1)});
+     inputGraph#func_i(flatten E, E,EntryMode => "edges")
+     ))
+ 
+ for i to 2 list i
+
+-------------
+-- Testing confirmNoDirCycles
+-------------
+G= mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+G = mixedGraph(digraph {{a,{b}},{b,{c}}},bigraph {{a,c}, {b,c}})
  G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
  G=indexLabelMixedGraph G 
  U= G#graph#Graph

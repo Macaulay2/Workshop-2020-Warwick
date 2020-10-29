@@ -41,12 +41,11 @@ export {
     "collateVertices",
     "partitionLMG",
     "isMixedGraphLoopless",
-    "indexLabelMixedGraph",
     "noDirCycles"
     }
 
 
-topologicalSort = method()
+topologicalSort = method(TypicalValue =>List)
 topologicalSort Digraph := List => D -> topologicalSort(D, "")
 topologicalSort (Digraph, String) := List => (D,s) -> (
     if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
@@ -77,7 +76,7 @@ SortedDigraph = new Type of HashTable;
 --      NewDigraph: the digraph with vertices labeled as integers obtained from sorting
 --      map: the map giving the sorted order
 
-topSort = method()
+topSort = method(TypicalValue =>HashTable)
 topSort Digraph := SortedDigraph => D -> (
 L := topologicalSort D;
 g := graph D;
@@ -91,7 +90,7 @@ map => hashTable apply(#L, i -> L_i => i + 1)
 
 Bigraph = new Type of Graph
 
-bigraph = method(Options => {Singletons => null, EntryMode => "auto"})
+bigraph = method(TypicalValue =>Bigraph, Options => {Singletons => null, EntryMode => "auto"})
 bigraph HashTable := opts -> g -> new Bigraph from graph(g, opts)
 bigraph List := opts -> L -> new Bigraph from graph(L, opts)
 bigraph (List, List):= opts -> (V,L) -> new Bigraph from graph(V,L, opts)
@@ -104,7 +103,7 @@ labels = "labels"
 
 LabeledGraph = new Type of HashTable
 
-labeledGraph = method()
+labeledGraph = method(TypicalValue =>LabeledGraph)
 labeledGraph (Digraph,List) := (g,L) -> (
     C := new MutableHashTable;
     C#cache = new CacheTable from {};
@@ -152,7 +151,7 @@ graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph
 
 MixedGraph = new Type of HashTable
 
-mixedGraph = method()
+mixedGraph = method(TypicalValue =>MixedGraph)
 mixedGraph (Graph, Digraph, Bigraph) := (g,d,b) -> (
     C := new MutableHashTable;
     C#cache = new CacheTable from {};
@@ -196,6 +195,7 @@ graph MixedGraph := opts -> g -> g#graph     	     --used to transform the Mixed
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
 vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))
+vertexSet MixedGraph := G -> vertices G
 
 descendents (MixedGraph, Thing) := (G,v) -> descendents(digraph G, v)
 nondescendents (MixedGraph, Thing) := (G,v) -> nondescendents(digraph G, v)
@@ -225,9 +225,7 @@ collateVertices MixedGraph := g -> (
     bb := bigraph(new HashTable from hh);
     mixedGraph(gg,dd,bb))
 
-
-indexLabelMixedGraph = method()
-indexLabelMixedGraph MixedGraph := MixedGraph => G -> (
+indexLabelGraph MixedGraph := MixedGraph => G -> (
     V := vertices G;
     h := hashTable apply(#V, i -> V_i => i);
     U := G#graph#Graph;
@@ -307,7 +305,7 @@ isMixedGraphLoopless MixedGraph := Boolean => g -> (
 -- Check whether a Mixed Graph does not contain any directed loops
 noDirCycles=method()
 noDirCycles MixedGraph := Boolean => g -> (
-    G:=indexLabelMixedGraph g;
+    G:=indexLabelGraph g;
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
     D:= digraph(vertices G,edges G#graph#Digraph);
@@ -329,4 +327,429 @@ noDirCycles MixedGraph := Boolean => g -> (
     not isCyclic (digraph adjMG))  
     );
 
+--******************************************--
+-- DOCUMENTATION     	       	    	    -- 
+--******************************************--
+
+beginDocumentation()
+
+doc ///
+    Key
+        StatGraphs
+    Headline
+        a package for graphs that are used primarily in statistical models.
+    Description        
+        Text
+            This package contains the types of graphs that are used in algebraic 
+      	    statistics: @TO Bigraph@,  @TO LabeledGraph@,  @TO MixedGraph@ and  @TO SortedDigraph@. 
+	    
+	    A Bigraph is a simple graph with bidirected edges. 
+	    A MixedGraph is a graph with undirected, directed and bidirected edges. 
+	    
+        Example	   
+	    G = bigraph {{3,4},{1,2},{2,4}}
+	    	    
+        Example	   
+	    G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
+
+	    
+   	
+    Caveat
+       StatGraphs requires  @TO Graphs@ version 0.3.2 or later.
+       
+    SeeAlso
+       Graphs
+    	   
+///
+
+--------------------------------
+-- Documentation
+--------------------------------
+
+--------------------------------------------
+-- Documentation Bigraph
+--------------------------------------------
+
+doc ///
+  Key 
+     Bigraph
+
+  Headline
+     a simple graph with  bidirected edges. 
+  Description
+     Text  
+         Bigraph is a simple graph that has  bidirected edges.
+	 To create a Bigraph, use @TO bigraph@. 
+	
+  SeeAlso
+     bigraph
+
+///
+
+--------------------------------------------
+-- Documentation bigraph
+--------------------------------------------
+
+doc ///
+  Key
+     bigraph
+     (bigraph, HashTable)
+     (bigraph, List)
+     (bigraph, List, List)
+     (bigraph, List, Matrix)
+     (bigraph, Matrix)
+
+    
+  Headline
+     this function creates a Bigraph 
+  Usage
+     G= bigraph(H) 
+     G= bigraph(L) 
+     G= bigraph(V,L)
+     G= bigraph(V,A)
+     G= bigraph(A)   
+ 
+  Inputs
+     H:HashTable
+       hashtable of edges	 	 	 
+     L:List
+       list of edges
+     V:List 
+       list of vertices
+     A:Matrix
+       adjacency matrix   
+    
+  Outputs
+     :Bigraph
+    
+  Description
+    Text
+        This is a constructor of a simple graph of type Bigraph.  One can use the same input types
+	as in @TO graph@. 
+    Example
+        G = bigraph {{3,4},{1,2},{2,4}}
+
+  SeeAlso
+    Bigraph
+
+///
+
+--------------------------------------------
+-- Documentation MixedGraph
+--------------------------------------------
+
+doc ///
+  Key 
+     MixedGraph
+
+  Headline
+     a graph that has undirected, directed and bidirected edges. 
+  Description
+     Text  
+         MixedGraph is a graph that has undirected, directed and bidirected edges.
+	 To create a MixedGraph, use @TO mixedGraph@. Each subgraph (undirected,
+	 directed and bidirected) is a simple graph.
+	
+  SeeAlso
+     mixedGraph
+     collateVertices
+
+///
+
+--------------------------------------------
+-- Documentation mixedGraph
+--------------------------------------------
+
+doc ///
+  Key
+     mixedGraph
+     (mixedGraph, Graph, Digraph, Bigraph)
+     (mixedGraph, Graph,Bigraph,Digraph) 
+     (mixedGraph, Digraph,Graph,Bigraph)
+     (mixedGraph, Digraph,Bigraph,Graph)
+     (mixedGraph, Bigraph,Graph,Digraph)
+     (mixedGraph, Bigraph,Digraph,Graph) 
+     (mixedGraph, Graph, Digraph)
+     (mixedGraph, Digraph,Graph)
+     (mixedGraph, Digraph, Bigraph)
+     (mixedGraph, Bigraph,Digraph)
+     (mixedGraph, Graph, Bigraph)
+     (mixedGraph, Bigraph, Graph)
+     (mixedGraph, Graph)
+     (mixedGraph, Digraph)
+     (mixedGraph, Bigraph)
+    
+  Headline
+     this function creates a MixedGraph from a combination of Graph, Digraph and Bigraph 
+  Usage
+     G= mixedGraph(U, D, B) 
+     G= mixedGraph G 
+     G= mixedGraph D
+     G= mixedGraph B
+     G= mixedGraph(G, D)
+     G= mixedGraph(G, B)
+     G= mixedGraph(D, B)
+ 
+  Inputs
+     U:Graph
+       component that contains all undirected edges of the graph	 	 	 
+     D:Digraph
+       component that contains all directed edges of the graph
+     B:Bigraph
+       component that contains all bidirected edges of the graph
+    
+  Outputs
+     :MixedGraph
+    
+  Description
+    Text
+        This is a constructor of graphs of type MixedGraph from a combination of Graph, Digraph and Bigraph.  One can also input any subset 
+        and any permutation of the arguments.
+    
+        Note that this constructor does not check the input satisfies the properties of loopless mixed graphs from 
+        Sadeghi and Lauritzen, 2020 <@HREF"https://arxiv.org/pdf/1109.5909.pdf"@>.
+      
+    Example
+        G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
+
+  SeeAlso
+    MixedGraph
+
+///
+
+--------------------------------------------
+-- Operations on MixedGraph
+--------------------------------------------
+
+--------------------------------------------
+-- Documentation bigraph(MixedGraph)
+--------------------------------------------
+
+doc ///
+  Key
+     (bigraph, MixedGraph)
+  Headline
+     Extract the Bigraph component of a MixedGraph
+  Usage
+     G=bigraph G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :Bigraph
+    
+  Description
+    Text
+        This method extracts the Bigraph component of a MixedGraph
+      
+    Example
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+        bigraph G
+
+  SeeAlso
+    MixedGraph
+    (digraph, MixedGraph) 
+    (graph, MixedGraph) 
+
+///
+
+--------------------------------------------
+-- Documentation collateVertices 
+--------------------------------------------
+
+doc /// 
+    Key
+        collateVertices
+        (collateVertices, MixedGraph) 
+	
+    Headline
+        converts a MixedGraph so that each component subgraph has the same set of vertices.
+    Usage
+        collateVertices(G)
+    Inputs
+        G:MixedGraph
+    Outputs
+         :MixedGraph 
+    Description 
+        Text
+	    Let G=mixedGraph(U,D,B) and denote the vertices of U by V1, 
+	    the vertices of D by V2 and the vertices of B by  V3.
+	    Then the method collateVertices(G) outputs a mixedGraph with same 
+	    edges as before but with V1 \cup V2 \cup V3 as the vertices of U,D 
+	    and B.
+	    
+        Example
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G = mixedGraph(U,D,B)
+	   collateVertices G
+   ///
+--------------------------------------------
+-- Documentation indexLabelGraph
+--------------------------------------------
+
+doc ///
+  Key
+     (indexLabelGraph, MixedGraph)
+  Headline
+     Relabels the vertices of a MixedGraph according to their indices, indexed from 0.
+  Usage
+     G=indexLabelGraph G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :MixedGraph
+    
+  Description
+    Text
+        This method relabels the vertices of a MixedGraph according to their indices. The method indexes from 0 to the number of vertices minus one.
+	This is an adaptation of @TO indexLabelGraph@.
+      
+    Example
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+	indexLabelGraph G
+
+  SeeAlso
+    MixedGraph
+    indexLabelGraph
+
+///
+
+--------------------------------------------
+-- Documentation noDirCycles 
+--------------------------------------------
+
+doc /// 
+    Key
+        noDirCycles 
+        (noDirCycles, MixedGraph) 
+	
+    Headline
+        checks whether a MixedGraph contains a directed cycle
+    Usage
+        noDirCycles(G)
+    Inputs
+        G:MixedGraph
+    Outputs
+         :Boolean 
+    Description 
+        Text
+	    TBD
+	    
+        Example
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G = mixedGraph(U,D,B)
+	   noDirCycles G
+   ///
+
+--------------------------------------------
+-- Topological sorting functions
+--------------------------------------------
+
+--------------------------------------------
+-- Documentation topologicalSort
+--------------------------------------------
+
+doc /// 
+    Key
+        topologicalSort
+        (topologicalSort, Digraph) 
+	(topologicalSort, Digraph, String) 
+    Headline
+        outputs a list of vertices in a topologically sorted order of a DAG.
+    Usage
+        topologicalSort(D)
+    Inputs
+        D:Digraph
+	S:String
+    Outputs
+         :List 
+    Description 
+        Text
+	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG).
+        Example
+	   D = digraph{{2,1},{3,1}}
+	   topologicalSort D
+   ///
+
+--------------------------------------------
+-- Documentation topSort
+--------------------------------------------
+doc /// 
+    Key
+        topSort
+        (topSort, Digraph) 
+    Headline
+        outputs a list of vertices in a topologically sorted order of a DAG.
+    Usage
+        topologicalSort(D)
+    Inputs
+        D:Digraph
+	  needs to be a directed acyclice graph DAG  
+    Outputs
+         :HashTable 
+    Description 
+        Text
+	    This method outputs a HashTable with keys digraph, map and newDigraph, where digraph is the original digraph,
+	    map is the relation between old ordering and the new ordering of vertices and newDigraph is the Digraph with 
+	    topologically sorted vertices.
+
+        Example
+	   D = digraph{{2,1},{3,1}}
+	   H = topSort D
+	   H#digraph
+	   H#map
+	   H#newDigraph
+   ///
+--------------------------------------------
+-- Documentation vertices and vertexSet
+--------------------------------------------
+
+doc ///
+  Key
+     (vertices, MixedGraph)
+     (vertexSet, MixedGraph)
+    
+  Headline
+     this function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+  Usage
+     V=vertices G
+     V=vertexSet G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :List
+    
+  Description
+    Text
+        This function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+	This is an adaptation of vertices and vertexSet from @TO Graphs@.
+      
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
+	vertices G
+	vertexSet G
+
+  SeeAlso
+    MixedGraph
+
+///
+
+--******************************************--
+-- TESTS     	       	    	      	    --
+--******************************************--
+
+--------------------------------------
+--------------------------------------
+end--
+--------------------------------------
+--------------------------------------
 

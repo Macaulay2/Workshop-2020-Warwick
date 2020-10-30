@@ -40,10 +40,12 @@ export {
     "newDigraph",
     "collateVertices",
     "partitionLMG",
-    "isMixedGraphLoopless",
-    "noDirCycles"
+    "isLoopless",
+    "hasDirCycles",
+    "hasMultipleEdges"
     }
 
+if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
 
 topologicalSort = method(TypicalValue =>List)
 topologicalSort Digraph := List => D -> topologicalSort(D, "")
@@ -254,13 +256,13 @@ indexLabelGraph MixedGraph := MixedGraph => G -> (
 partitionLMG = method()
 partitionLMG MixedGraph := g -> (
    --check it's a simple graph
-   if isMixedGraphLoopless(g)==false then print ("Warning: the expected input is a loopless mixed graph.");
+   if isLoopless(g)==false then print ("Warning: the expected input is a loopless mixed graph.");
    --retrieve graph, bigraph and digraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
    --check there are no directed cycles
-   if not noDirCycles g  then print ("Warning: the expected input is a loopless mixed graph without partially directed cycles.");
+   if hasDirCycles g  then print ("Warning: the expected input is a loopless mixed graph without directed cycles.");
    --naive partition (vertices only adjacent to directed edges are not considered) 
    U:=vertices G;
    W:=vertices B;
@@ -284,9 +286,9 @@ partitionLMG MixedGraph := g -> (
    U,W
 )
 
---Check whether a MixedGraph is loopless in each type of edges
-isMixedGraphLoopless = method()
-isMixedGraphLoopless MixedGraph := Boolean => g -> (
+--Check whether a graph is loopless in each type of edges
+isLoopless = method()
+isLoopless MixedGraph := Boolean => g -> (
    --retrieve graph, digraph and bigraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
@@ -302,9 +304,39 @@ isMixedGraphLoopless MixedGraph := Boolean => g -> (
    isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) --and #ed==#e
    )
 
--- Check whether a Mixed Graph does not contain any directed loops
-noDirCycles=method()
-noDirCycles MixedGraph := Boolean => g -> (
+isLoopless Graph := Boolean => g -> (
+   isSimple(g)
+   )
+
+isLoopless Bigraph := Boolean => g -> (
+   isSimple(g)
+   )
+
+isLoopless Digraph := Boolean => g -> (
+   isSimple(underlyingGraph g)
+   )
+
+-- Checked whether a MixedGraph contains multiple edges
+hasMultipleEdges = method()
+hasMultipleEdges MixedGraph := Boolean => g -> (
+   --retrieve graph, digraph and bigraph
+   G:= g#graph#Graph;
+   B:= g#graph#Bigraph;
+   D:= g#graph#Digraph;
+   --retrieve underlying undirected edges 	
+   edG:=edges G;
+   edD:=edges underlyingGraph D;
+   edB:=edges B;
+   --build list of underlying edges with and without repetitions
+   d:=join(edG,edD,edB);
+   e:=unique(d);
+   --check there are no repetitions
+   #d==#e
+   )
+
+-- Check whether a MixedGraph does not contain any directed cycles
+hasDirCycles=method()
+hasDirCycles MixedGraph := Boolean => g -> (
     G:=indexLabelGraph g;
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
@@ -314,7 +346,7 @@ noDirCycles MixedGraph := Boolean => g -> (
     vertOnlyDir:=vertices D - set vertices U - set vertices B;
     allComp:=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)};
     n:=# compU + # compB + #vertOnlyDir;
-    if n==1 then edges D=={} else(
+    if n==1 then not edges D=={} else(
     adjMG:=mutableMatrix(ZZ,n,n);
     -- form the adjacency matrix of the graph of chain components 
     for i from 0 to  n - 1 do
@@ -324,7 +356,7 @@ noDirCycles MixedGraph := Boolean => g -> (
 	       ));
 
     adjMG=matrix adjMG;
-    not isCyclic (digraph adjMG))  
+    isCyclic (digraph adjMG))  
     );
 
 --******************************************--
@@ -555,6 +587,39 @@ doc ///
 ///
 
 --------------------------------------------
+-- Documentation digraph(MixedGraph)
+--------------------------------------------
+
+doc ///
+  Key
+     (digraph, MixedGraph)
+  Headline
+     Extract the Digraph component of a MixedGraph
+  Usage
+     G=digraph G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :Digraph
+    
+  Description
+    Text
+        This method extracts the Digraph component of a MixedGraph
+      
+    Example
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+        digraph G
+
+  SeeAlso
+    MixedGraph
+    (bigraph, MixedGraph) 
+    (graph, MixedGraph) 
+
+///
+
+--------------------------------------------
 -- Documentation collateVertices 
 --------------------------------------------
 
@@ -620,34 +685,168 @@ doc ///
 ///
 
 --------------------------------------------
+-- Documentation isLoopless 
+--------------------------------------------
+
+doc /// 
+    Key
+        isLoopless 
+        (isLoopless, MixedGraph) 
+	(isLoopless, Graph) 
+	(isLoopless, Bigraph) 
+	(isLoopless, Digraph) 
+    Headline
+        checks whether a graph contains a loop
+    Usage
+        isLoopless(G)
+    Inputs
+        G:
+	 graph of Type MixedGraph, Graph or Digraph
+    Outputs
+         :Boolean 
+    Description 
+        Text
+	  This method checks whether a graph contains a loop. 
+	  
+	  If the input is a  @TO Graph@ or a  @TO Bigraph@, then this is equivalent to 
+	   @TO isSimple@. 
+	  
+	  If the input is a  @TO Digraph@, then this is equivalent to checking whether 
+	  the  @TO underlyingGraph@ @TO isSimple@.
+	  
+	  If the input is a  @TO MixedGraph@, then this checks whether the undirected,
+	  directed and bidirected subgraphs separately contain loops.
+        Example
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   isLoopless G
+	   
+	Example
+	   U = graph{{1,1}}
+	   isLoopless U   
+   ///
+
+--------------------------------------------
 -- Documentation noDirCycles 
 --------------------------------------------
 
 doc /// 
     Key
-        noDirCycles 
-        (noDirCycles, MixedGraph) 
+        hasDirCycles 
+        (hasDirCycles, MixedGraph) 
 	
     Headline
         checks whether a MixedGraph contains a directed cycle
     Usage
-        noDirCycles(G)
+        hasDirCycles(G)
     Inputs
         G:MixedGraph
     Outputs
          :Boolean 
     Description 
         Text
-	    TBD
+	   This method checks whether a @TO MixedGraph@ a directed cycle. 
+	   
+	   A directed cycle is a cycle in the @TO Digraph@ constructed from G by
+	   identifying all connected components on bidirected and undirected edges.
+	   Such a connected component contain either bidirected edges only or 
+	   undirected edges only.
 	    
         Example
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
 	   B = bigraph{{1,5}}
 	   G = mixedGraph(U,D,B)
-	   noDirCycles G
+	   hasDirCycles G
+        Example
+	   U = graph{{1,2},{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D)
+	   hasDirCycles G 
+	Example
+	   U = graph{{1,2}}
+	   B = bigraph{{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D,B)
+	   hasDirCycles G      
    ///
+--------------------------------------------
+-- Operations on vertices of a  MixedGraph
+--------------------------------------------  
 
+--------------------------------------------
+-- Documentation children
+--------------------------------------------
+doc ///
+  Key
+     (children,MixedGraph,Thing)
+    
+  Headline
+    returns the children of a vertex of a MixedGraph
+  Usage
+    children (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The children of v are the all the vertices u such that v,u is in the edge 
+	set of the @TO MixedGraph@ G. So the children of a vertex v are exactly those 
+	vertices on a MixedGraph graph that v points to.
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	children (G,1)
+	children (G,2)
+    	children (G,3)
+
+  SeeAlso
+    MixedGraph
+
+///
+ 
+--------------------------------------------
+-- Documentation vertices and vertexSet
+--------------------------------------------
+
+doc ///
+  Key
+     (vertices, MixedGraph)
+     (vertexSet, MixedGraph)
+    
+  Headline
+     this function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+  Usage
+     V=vertices G
+     V=vertexSet G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :List
+    
+  Description
+    Text
+        This function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+	This is an adaptation of vertices and vertexSet from @TO Graphs@.
+      
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
+	vertices G
+	vertexSet G
+
+  SeeAlso
+    MixedGraph
+
+///
 --------------------------------------------
 -- Topological sorting functions
 --------------------------------------------
@@ -707,41 +906,6 @@ doc ///
 	   H#map
 	   H#newDigraph
    ///
---------------------------------------------
--- Documentation vertices and vertexSet
---------------------------------------------
-
-doc ///
-  Key
-     (vertices, MixedGraph)
-     (vertexSet, MixedGraph)
-    
-  Headline
-     this function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
-  Usage
-     V=vertices G
-     V=vertexSet G
- 
-  Inputs
-     G:MixedGraph
-    
-  Outputs
-     :List
-    
-  Description
-    Text
-        This function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
-	This is an adaptation of vertices and vertexSet from @TO Graphs@.
-      
-    Example
-        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
-	vertices G
-	vertexSet G
-
-  SeeAlso
-    MixedGraph
-
-///
 
 --******************************************--
 -- TESTS     	       	    	      	    --

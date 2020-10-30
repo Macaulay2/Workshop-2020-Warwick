@@ -42,7 +42,8 @@ export {
     "partitionLMG",
     "isLoopless",
     "hasDirCycles",
-    "hasMultipleEdges"
+    "hasMultipleEdges",
+    "undirGraph"
     }
 
 if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
@@ -194,6 +195,10 @@ toString MixedGraph := g -> concatenate(
     )
 
 graph MixedGraph := opts -> g -> g#graph     	     --used to transform the MixedGraph into a hashtable
+
+undirGraph = method()
+undirGraph MixedGraph := g -> g#graph#Graph
+
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
 vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))
@@ -563,7 +568,7 @@ doc ///
   Headline
      Extract the Bigraph component of a MixedGraph
   Usage
-     G=bigraph G
+     B=bigraph G
  
   Inputs
      G:MixedGraph
@@ -582,7 +587,8 @@ doc ///
   SeeAlso
     MixedGraph
     (digraph, MixedGraph) 
-    (graph, MixedGraph) 
+    (graph, MixedGraph)
+    (undirGraph, MixedGraph) 
 
 ///
 
@@ -596,7 +602,7 @@ doc ///
   Headline
      Extract the Digraph component of a MixedGraph
   Usage
-     G=digraph G
+     D=digraph G
  
   Inputs
      G:MixedGraph
@@ -615,10 +621,83 @@ doc ///
   SeeAlso
     MixedGraph
     (bigraph, MixedGraph) 
+    (graph, MixedGraph)
+    (undirGraph, MixedGraph) 
+
+///
+
+--------------------------------------------
+-- Documentation undirGraph(MixedGraph)
+--------------------------------------------
+
+doc ///
+  Key
+     undirGraph
+     (undirGraph, MixedGraph)
+  Headline
+     Extract the Digraph component of a MixedGraph
+  Usage
+     U=undirGraph G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :Graph
+    
+  Description
+    Text
+        This method extracts the Graph component of a MixedGraph
+      
+    Example
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+        undirGraph G
+
+  SeeAlso
+    MixedGraph
+    (bigraph, MixedGraph)
+    (digraph, MixedGraph) 
     (graph, MixedGraph) 
 
 ///
 
+--------------------------------------------
+-- Documentation graph(MixedGraph)
+--------------------------------------------
+
+doc ///
+  Key
+     (graph, MixedGraph)
+  Headline
+     convert MixedGraph to a HashTable
+  Usage
+     U=graph G
+ 
+  Inputs
+     G:MixedGraph
+    
+  Outputs
+     :HashTable
+    
+  Description
+    Text
+        This method creates a HashTable whose key-value pairs correspond to the
+	components of G
+      
+    Example
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+        graph G
+	keys (graph G)
+	(graph G)#Bigraph === bigraph G
+	
+
+  SeeAlso
+    MixedGraph
+    (bigraph, MixedGraph)
+    (digraph, MixedGraph) 
+    (undirGraph, MixedGraph) 
+
+///
 --------------------------------------------
 -- Documentation collateVertices 
 --------------------------------------------

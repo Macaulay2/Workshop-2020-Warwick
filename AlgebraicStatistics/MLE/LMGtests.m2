@@ -11,6 +11,12 @@ loadPackage "GraphicalModelsMLE"
 debug loadPackage "GraphicalModelsMLE"
 installPackage "GraphicalModelsMLE"
 
+-- Testing concentrationMatrix
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
+U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+S = sampleCovarianceMatrix(U)
+sol = solverMLE(G,S,concentrationMatrix=>false)
+
 -- Testing solver alternatives
 G=mixedGraph(graph{{a,b},{b,c}})
 solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}})

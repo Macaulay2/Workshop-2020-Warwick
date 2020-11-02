@@ -274,6 +274,7 @@ uninstallPackage "GraphicalModelsMLE"
 uninstallPackage "EigenSolver"
 
 installPackage "Graphs"
+check Graphs
 
 installPackage "ReactionNetworks"
 check ReactionNetworks

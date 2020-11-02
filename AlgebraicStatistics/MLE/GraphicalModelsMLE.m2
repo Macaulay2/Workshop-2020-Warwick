@@ -39,6 +39,8 @@ newPackage(
 export {
     "checkPD",
     "checkPSD",
+    "isPD",
+    "isPSD",
     "chooseSolver",--optional argument in solverMLE
     "concentrationMatrix",-- optional argument in solverMLE
     "doSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
@@ -71,30 +73,6 @@ matZZtoQQ = (M) -> (
     E:=entries M;   
     return matrix apply(#E, i -> apply(#(E_i), j -> (1/1)*E_i_j))    
 );
-
-
-----------------------------------------------
--- convert a matrix inputted as a list into a matrix
-----------------------------------------------
-listToMatrix=(L)->(
-    --If the input is a list of lists we convert it into a list of matrices
-       if class L_0===List then L=apply(#L, i -> matrix{L_i});
-       -- convert list of matrices into a matrix
-       V:=L_0;
-       for i from 1 to  #L-1 do V= V||L_i;
-       return V
-);
-
-----------------------------------------------
--- extract the vertices of a Gaussian ring
-
-----------------------------------------------
-verticesInRing=(R)->(
-    if R.?graph then V:=vertices R.graph
-    else error "Not a Gaussian ring";
-    return V;
-    );
-
 
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
@@ -157,7 +135,13 @@ maxMLE=(L,V)->(
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
 scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(
-
+    ----------------------------------------------------
+    -- Sample covariance matrix
+    if opts.sampleData then V := sampleCovarianceMatrix(U) 
+    else (V=U; 
+    if not V==transpose V then error "The sample covariance matrix must be symmetric.");
+    ----------------------------------------------------
+    
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -203,9 +187,6 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
 	);
     Sinv := inverse S; 
       
-    -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U; 
-   
     -- Compute ideal J   
     C1 := trace(Sinv * V);
     C1derivative := jacobianMatrixOfRationalFunction(C1);
@@ -229,7 +210,9 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
 --------------------------------
 scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(    
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U; 
+    if opts.sampleData then V := sampleCovarianceMatrix(U) 
+    else (V=U; 
+    if not V==transpose V then error "The sample covariance matrix must be symmetric.");
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
@@ -247,27 +230,21 @@ scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options satu
 --  METHODS 	      	   	  --
 --**************************--
 sampleCovarianceMatrix = method(TypicalValue =>Matrix);
-sampleCovarianceMatrix(List) := (U) -> (
-    n := #U;
-    --If the input is a list of lists we convert it into a list of matrices
-    if class U_0===List then U=apply(#U, i -> matrix{U_i});
-    --Convert from integers to rationals if needed
-    U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
-    --Compute the mean vector
-    Ubar := matrix{{(1/n)}} * sum(U);
-    --Compute sample covariance matrix
-    return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
-);
-
 sampleCovarianceMatrix(Matrix) := (U) -> (
-   X := {};
    n := numRows U;
-   -- converting it to list of matrix; rows of matrix correponds to the elements of the list
-   X = for i to n-1 list U^{i};
-   return sampleCovarianceMatrix(X);
+   --Convert matrix into list of row matrices
+   U = for i to n-1 list U^{i};
+   --Convert from integers to rationals if needed
+   U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
+   --Compute the mean vector
+   Ubar := matrix{{(1/n)}} * sum(U);
+   --Compute sample covariance matrix
+   return ((1/n)*(sum apply(n, i -> (transpose (U#i-Ubar))*(U#i-Ubar))));        
 );
 
-
+sampleCovarianceMatrix(List) := (U) -> (
+   return sampleCovarianceMatrix(matrix U);
+);
 
 jacobianMatrixOfRationalFunction = method(TypicalValue =>Matrix);
 jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
@@ -280,18 +257,13 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
 );
 
 scoreEquations = method(TypicalValue =>Ideal, Options =>{doSaturate => true, saturateOptions => options saturate, sampleData=>true});
-scoreEquations(Ring,List) := opts ->(R, U) -> ( 
+scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input
     ----------------------------------------------------
     if not R.?graph then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
-    if not #U==#verticesInRing R then error "Size of sample data does not match the graph.";  
+    if not numRows U==#vertices R.graph  then error "Size of sample data does not match the graph.";  
     
-    ---------------------------------------------------
-    -- Convert sample covariance data to matrix
-    ---------------------------------------------------
-    if not opts.sampleData then U=listToMatrix U;
-        
     ---------------------------------------------------
     -- Apply appropriate scoreEquations routine
     ---------------------------------------------------
@@ -301,37 +273,63 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     return J;
 );
 
-scoreEquations(List,Ring) := opts ->(U,R) -> ( 
-    return scoreEquations(R,U,opts);
-    );
-
-scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
-   X := {};
-   n := numRows U;
-   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
-   X = for i to n-1 list U^{i};
-   return scoreEquations(R,X,opts);
-);
-
 scoreEquations(Matrix,Ring) := opts ->(U,R) -> ( 
     return scoreEquations(R,U,opts);
     );
 
+scoreEquations(Ring,List) := opts ->(R, U) -> ( 
+    ----------------------------------------------------
+    --Check input
+    ----------------------------------------------------
+    if not opts.sampleData then error "The sample covariance matrix must be a matrix.";
+        
+    ---------------------------------------------------
+    -- Call scoreEquations routine with a matrix
+    ---------------------------------------------------
+    return scoreEquations(R,matrix U,opts);
+);
+
+scoreEquations(List,Ring) := opts ->(U,R) -> ( 
+    return scoreEquations(R,U,opts);
+    );
+
+
+isPD = method()
+isPD Matrix := Boolean => (M) -> (
+    -- Check singularity
+    if det M==0 then return false;
+    -- Compute eigenvalues for each matrix
+    E:=eigenvalues M; 
+    --Check whether all of them are positive and real
+    flag := 0;
+    for e in E do 
+    (	 
+	if 0 >= e then flag = 1;
+	if not isReal e then flag=1;
+    );
+    if flag==0 then true else false
+);
+
+isPSD = method()
+isPSD Matrix := Boolean => (M) -> (
+    flag := 0;
+    -- Compute eigenvalues for each matrix
+    E:=eigenvalues M; 
+    --Check whether all of them are non-negative and real
+    for e in E do 
+    (	 
+	if 0 > e then flag = 1;
+	if not isReal e then flag=1;
+    );
+    if flag==0 then true else false
+);
+
+
 checkPD = method(TypicalValue =>List);
 checkPD(List) := (L) -> (
-   mat := {};
+   mat := {}; 
     for l in L do
-    (
-    	flag := 0;
-    	-- Compute eigenvalues for each matrix
-	L1 := eigenvalues l;
-    	--Check whether all of them are positive and real
-	for t in L1 do 
-    	(	 
-	    if 0 >= t then flag = 1;
-	    if not isReal t then flag=1;
-     	);
-        if flag == 0 then mat = mat | {l} ;
+    (   if isPD(l)==true then mat=mat|{l};
     );
     if mat == {} then print("none of the matrices are pd");
     return mat;
@@ -341,17 +339,7 @@ checkPSD = method(TypicalValue =>List);
 checkPSD(List) := (L) -> (
    mat := {};
     for l in L do
-    (
-    	flag := 0;
-    	-- Compute eigenvalues for each matrix
-	L1 := eigenvalues l;
-    	--Check whether all of them are non-negative and real
-	for t in L1 do 
-    	(	 
-	    if 0 > t then flag = 1;
-	    if not isReal t then flag=1;
-     	);
-        if flag == 0 then mat = mat | {l} ;
+    (   if isPSD(l)==true then mat=mat|{l};
     );
     if mat == {} then print("none of the matrices are psd");
     return mat;
@@ -359,13 +347,16 @@ checkPSD(List) := (L) -> (
 
 
 solverMLE = method(TypicalValue =>Sequence, Options =>{doSaturate => true, saturateOptions => options saturate, chooseSolver=>"EigenSolver", optionsES => options zeroDimSolve, optionsNAG4M2=> options solveSystem, sampleData=>true, concentrationMatrix=>true});
-solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
+solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
-    if not #U==#vertices G then error "Size of sample data does not match the graph."; 
+    if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
     -- sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=listToMatrix U;
+    if opts.sampleData then V := sampleCovarianceMatrix(U) 
+    else (V=U; 
+    if not V==transpose V then error "The sample covariance matrix must be symmetric.");
+    if det V==0 then print "Warning: The sample covariance matrix is singular";
     -- generate the ideal of the score equations
     if opts.doSaturate then (
 	 argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
@@ -403,15 +394,14 @@ solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     return  (maxPt, E));    
 );
 
--- Allow Matrix instead of List
-
-solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
-   X := {};
-   n := numRows U;
-   -- converting U to list of matrices; rows of matrix correponds to the elements of the list
-   X = for i to n-1 list U^{i};
-   return solverMLE(G,X,opts);
+-- Allow list instead of matrix
+solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
+    -- check input
+    if not opts.sampleData then error "The sample covariance matrix must be a matrix.";
+    -- call solverMLE for a matrix
+    return  solverMLE(G,matrix U,opts);    
 );
+
 
 -- Permutations of input
 
@@ -624,9 +614,26 @@ doc ///
         a package for MLE estimates of parameters for statistical graphical models 
     Description        
         Text
-            Add some text and an example.   
+            The following text should include a general description and references...so far only some copy-paste   
+
+
+	    {\tt scoreEquations} computes the score equations that arise from the 
+	    maximization of the log-likelihood function of a graphical Gaussian
+	    statistical model given in Proposition 7.1.10 (Sullivant, 2018):
+	    
+	    $\ell(\Sigma)=-n/2 log det \Sigma - n/2 tr (S\Sigma^{-1})$,
+	    
+	    as a function of $\Sigma^{-1}$.
+	    
+	    References
+	    
+	   
+	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc.
+
 	    
 	    In the example below, we create the score equations (defining the critical points of the log likelihood function written in terms of the covariance matrix) associated to the four data vectors $(1,2,1,-1)$, $(2,1,3,0)$, $(-1,0,1,1)$, $(-5,3,4,-6)$ for a graphical model with four vertices, five directed edges, and one bidirected edge.
+
+
 	    
         Example	   
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
@@ -679,23 +686,29 @@ doc ///
     Usage
         sampleCovarianceMatrix U
     Inputs
-        U:List
-	  each element corresponds to an observations vector  
 	U:Matrix
-	  each row corresponds to an observations vector
+	  or @TO List@ of sample data
     Outputs
          :Matrix
+--      something
     Description 
         Text
-	    The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  
-	    The entries here are not the unbiased estimators of the variance/covariance; that is, the entries here 
-	    correspond to the outputs of the commands VAR.P and COVARIANCE.P in Excel, not VAR and COVARIANCE in Excel.
+	    Sample data is inputed as a matrix or a list.
+	    The rows of the matrix or the  elements of the list are observation vectors.  
 	    
-	    We assume that the data vectors are entered as a list of row matrices, all with the same width, or as a matrix.
-	    Each element of the list (or a row of the matrix) correspond to an observations vector
+	    The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  
+	    Note that for normally distributed random variables $S$ is the maximum likelihood estimator (MLE) of the 
+	    covariance matrix. This is slightly different from the unbiased estimator, which uses a denominator of $n-1$ instead of $n$.
+	        
+	  --  The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  
+	  --  The entries here are not the unbiased estimators of the variance/covariance; that is, the entries here 
+	  --  correspond to the outputs of the commands VAR.P and COVARIANCE.P in Excel, not VAR and COVARIANCE in Excel.
+	    
+	  --  We assume that the data vectors are entered as a list of row matrices, all with the same width, or as a matrix.
+	  --  Each element of the list (or a row of the matrix) correspond to an observations vector
         Example
-          M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
-	  sampleCovarianceMatrix(M)
+          L= {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
+	  sampleCovarianceMatrix(L)
 	  U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
 	  sampleCovarianceMatrix(U)
 	  	    
@@ -711,8 +724,10 @@ doc ///
         jacobianMatrixOfRationalFunction(F)
     Inputs
         F:RingElement
+--        in a ring of fractions
     Outputs
          :Matrix
+--	 the Jacobian matrix of a rational function
     Description 
         Text
 	    This function computes the Jacobian matrix of a rational function
@@ -727,7 +742,7 @@ doc ///
    ///
 
 -------------------------------------------------------
--- Documentation scoreEquationsFromCovarianceMatrix ---
+-- Documentation scoreEquations -----------------------
 -------------------------------------------------------
 
 doc /// 
@@ -742,22 +757,12 @@ doc ///
     Usage
         scoreEquations(R,U)
     Inputs
---        R:Ring
---	  a Gaussian ring of a loopless mixed graph;
         R:Ring 
-	  defined as a gaussianRing of a loopless mixed graph
-	U:List 
-	  Matrix
-	  of sample data
---	  If sampleData=>true (the default setting), then this is data given as a list. 
---	  Can be a list of lists or a list of matrices.
---	  Each element of the list corresponds to an observations vector. 
---	  If sampleData=>false, then this is a sample covariance matrix given as a list, 
---	  i.e., each element of the list corresponds to a row in the covariance matrix.
---	U:Matrix
---	  If sampleData=>true (the default setting), then data given as  a matrix.
---	  Each row of the matrix corresponds to an observations vector. 
---	  If sampleData=>false, then this is a sample covariance matrix.	   
+	  defined as a @TO gaussianRing@ of @TO Graph@, or @TO Digraph@, or @TO Bigraph@, or @TO MixedGraph@ 
+
+	U:Matrix
+	  or @TO List@ of sample data. 
+	  Alternatively, the input can be the sample covariance matrix by setting the optional input @TO sampleData@ to false
     Outputs
          :Ideal
 	  generated by the Jacobian of the log-likelihood function of $\Sigma^{-1}$
@@ -765,48 +770,17 @@ doc ///
         Text
 	    This function computes the score equations that arise from the 
 	    maximization of the log-likelihood function of a graphical Gaussian
-	    statistical model given in Proposition 7.1.10 (Sullivant, 2018):
+	    statistical model and returns the ideal generated by such equations.
 	    
-	    $\ell(\Sigma)=-n/2 log det \Sigma - n/2 tr (S\Sigma^{-1})$,
-	    
-	    as a functio of $\Sigma^{-1}$.
-	    
-	    The underlying graph is assumed to be a loopless mixed graph G (Sadeghi 
-	    and Lauritzen, 2014) given by type @TO MixedGraph@. The nodes of $G$ are partitioned as $V = U\cup W$, such that:
-	
- 	    - if $i-j$ in $G$ then $i,j\in U$
-	    
-  	    - if $i\leftarrow \rightarrow j$ in $G$ then $i,j\in W$ 
-	    
-	    -  there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
-	    
-	    Vertices that are not adjacent to an undirected or a bidirected edge are assumed to be in U.
-	    
-	    We require that the directed part is a DAG, i.e., there should not be any
-	    directed cycles after the identification of the connected 
-	    undirected and bidirected components. 
-	    
-	    The covariance matrix  $\Sigma$ is given by		    	    
-	    
-	    $\Sigma=(I-\Lambda)^{-T} diag(K^{-1}, \Psi) (I-\Lambda)^{-1}$, where
-	    
-	    - $\Lambda $ is a  $\mathbb{R}^{V x V }$ matrix such that $\lambda_{i,j}=0$
-	    whenever $i \rightarrow j$ is not in  $E$;
-	    
-	    - $diag(K^{-1}, \Psi) $ is a block-diagonal $\mathbb{R}^{V x V }$ matrix;
-	    
-	    - $K$ is a  $\mathbb{R}^{U x U }$ matrix such that $k_{i,j}=0$
-	    whenever $i - j$ is not in  $E$;
-	    
-	    - $\Psi$ is a  $\mathbb{R}^{W x W }$ matrix such that $ \psi_{i,j}=0$
-	    whenever $i \leftarrow  \rightarrow  j$ is not in  $E$;
-	    
-	    References
-	    
-	    Sadeghi, K. and Lauritzen, S., 2014. Markov properties for mixed graphs. Bernoulli, 20(2), pp.676-696.
-	    
-	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc.
-	
+	    The input of this function is a @TO gaussianRing@ and statistical data.
+	    The latter can be given as a matrix or a list of observations. The rows of the matrix or the elements of the list are observation vectors given as lists.  
+            It is possible to input the sample covariance matrix directly by using the optional input @TO sampleData@.
+            
+	    There is extra optional input that can be used to control saturation options
+	    or to avoid saturation at all. Note that avoiding saturation is only intended for big
+	    computations when saturation cannot be computed or the computational time is very high. 
+	    It will not provide the score equations but only the ideal before the saturation procedure.
+	       	
 	Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
@@ -1018,7 +992,8 @@ doc ///
     [scoreEquations, sampleData]
     [solverMLE, sampleData]
   Headline
-    optional parameter to declare whether the user inputs data or a sample covariance matrix
+    optional parameter to allow to input the sample covariance matrix instead of sample data
+    --declare whether the user inputs data or a sample covariance matrix
   Usage
     scoreEquations(R,U,sampleData=>true)
     solverMLE(G,U,sampleData=>true)  
@@ -1193,24 +1168,24 @@ doc ///
     Usage
     	solverMLE(G,U)
     Inputs
-    	G: MixedGraph
-	G: Graph
-	G: Digraph
-	G: Bigraph
-      	U: List 
-	U: Matrix
+    	G:Graph
+--	or @ofClass Digraph@, or @ofClass Bigraph@, or @ofClass MixedGraph@ 
+	U:Matrix
+	  or @ofClass List@ of sample data. 
+	  Alternatively, the sample covariance matrix can be given as input by setting @TO sampleData@ false
+
     Outputs
         : Sequence
 	  (attained maximum, list of argmax)
 	--isn't the output a matrix???
     Description
     	Text
-	    This function takes as input any kind of graph (Graph,Digraph,Bigraph,MixedGraph) and a list or matrix that encodes, by default, the sample data.
+	    This function takes as input any kind of graph (@TO Graph@, @TO Digraph@, @TO Bigraph@, @TO MixedGraph@) and a list or matrix that encodes, by default, the sample data.
 	    It computes the critical points from the score equations and 
 	    selects the maximum value achieved among those that lie in the cone of positive-definite matrices.
 	    The default output is the maximum value in the log-likelihood function and the maximum likelihood estimation (MLE) for the covariance matrix.
 	    
-	    Below We compute Example 2.1.13 for an undirected graph in the book by Mathias Drton, Bernd Sturmfels and Seth Sullivant:
+	    Below We compute Example 2.1.13 for an undirected graph in the book: Mathias Drton, Bernd Sturmfels and Seth Sullivant:
 	    {\em Lectures on Algebraic Statistics}, Oberwolfach Seminars, Vol 40, Birkhauser, Basel, 2009.
 	    The input is a graph and a data sample given as a list:    
 	   
@@ -1218,7 +1193,7 @@ doc ///
 	    G=graph{{1,2},{2,3},{3,4},{1,4}}
 	    U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 	    solverMLE(G,U)
-	Text
+        Text
 	    In the following example we compute the MLE for a mixed graph with
 	    directed and bidirected edges. In this case we give as input the sample covariance matrix:
 	Example

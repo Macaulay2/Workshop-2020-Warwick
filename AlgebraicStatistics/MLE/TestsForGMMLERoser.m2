@@ -583,9 +583,104 @@ solverMLE(G,U2,concentrationMatrix=>false)
 -----------------------------------------------
 restart
 needsPackage "GraphicalModelsMLE"
+help sampleCovarianceMatrix
 help scoreEquations 
+help solverMLE
 
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+U2 = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+det U2
+V=sampleCovarianceMatrix U
+V2=sampleCovarianceMatrix U2
+det V2
+
+scoreEquations(gaussianRing G,matrix U,sampleData=>false)
+scoreEquations(gaussianRing G, U)
+scoreEquations(gaussianRing G,matrix U)
+
 (m,L)=solverMLE(G,U)
-L
+(m2,L2)=solverMLE(G,U2)
+(m3,L3)=solverMLE(G,U,sampleData=>false)
+--error: The sample covariance matrix must be a matrix.
+(m4,L4)=solverMLE(G,U2,sampleData=>false)
+--none of the matrices are pd
+
+restart
+needsPackage "GraphicalModelsMLE"
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+U = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+det U
+--sample data matrix is not singular
+isPD U
+checkPD({U})
+--sample data matrix is not positive definite
+isPSD U
+checkPSD({U})
+
+checkPSD({U,V})
+checkPD({U,V})
+
+V=sampleCovarianceMatrix U
+det V==0
+--covariance matrix is singular
+checkPD({V})
+checkPSD({V})
+isPD V
+isPSD V
+eigenvalues V
+det V
+--not PSD nor PD
+
+(m,L)=solverMLE(G,U)
+--all good
+(mcov,Lcov)=solverMLE(G,U,sampleData=>false)
+--none of the matrices are pd
+
+
+U=random(QQ^4,QQ^4)
+isPSD U
+isPSD sampleCovarianceMatrix U
+eigenvalues sampleCovarianceMatrix U
+
+(m,cov)=solverMLE(G,U,concentrationMatrix=>false)
+inverse cov
+
+restart
+needsPackage "GraphicalModelsMLE"
+G=graph{{1,2},{2,3},{3,4},{4,1}}
+U=random(QQ^4,QQ^4)
+det sampleCovarianceMatrix U
+isPSD sampleCovarianceMatrix U
+(m,cov)=solverMLE(G,U)
+
+V=matrix{{5,1,4/7,0},{1,5,1,3/10},{4/7,1,5,1},{0,3/10,1,5}};
+(m,cov)=solverMLE(G,V,sampleData=>false,concentrationMatrix=>false)
+(m,cov)=solverMLE(G,V,sampleData=>false)
+
+
+V=matrix{{5,1,3,0},{1,5,1,8},{3,1,5,1},{0,8,1,5}};
+(m,cov)=solverMLE(G,V,sampleData=>false)
+
+det V
+isPSD V
+isPSD cov
+
+V=random(QQ^4,QQ^4)
+(m,cov)=solverMLE(G,V,sampleData=>false)
+
+restart
+needsPackage "GraphicalModelsMLE"
+G=graph{{1,2},{2,3},{3,4},{4,1}}
+U=random(QQ^4,QQ^4)
+(m,cov)=solverMLE(G,U)
+V=sampleCovarianceMatrix U
+
+restart
+needsPackage "GraphicalModelsMLE"
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+solverMLE(G,U)
+V=sampleCovarianceMatrix U
+
+eigenvalues V

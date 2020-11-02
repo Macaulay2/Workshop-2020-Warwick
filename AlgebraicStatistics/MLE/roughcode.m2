@@ -133,3 +133,22 @@ MK_0
 inverse MSigma_0
 -- check positive definiteness
 eigenvalues MSigma_0
+
+
+
+
+restart
+needsPackage "GraphicalModelsMLE"
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
+S = {{2.93, -1.7, 0.76, -0.06},
+{-1.7, 1.64, -0.78, 0.1},
+{0.76, -0.78, 1.66, -0.78},
+{-0.06, 0.1, -0.78, 0.81}}
+
+
+roundList = method(); 
+roundList (ZZ, List) := List => (n, L) -> apply(L, r -> r/(e -> (round(n,0.0+e))^QQ))
+
+roundList(5,S)
+
+

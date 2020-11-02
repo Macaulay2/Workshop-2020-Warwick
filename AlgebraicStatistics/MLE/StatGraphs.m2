@@ -80,8 +80,9 @@ SortedDigraph = new Type of HashTable;
 --      map: the map giving the sorted order
 
 topSort = method(TypicalValue =>HashTable)
-topSort Digraph := SortedDigraph => D -> (
-L := topologicalSort D;
+topSort Digraph := SortedDigraph => D ->  topSort(D,"") 
+topSort (Digraph, String) := SortedDigraph => (D,s) -> ( 
+L := topologicalSort (D,s);
 g := graph D;
 new SortedDigraph from {
 digraph => D,

@@ -24,10 +24,25 @@ vertices M
 --topologicalSort outputs a list of vertices in a topologically sorted order of a DAG.
 --This method is used in topSort for creation of map.
 restart
+installPackage "StatGraphs"
 loadPackage "StatGraphs"
-G = digraph{{2,1},{3,1}}
-topologicalSort G
 
+G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
+
+topologicalSort G
+topSort G
+
+topologicalSort(G,"min")
+topSort(G,"min")
+
+topologicalSort(G,"max")
+topSort(G,"max")
+
+topologicalSort(G,"random")
+topSort(G,"random")
+
+topologicalSort(G,"degree")
+topSort(G,"degree")
 
 --Example for topSort 
 --topSort outputs a HashTable with keys  digraph,map and newDigraph, where digraph is the original digraph,

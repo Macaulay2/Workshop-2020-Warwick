@@ -578,3 +578,14 @@ optSols_0
 inverse optSols_1
 
 solverMLE(G,U2,concentrationMatrix=>false)
+
+
+-----------------------------------------------
+restart
+needsPackage "GraphicalModelsMLE"
+help scoreEquations 
+
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+(m,L)=solverMLE(G,U)
+L

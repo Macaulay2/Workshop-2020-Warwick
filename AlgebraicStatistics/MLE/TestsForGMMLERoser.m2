@@ -551,60 +551,17 @@ restart
 needsPackage "GraphicalModelsMLE"
 g=mixedGraph(bigraph{{3,4}},digraph{{1,3},{2,4}})
 U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
-U2=random(ZZ^4,ZZ^4)
 solverMLE(g,U)
+--Warning: The sample covariance matrix is singular
+--none of the matrices are pd
+U2=random(QQ^4,QQ^4)
 solverMLE(g,U2)
-solverMLE(g,U2,concentrationMatrix=>false)
---GraphicalModelsMLE.m2:401:34:(3):[6]: error: no method found for applying inverse to:
---    argument   :  {| .434161  -.127581 .395536 .352088  |} (of class List)
---                    | -.127581 .231305  -.18865 -.362366 |
---                    | .395536  -.18865  .584866 .520622  |
---                    | .352088  -.362366 .520622 1.00003  |
-
-
-restart
-debug needsPackage("GraphicalModelsMLE")
-g=mixedGraph(bigraph{{3,4}},digraph{{1,3},{2,4}})
-U2=random(ZZ^4,ZZ^4)
-R=gaussianRing g
-(J,Sinv)=scoreEquationsInternal(R,U2)
-sols=zeroDimSolve(J)
-M=genListMatrix(sols,Sinv)
-L=checkPD M
-V=sampleCovarianceMatrix(U2)
-optSols=maxMLE(L,V)
-optSols_1
-optSols_0
-inverse optSols_1
-
-solverMLE(G,U2,concentrationMatrix=>false)
-
+--depends on matrix
+--ML-degree 4
 
 -----------------------------------------------
-restart
-needsPackage "GraphicalModelsMLE"
-help sampleCovarianceMatrix
-help scoreEquations 
-help solverMLE
-
-G=graph{{1,2},{2,3},{3,4},{1,4}}
-U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
-U2 = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
-det U2
-V=sampleCovarianceMatrix U
-V2=sampleCovarianceMatrix U2
-det V2
-
-scoreEquations(gaussianRing G,matrix U,sampleData=>false)
-scoreEquations(gaussianRing G, U)
-scoreEquations(gaussianRing G,matrix U)
-
-(m,L)=solverMLE(G,U)
-(m2,L2)=solverMLE(G,U2)
-(m3,L3)=solverMLE(G,U,sampleData=>false)
---error: The sample covariance matrix must be a matrix.
-(m4,L4)=solverMLE(G,U2,sampleData=>false)
---none of the matrices are pd
+-- Data checks: singularity, PD, PSD
+-----------------------------------------------
 
 restart
 needsPackage "GraphicalModelsMLE"
@@ -613,68 +570,41 @@ U = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 det U
 --sample data matrix is not singular
 isPD U
-checkPD({U})
---sample data matrix is not positive definite
 isPSD U
-checkPSD({U})
-
-checkPSD({U,V})
-checkPD({U,V})
-
+--sample data matrix is not PD nor PSD
 V=sampleCovarianceMatrix U
-det V==0
+det V
 --covariance matrix is singular
-checkPD({V})
-checkPSD({V})
 isPD V
 isPSD V
 eigenvalues V
-det V
---not PSD nor PD
-
-(m,L)=solverMLE(G,U)
+--not PD but PSD
+(m,L,d)=solverMLE(G,U)
 --all good
-(mcov,Lcov)=solverMLE(G,U,sampleData=>false)
---none of the matrices are pd
+(mcov,Lcov,d)=solverMLE(G,U,sampleData=>false)
+--The sample covariance matrix must be symmetric.
 
-
-U=random(QQ^4,QQ^4)
-isPSD U
-isPSD sampleCovarianceMatrix U
-eigenvalues sampleCovarianceMatrix U
-
-(m,cov)=solverMLE(G,U,concentrationMatrix=>false)
-inverse cov
 
 restart
 needsPackage "GraphicalModelsMLE"
 G=graph{{1,2},{2,3},{3,4},{4,1}}
 U=random(QQ^4,QQ^4)
-det sampleCovarianceMatrix U
-isPSD sampleCovarianceMatrix U
-(m,cov)=solverMLE(G,U)
 
 V=matrix{{5,1,4/7,0},{1,5,1,3/10},{4/7,1,5,1},{0,3/10,1,5}};
-(m,cov)=solverMLE(G,V,sampleData=>false,concentrationMatrix=>false)
-(m,cov)=solverMLE(G,V,sampleData=>false)
-
+(m,cov,d)=solverMLE(G,V,sampleData=>false,concentrationMatrix=>false)
+(m,cov,d)=solverMLE(G,V,sampleData=>false)
 
 V=matrix{{5,1,3,0},{1,5,1,8},{3,1,5,1},{0,8,1,5}};
-(m,cov)=solverMLE(G,V,sampleData=>false)
-
-det V
-isPSD V
-isPSD cov
-
-V=random(QQ^4,QQ^4)
-(m,cov)=solverMLE(G,V,sampleData=>false)
+(m,cov,d)=solverMLE(G,V,sampleData=>false)
 
 restart
 needsPackage "GraphicalModelsMLE"
 G=graph{{1,2},{2,3},{3,4},{4,1}}
 U=random(QQ^4,QQ^4)
-(m,cov)=solverMLE(G,U)
+(m,cov,d)=solverMLE(G,U)
 V=sampleCovarianceMatrix U
+MLdegree(gaussianRing G)
+
 
 restart
 needsPackage "GraphicalModelsMLE"
@@ -683,4 +613,70 @@ U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 solverMLE(G,U)
 V=sampleCovarianceMatrix U
 
-eigenvalues V
+----------------------------------------------
+---jacobianMatrixOfRationalFunction
+---------------------------------------------
+restart
+needsPackage "GraphicalModelsMLE"
+R=QQ[x,y];
+FR=frac R;
+F=1/(x^2+y^2);
+jacobianMatrixOfRationalFunction(F)
+use R
+G=x^2
+jacobianMatrixOfRationalFunction(G)
+
+----------------------------------------------
+---documentation ----------------------------
+---------------------------------------------
+
+restart
+needsPackage "GraphicalModelsMLE"
+help sampleCovarianceMatrix
+help jacobianMatrixOfRationalFunction
+help MLdegree
+
+help scoreEquations 
+help doSaturate
+help [scoreEquations,doSaturate]
+help saturateOptions
+help [scoreEquations,saturateOptions]
+help sampleData
+help [scoreEquations,sampleData]
+
+help solverMLE
+help chooseSolver
+help [solverMLE, chooseSolver]
+help optionsES
+help [solverMLE, optionsES]
+help optionsNAG4M2
+help [solverMLE, optionsNAG4M2]
+help concentrationMatrix
+help [solverMLE, concentrationMatrix]
+----------------------------------------------
+---documentation of scoreEquations: examples
+---------------------------------------------
+restart
+needsPackage "GraphicalModelsMLE"
+
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
+R = gaussianRing(G)
+describe R
+U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
+    1, 8/3}}
+JU=scoreEquations(R,U)
+RU=ring(JU)
+V = sampleCovarianceMatrix U
+JV=scoreEquations(R,V,sampleData=>false)
+JV=sub(JV,RU)
+JU==JV
+	    
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
+R = gaussianRing(G)
+U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
+            1, 8/3}}
+J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
+J=sub(J,RU)
+assert(J==JU)
+JnoSat=scoreEquations(R,U,doSaturate=>false)
+J==JnoSat

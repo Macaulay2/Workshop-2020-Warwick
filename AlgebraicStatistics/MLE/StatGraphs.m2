@@ -26,8 +26,6 @@ newPackage(
         )
 
 export {
-    "graphComponents",
-    "graphFunctions",
      "topologicalSort",
     "topSort",
     "SortedDigraph",
@@ -232,6 +230,9 @@ collateVertices MixedGraph := g -> (
     scan(v,j->if x#?j then hh#j=x#j else hh#j={});
     bb := bigraph(new HashTable from hh);
     mixedGraph(gg,dd,bb))
+
+graphComponents = {}
+graphFunctions ={graph,bigraph,digraph}
 
 indexLabelGraph MixedGraph := MixedGraph => G -> (
     V := vertices G;
@@ -864,7 +865,7 @@ doc ///
      (children,MixedGraph,Thing)
     
   Headline
-    returns the children of a vertex of a MixedGraph
+    returns the children of a vertex of the Digraph component of a MixedGraph
   Usage
     children (G,v)
  
@@ -878,9 +879,9 @@ doc ///
     
   Description
     Text
-        The children of v are the all the vertices u such that v,u is in the edge 
+        The children of v are the all the vertices u such that v,u is in the directed edge 
 	set of the @TO MixedGraph@ G. So the children of a vertex v are exactly those 
-	vertices on a MixedGraph graph that v points to.
+	vertices of the Digraph component of a  MixedGraph that v points to.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	children (G,1)
@@ -991,9 +992,207 @@ doc ///
 -- TESTS     	       	    	      	    --
 --******************************************--
 
+--------------------------------------------
+--  Tests for Bigraph and bigraph
+--------------------------------------------
+--1
+TEST /// 
+G = bigraph {{3,4},{1,2},{2,4}}
+assert(class G === Bigraph)
+///
+
+--------------------------------------------
+-- Tests for MixedGraph and mixedGraph
+--------------------------------------------
+--2
+TEST /// 
+G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
+assert(class G === MixedGraph)
+///
+
+--------------------------------------------
+-- Tests for MixedGraph
+--------------------------------------------
+
+--------------------------------------------
+-- Tests for bigraph(MixedGraph)
+--------------------------------------------
+--3
+TEST ///
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+        assert(bigraph G=== G#graph#Bigraph)
+///
+
+--------------------------------------------
+--  Tests for digraph(MixedGraph)
+--------------------------------------------
+--4
+TEST ///
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+	assert(digraph G=== G#graph#Digraph)
+///
+
+--------------------------------------------
+--  Tests for undirGraph(MixedGraph)
+--------------------------------------------
+--5
+TEST ///
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+	assert(undirGraph G=== G#graph#Graph)
+///
+
+--------------------------------------------
+--  Tests for graph(MixedGraph)
+--------------------------------------------
+--6
+TEST ///
+
+        G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+	assert(graph G === new HashTable from {Bigraph => bigraph ({d, e}, {{d, e}}), Graph =>
+      graph ({a, b, c}, {{a, b}, {c, b}}), Digraph => digraph ({a, d, c, e, f, g}, {{a, d}, {c, e}, {f, g}})})
+///
+
+--------------------------------------------
+-- Tests for collateVertices 
+--------------------------------------------
+--7
+TEST /// 
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G1 = mixedGraph(U,D,B)
+	   G2 = collateVertices G1
+	   assert(vertices bigraph G2 === vertices G1)
+///
+
+--8
+TEST /// 
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G1 = mixedGraph(U,D,B)
+	   G2 = collateVertices G1
+	   assert(edges bigraph G2 === edges B)
+///
+--------------------------------------------
+-- Tests for indexLabelGraph
+--------------------------------------------
+--9
+TEST ///
+        G1 = mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
+	G2 = indexLabelGraph G1
+	assert(graph G2 ===  new HashTable from {Bigraph => bigraph ({1, 2}, {{1, 2}}), Graph =>
+     		graph ({5, 6, 0}, {{5, 6}, {0, 6}}), Digraph => digraph ({5, 1, 0, 2,
+     			3, 4}, {{5, 1}, {0, 2}, {3, 4}})})
+///
+
+--------------------------------------------
+-- Tests for  isLoopless 
+--------------------------------------------
+--10
+TEST /// 
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   assert(isLoopless G)  
+   ///
+   
+--11
+TEST /// 
+	   U = graph{{1,1}}
+	   assert (not isLoopless U)   
+   ///   
+
+--------------------------------------------
+-- Tests for noDirCycles 
+--------------------------------------------
+--12
+TEST /// 
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G = mixedGraph(U,D,B)
+	   assert(not hasDirCycles G)    
+///
+--13
+TEST /// 
+	   U = graph{{1,2},{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D)
+	   assert(hasDirCycles G)     
+///
+--14
+TEST /// 
+	   U = graph{{1,2}}
+	   B = bigraph{{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D,B)
+	   assert(hasDirCycles G)      
+///
+--------------------------------------------
+-- Operations on vertices of a  MixedGraph
+--------------------------------------------  
+
+--------------------------------------------
+-- Tests for children
+--------------------------------------------
+--15
+TEST ///
+
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(children (G,1)===set{2})
+	assert(children (G,2)===set{3})
+    	assert(children (G,3)===set{})
+///
+
+--------------------------------------------
+-- Tests for  vertices and vertexSet
+--------------------------------------------
+--16
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
+	assert(vertices G=== {1,2,3,4})
+	assert(vertexSet G=== {1,2,3,4})
+///
+--------------------------------------------
+-- Topological sorting functions
+--------------------------------------------
+
+--------------------------------------------
+-- Tests for  topologicalSort
+--------------------------------------------
+--17
+TEST /// 
+
+	   D = digraph{{2,1},{3,1}}
+	   assert(topologicalSort D==={2,3,1})
+   ///
+
+--------------------------------------------
+-- Tests for topSort
+--------------------------------------------
+--18
+TEST /// 
+    
+	   D = digraph{{2,1},{3,1}}
+	   assert(topSort D ===  new SortedDigraph from {map => new HashTable from {1 => 3, 2 => 1, 3
+      => 2}, newDigraph => digraph ({1, 2, 3}, {{1, 3}, {2, 3}}), digraph =>
+      digraph ({2, 1, 3}, {{2, 1}, {3, 1}})})
+   ///
+ 
 --------------------------------------
 --------------------------------------
 end--
 --------------------------------------
 --------------------------------------
+
+
+
+
+
+
+
+
+
 

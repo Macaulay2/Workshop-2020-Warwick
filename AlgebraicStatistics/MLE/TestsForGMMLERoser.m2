@@ -569,14 +569,14 @@ G=graph{{1,2},{2,3},{3,4},{1,4}}
 U = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 det U
 --sample data matrix is not singular
-isPD U
-isPSD U
+checkPD U
+checkPSD U
 --sample data matrix is not PD nor PSD
 V=sampleCovarianceMatrix U
 det V
 --covariance matrix is singular
-isPD V
-isPSD V
+checkPD V
+checkPSD V
 eigenvalues V
 --not PD but PSD
 (m,L,d)=solverMLE(G,U)
@@ -621,6 +621,7 @@ needsPackage "GraphicalModelsMLE"
 R=QQ[x,y];
 FR=frac R;
 F=1/(x^2+y^2);
+instance(ring F,FractionField)
 jacobianMatrixOfRationalFunction(F)
 use R
 G=x^2
@@ -635,6 +636,8 @@ needsPackage "GraphicalModelsMLE"
 help sampleCovarianceMatrix
 help jacobianMatrixOfRationalFunction
 help MLdegree
+help checkPD
+help checkPSD
 
 help scoreEquations 
 help doSaturate

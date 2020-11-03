@@ -728,7 +728,7 @@ undirectedEdgesMatrix Ring := Matrix =>  R -> (
      -- retrieve graph (of the right type)
      g:=R.graph;
      -- For graphs, turn g into a hashtable and sort vertices.
-     if (class g === Graph) 
+     if (instance(g,Graph)) 
      then (uu:=graph g; vv:= sort vertices g)
      -- For mixedGraphs, turn undirected edges into a hashtable 
      -- (considering all the vertices of the mixedGraph)
@@ -1013,7 +1013,7 @@ gaussianVanishingIdeal Ring := opts -> R -> (
 discreteVanishingIdeal=method()
 discreteVanishingIdeal (Ring, Digraph)  := Ideal => (R, G) -> (
      if not (R.?markovRingData) then error "expected a ring created with markovRing";
-     if not (class G===Digraph) then error "expected a Digraph";
+     if not instance(G,Digraph) then error "expected a Digraph";
      d := R.markovRingData;
      n := #d; 
      if not (#vertices(G) == n) then error "Number of vertices of graph does not match size of ring";

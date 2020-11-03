@@ -263,3 +263,107 @@ G=graph collateVertices g
 g#graph#Graph===graph{}
 
 
+----------------------------------------------
+--------------Issue #135----------------------
+----------------------------------------------
+restart
+uninstallPackage "Graphs"
+uninstallPackage "StatGraphs"
+uninstallPackage "GraphicalModels"
+uninstallPackage "GraphicalModelsMLE"
+uninstallPackage "EigenSolver"
+
+installPackage "Graphs"
+check Graphs
+
+installPackage "ReactionNetworks"
+check ReactionNetworks
+N = reactionNetwork "A <--> B"
+S = stoichiometricMatrix N
+E = stoichiometricConeKer N
+
+N = oneSiteModificationA()
+S = stoichiometricMatrix N
+E = stoichiometricConeKer N
+
+/usr/libexec/Macaulay2/bin/4ti2int64: error while loading shared libraries: libglpk.so.40: cannot open shared object file: No such file or directory
+stdio:14:5:(3): error: error occurred while executing external program 4ti2: rays
+
+ ulimit -c unlimited; ulimit -t 700; ulimit -m 850000; ulimit -s 8192; ulimit -n 512;  cd /tmp/M2-102-0/186-rundir/; GC_MAXIMUM_HEAP_SIZE=400M "/usr/bin/M2-binary" --int --no-randomize --no-readline --silent --stop --print-width 77 -e 'needsPackage("ReactionNetworks", Reload => true, FileName => "/usr/share/Macaulay2/ReactionNetworks.m2")' <"/tmp/M2-102-0/185.m2" >>"/tmp/M2-102-0/185.tmp" 2>&1
+/tmp/M2-102-0/185.tmp:0:1: (output file) error: Macaulay2 exited with status code 1
+stdio:3:9:(3):[1]: error: error occurred while executing external program 4ti2: rays
+/tmp/M2-102-0/185.m2:0:1: (input file)
+M2: *** Error 1
+
+--the only error comes from an external program
+
+installPackage "Visualize"
+check Visualize
+
+--examples ok
+--no tests
+
+installPackage "BinomialEdgeIdeals"
+
+
+G={{1,2},{2,3},{3,1}}
+d = disconnectors(G)
+d = disconnectors(G,EffectiveOnly=>true)
+stdio:21:5:(3): error: error occurred while executing external program 4ti2: markov
+
+S={1}
+isEffective(G,S)
+isDisconnector(G,S)
+disconnectors(G,EffectiveOnly=>true)
+--errors come from an external program
+
+check BinomialEdgeIdeals
+--tests ok
+
+installPackage "Chordal"
+check Chordal
+--ok
+
+installPackage "SimplicialPosets"
+check SimplicialPosets
+--ok
+
+installPackage "PhylogeneticTrees"
+T = leafTree(4, {{0,1}})
+phyloToric42(T, CFNmodel)
+stdio:36:1:(3): error: error occurred while executing external program 4ti2: markov
+
+check PhylogeneticTrees
+--many errors, but all seem to come from external program 4ti2
+
+installPackage "Matroids"
+check Matroids
+--ok
+
+installPackage "NautyGraphs"
+check NautyGraphs
+--ok
+
+installPackage "Posets" 
+hibiRing booleanLattice 2
+hibiRing chain 4
+hibiRing(divisorPoset 6, Strategy => "4ti2")
+
+P = poset {{1,2}, {2,4}, {3,4}, {3,5}}
+pPartitionRing(divisorPoset 6, Strategy => "4ti2")
+
+check Posets
+
+needsPackage "FourTiTwo"
+
+----------------------------
+--- #Issue 155
+---------------------------
+restart
+needsPackage "StatGraphs"
+U = graph{{1,2},{2,3},{1,3}}
+D = digraph{{1,4},{3,7},{8,9}}
+B = bigraph{{4,5},{5,6},{7,9}}
+G = mixedGraph(U,D,B)
+partitionLMG G
+

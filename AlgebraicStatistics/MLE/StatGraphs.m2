@@ -255,7 +255,7 @@ indexLabelGraph MixedGraph := MixedGraph => G -> (
     );
 
 
--- Makes a partition U\cup W of the vertices V of a loopless mixed graph (inputed as a mixedGraph) 
+-- Makes a partition U\cup W of the vertices V of a loopless mixed graph (inputed as a MixedGraph) 
 -- such that U contains all the vertices adjacent to undirected edges, 
 -- W contains all the vertices adjacent to bidirected edges 
 -- and there are no directed edges from W to U
@@ -290,7 +290,7 @@ partitionLMG MixedGraph := g -> (
    if V===set{} then return (U,W);
    --place remaining vertices in either U or W depending on their value
    for v in toList V do (if v < max U then U=append(U,v) else W=append(W,v););
-   U,W
+   sort U,sort W
 )
 
 --Check whether a graph is loopless in each type of edges
@@ -300,15 +300,8 @@ isLoopless MixedGraph := Boolean => g -> (
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
-   --retrieve underlying undirected edges 	
-   --edG:=edges G;
-   --edD:=edges underlyingGraph D;
-   --edB:=edges B;
-   --build list of underlying edges with and without repetitions
-   --ed:=join(edG,edD,edB);
-   --e:=unique(ed);
    --check there are no loops and no repetitions
-   isSimple(G) and isSimple(underlyingGraph D) and isSimple(B) --and #ed==#e
+   isSimple(G) and isSimple(underlyingGraph D) and isSimple(B)
    )
 
 isLoopless Graph := Boolean => g -> (
@@ -323,7 +316,7 @@ isLoopless Digraph := Boolean => g -> (
    isSimple(underlyingGraph g)
    )
 
--- Checked whether a MixedGraph contains multiple edges
+-- Checks whether a MixedGraph contains multiple edges
 hasMultipleEdges = method()
 hasMultipleEdges MixedGraph := Boolean => g -> (
    --retrieve graph, digraph and bigraph
@@ -338,7 +331,7 @@ hasMultipleEdges MixedGraph := Boolean => g -> (
    d:=join(edG,edD,edB);
    e:=unique(d);
    --check there are no repetitions
-   #d==#e
+   not #d==#e
    )
 
 -- Check whether a MixedGraph does not contain any directed cycles
@@ -732,6 +725,45 @@ doc ///
 	   G = mixedGraph(U,D,B)
 	   collateVertices G
    ///
+   
+--------------------------------------------
+-- Documentation hasMultipleEdges  
+--------------------------------------------
+
+doc /// 
+    Key
+        hasMultipleEdges  
+        (hasMultipleEdges, MixedGraph) 
+    Headline
+        checks whether a MixedGraph contains multiple edges
+    Usage
+        hasMultipleEdges(G)
+    Inputs
+        G:MixedGraph
+    Outputs
+         :Boolean 
+    Description 
+        Text
+	  This method checks whether a graph contains multiple edges.
+	  Note that since @TO Graph@, @TO Digraph@ and @TO Bigraph@ do not
+	  allow multiple edges, a @TO MixedGraph@ can only have multiple edges
+	  of different types.
+
+        Example
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   hasMultipleEdges G
+	   
+	Example
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{1,2},{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   hasMultipleEdges G 
+   ///
+   
 --------------------------------------------
 -- Documentation indexLabelGraph
 --------------------------------------------
@@ -853,6 +885,56 @@ doc ///
 	   G = mixedGraph(U,D,B)
 	   hasDirCycles G      
    ///
+   
+--------------------------------------------
+-- Documentation noDirCycles 
+--------------------------------------------
+
+doc /// 
+    Key
+        partitionLMG 
+        (partitionLMG, MixedGraph) 
+	
+    Headline
+        partitions the vertices of a loopless mixed graph into adjacent to undirected edges and adjacent to bidirected edges
+    Usage
+        partitionLMG(G)
+    Inputs
+        G:MixedGraph
+    Outputs
+         :Sequence
+	  (U,W) where U are vertices adjacent to undirected edges and W are vertices adjacent to bidirected edges 
+    Description 
+        Text
+	   Makes a partition $U\cup W$ of the vertices V of a loopless mixed graph (inputed as a mixedGraph) 
+   	   such that U contains all the vertices adjacent to undirected edges, 
+	   W contains all the vertices adjacent to bidirected edges 
+	   and there are no directed edges from W to U and all vertices in U have lower value than those in W.
+        Example
+	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{1,4},{3,7}}
+	   B = bigraph{{4,5},{5,6},{7,8}}
+	   G = mixedGraph(U,D,B)
+	   partitionLMG G
+	   
+	Text
+	  The vertices that are adjacent only to directed edges are sorted depending on their order.
+	  If  v  is such a vertex and v < max U, then v is added to U. Otherwise, it is added to W. 
+	Example       	   
+	   U = graph{{2,3},{3,4},{4,2}}
+	   D = digraph{{1,2},{2,5},{4,9}}
+	   B = bigraph{{5,6},{6,7},{8,9}}
+	   G = mixedGraph(U,D,B)
+	   partitionLMG G
+	   	   
+	Example       	   
+	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{1,4},{3,7},{8,9}}
+	   B = bigraph{{4,5},{5,6},{7,9}}
+	   G = mixedGraph(U,D,B)
+	   partitionLMG G
+
+   ///   
 --------------------------------------------
 -- Operations on vertices of a  MixedGraph
 --------------------------------------------  
@@ -890,9 +972,87 @@ doc ///
 
   SeeAlso
     MixedGraph
+    children
+
+///
+
+--------------------------------------------
+-- Documentation parents
+--------------------------------------------
+doc ///
+  Key
+     (parents,MixedGraph,Thing)
+    
+  Headline
+    returns the parents of a vertex of the Digraph component of a MixedGraph
+  Usage
+    parents (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The parents of v are the all the vertices u such that u,v is in the directed edge 
+	set of the @TO MixedGraph@ G. So the parents of a vertex v are exactly those 
+	vertices of the Digraph component of a  MixedGraph that point to v.
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	parents (G,1)
+	parents (G,2)
+    	parents (G,3)
+
+  SeeAlso
+    MixedGraph
+    parents
 
 ///
  
+--------------------------------------------
+-- Documentation descendents
+--------------------------------------------
+doc ///
+  Key
+     (descendents,MixedGraph,Thing)
+    
+  Headline
+    returns the descendents of a vertex of the Digraph component of a MixedGraph
+  Usage
+    descendents (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The children of v are the all the vertices u such that u is reachable from v in the directed edge 
+	set of the @TO MixedGraph@ G. Another way to more intuitively see what the descendents are is to 
+	see the descendents of a vertex v can be found by first taking the children of v. Then if you take 
+	the children of each of the children, and continue the process until the list stops growing, this 
+	will form all the descendents of v.
+	
+	The output also includes the vertex v from the input in the set of the descendents.
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	descendents (G,1)
+	descendents (G,2)
+    	descendents (G,3)
+
+  SeeAlso
+    MixedGraph
+    descendents
+
+/// 
 --------------------------------------------
 -- Documentation vertices and vertexSet
 --------------------------------------------
@@ -998,7 +1158,7 @@ doc ///
 --1
 TEST /// 
 G = bigraph {{3,4},{1,2},{2,4}}
-assert(class G === Bigraph)
+assert(instance (G, Bigraph))
 ///
 
 --------------------------------------------
@@ -1007,7 +1167,7 @@ assert(class G === Bigraph)
 --2
 TEST /// 
 G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
-assert(class G === MixedGraph)
+assert(instance (G, MixedGraph))
 ///
 
 --------------------------------------------
@@ -1074,6 +1234,29 @@ TEST ///
 	   G2 = collateVertices G1
 	   assert(edges bigraph G2 === edges B)
 ///
+
+   
+--------------------------------------------
+-- Tests for  hasMultipleEdges  
+--------------------------------------------
+
+TEST /// 
+   
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   assert (not hasMultipleEdges G)
+ ///	  
+  
+TEST ///       
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{1,2},{2,5}}
+	   B = bigraph{{5,6}}
+	   G = mixedGraph(U,D,B)
+	   assert (hasMultipleEdges G) 
+   ///
+
 --------------------------------------------
 -- Tests for indexLabelGraph
 --------------------------------------------
@@ -1130,6 +1313,64 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(hasDirCycles G)      
 ///
+
+--------------------------------------------
+-- Tests for partititionLMG 
+--------------------------------------------
+
+TEST /// 
+
+	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
+	   D = digraph{{2,1},{3,1},{7,8}}
+	   B = bigraph{{1,5}}
+	   G = mixedGraph(U,D,B)
+	   assert(try partitionLMG G then false else true)
+  ///
+TEST ///
+	   U = graph{{1,2},{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D)
+	   assert(try partitionLMG G then false else true)
+  ///
+TEST ///
+	   U = graph{{1,2}}
+	   B = bigraph{{3,4}}
+	   D = digraph{{1,3},{4,2}}
+	   G = mixedGraph(U,D,B)
+	   assert(try partitionLMG G then false else true)    
+   ///
+
+TEST ///
+    	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{4,1},{3,7}}
+	   B = bigraph{{4,5},{5,6},{7,8}}
+	   G = mixedGraph(U,D,B)
+	   assert(try partitionLMG G then false else true)   
+   ///	 
+TEST ///
+    	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{1,4},{3,7}}
+	   B = bigraph{{4,5},{5,6},{7,8}}
+	   G = mixedGraph(U,D,B)
+	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8}))
+   ///  
+   
+   
+TEST ///
+    	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{1,4},{3,7},{8,9}}
+	   B = bigraph{{4,5},{5,6},{7,9}}
+	   G = mixedGraph(U,D,B)
+	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8, 9}))
+   ///  
+   
+TEST ///      	   
+	   U = graph{{2,3},{3,4},{4,2}}
+	   D = digraph{{1,2},{2,5},{4,9}}
+	   B = bigraph{{5,6},{6,7},{8,9}}
+	   G = mixedGraph(U,D,B)
+	   assert(partitionLMG G ===  ({1, 2, 3, 4}, {5, 6, 7, 8, 9}))
+   ///   
 --------------------------------------------
 -- Operations on vertices of a  MixedGraph
 --------------------------------------------  
@@ -1147,6 +1388,25 @@ TEST ///
 ///
 
 --------------------------------------------
+-- Tests for parents
+--------------------------------------------
+
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(parents (G,1)===set{})
+	assert(parents (G,2)===set{1})
+    	assert(parents (G,3)===set{2})
+///	
+--------------------------------------------
+-- Tests for descendents
+--------------------------------------------
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(descendents (G,1)===set{1,2,3})
+	assert(descendents (G,2)===set{2,3})
+    	assert(descendents (G,3)===set{3})	
+///
+--------------------------------------------
 -- Tests for  vertices and vertexSet
 --------------------------------------------
 --16
@@ -1155,32 +1415,7 @@ TEST ///
 	assert(vertices G=== {1,2,3,4})
 	assert(vertexSet G=== {1,2,3,4})
 ///
---------------------------------------------
--- Topological sorting functions
---------------------------------------------
 
---------------------------------------------
--- Tests for  topologicalSort
---------------------------------------------
---17
-TEST /// 
-
-	   D = digraph{{2,1},{3,1}}
-	   assert(topologicalSort D==={2,3,1})
-   ///
-
---------------------------------------------
--- Tests for topSort
---------------------------------------------
---18
-TEST /// 
-    
-	   D = digraph{{2,1},{3,1}}
-	   assert(topSort D ===  new SortedDigraph from {map => new HashTable from {1 => 3, 2 => 1, 3
-      => 2}, newDigraph => digraph ({1, 2, 3}, {{1, 3}, {2, 3}}), digraph =>
-      digraph ({2, 1, 3}, {{2, 1}, {3, 1}})})
-   ///
- 
 --------------------------------------
 --------------------------------------
 end--

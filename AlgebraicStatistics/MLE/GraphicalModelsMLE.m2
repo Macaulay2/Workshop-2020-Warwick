@@ -643,7 +643,7 @@ doc ///
         Example	   
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
 	    R = gaussianRing(G)
-	    U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+	    U = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
             scoreEquations(R,U)
 	    
 	    
@@ -652,7 +652,7 @@ doc ///
            solverMLE (G, random(QQ^7,QQ^7))
     		   	    
        Example
-           M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
+           M = matrix{{1, 2, 0}, {-1, 0, 5/1},{3, 5, 2/1}, {-1, -4, 1/1}};
 	   sampleCovarianceMatrix(M)
 	   U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
 	   sampleCovarianceMatrix(U)

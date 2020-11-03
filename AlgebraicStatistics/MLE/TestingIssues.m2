@@ -198,7 +198,6 @@ check Graphs
 
 installPackage "StatGraphs"
 check StatGraphs
--- No existing tests
 
 installPackage "GraphicalModels"
 check GraphicalModels
@@ -225,6 +224,9 @@ directedEdgesMatrix R
 bidirectedEdgesMatrix R
 
 installPackage "EigenSolver"
+
+restart
+uninstallPackage "GraphicalModelsMLE"
 installPackage "GraphicalModelsMLE"
 check GraphicalModelsMLE
 

@@ -776,29 +776,24 @@ doc ///
 	    The input of this function is a @TO gaussianRing@ and statistical data.
 	    The latter can be given as a matrix or a list of observations. The rows of the matrix or the elements of the list are observation vectors given as lists.  
             It is possible to input the sample covariance matrix directly by using the optional input @TO sampleData@.
-            	    
-	Example
+        Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 	    R = gaussianRing(G)
-	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
-            1, 8/3}}
+	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
 	    JU=scoreEquations(R,U)
 	    V = sampleCovarianceMatrix U
 	    JV=scoreEquations(R,V,sampleData=>false)
-            
-	Text
+        Text
 	    @TO saturateOptions@ allows to use all functionalities of @TO saturate@.
 	    @TO doSaturate@ removes the saturation procedure. Note that the latter will not
 	    provide the score equations of the model. 
-        
-	Example
+
+        Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 	    R = gaussianRing(G)
-            U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
-            1, 8/3}}
+            U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
             J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
             JnoSat=scoreEquations(R,U,doSaturate=>false)   
-	    
 	Text
 	   The ML-degree of the model is the degree of the score equations ideal. The ML-degree 
 	   of the running example is 1:
@@ -807,8 +802,9 @@ doc ///
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 	    R = gaussianRing(G)
 	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
-	    JU=scoreEquations(R,U)
-	    dim JU, degree JU
+	    J = scoreEquations(R,U)
+	    dim J, degree J
+        
     ///
     
 doc ///
@@ -1308,7 +1304,7 @@ doc ///
 -- TESTS     	       	    	      	    --
 --******************************************--
 
-TEST /// 
+TEST /// --test jacobianMatrixOfRationalFunction
 R=QQ[x,y];
 FR=frac R;
 F=1/(x^2+y^2);
@@ -1317,7 +1313,7 @@ N=transpose {{-2*x/(x^2 + y^2)^2,-2*y/(x^2 + y^2)^2 }};
 assert(M === N)
 ///
 
-TEST ///
+TEST /// --test jacobianMatrixOfRationalFunction
 R=QQ[x_1,x_2,x_3];
 FR=frac R;
 M=entries jacobianMatrixOfRationalFunction( (x_1^2*x_2)/(x_1+x_2^2+x_3^3) );
@@ -1325,58 +1321,44 @@ N=transpose {{2*x_1*x_2/(x_2^2 + x_3^3 + x_1) - x_1^2*x_2/(x_2^2 + x_3^3 + x_1)^
 assert(M === N)
 /// 
 
-TEST ///
-M = {matrix{{1, 2, 0}}, matrix{{-1, 0, 5/1}}, matrix{{3, 5, 2/1}}, matrix{{-1, -4, 1/1}}};
+TEST /// --test sampleCovarianceMatrix
+M = matrix{{1, 2, 0},{-1, 0, 5/1},{3, 5, 2/1},{-1, -4, 1/1}};
 N = sampleCovarianceMatrix(M);
 A = matrix {{11/4, 39/8, -1}, {39/8, 171/16, 0}, {-1, 0, 7/2}};
 assert(N===A)	
 ///
 
-TEST ///
-X = {matrix {{36, -3, -25, -36}}, matrix {{-10, 11, -29, -20}}, matrix {{-18, 33, -15, -11}}, matrix {{-42, 0, 20, 43}}, matrix {{-30, -26, 32, 2}}, matrix {{2, -38, -24, -43}} };
+TEST /// --test sampleCovarianceMatrix with sample of bigger size than the covariance matrix 
+X = matrix{{36, -3, -25, -36},{-10, 11, -29, -20},{-18, 33, -15, -11},{-42, 0, 20, 43}, {-30, -26, 32, 2},{2, -38, -24, -43}};
 Y = sampleCovarianceMatrix(X);
 B = matrix {{5621/9, -1037/18, -7835/18, -10565/18}, {-1037/18, 19505/36, -4897/36, 5147/36}, {-7835/18, -4897/36, 20465/36, 18941/36}, {-10565/18, 5147/36, 18941/36, 28889/36}};
 assert(Y===B)	
 ///
 
-TEST ///
-X = matrix{{48,89,27,28},{23,19,29,94},{135,23,44,71},{91,75,24,98}};
+TEST /// --test sampleCovarianceMatrix with list input
+X = {{48,89,27,28},{23,19,29,94},{135,23,44,71},{91,75,24,98}};
 Y = sampleCovarianceMatrix(X);
 B = matrix {{29147/16, -1313/8, 220, 1609/16}, {-1313/8, 3827/4, -155, -3451/8}, {220, -155, 119/2, -63/4}, {1609/16, -3451/8, -63/4, 12379/16}};
 assert(Y===B)	
 ///
 
-TEST ///
-G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
-R=gaussianRing(G)
-U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}
+TEST /// --test scoreEquations for a mixedGraph with directed and bidirected edges
+G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+R=gaussianRing(G);
+U = matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
 J=scoreEquations(R,U);
 I=ideal(20*p_(3,4)+39,50*p_(4,4)-271,440104*p_(3,3)-742363,230*p_(2,2)-203,16*p_(1,1)-115,5*l_(3,4)+2,110026*l_(2,3)-2575,55013*l_(1,3)-600,115*l_(1,2)+26);
 assert(J===I)
 ///     
 
-TEST ///
-G=graph{{1,2},{2,3},{3,4},{1,4}}
-R=gaussianRing(G)
-U=random(ZZ^4,ZZ^4)
-J=scoreEquations(R,U)
+TEST ///  --test scoreEquations for a graph (and random input data)
+G=graph{{1,2},{2,3},{3,4},{1,4}};
+R=gaussianRing(G);
+U=random(ZZ^4,ZZ^4);
+J=scoreEquations(R,U);
 assert(dim J===0)
 assert(degree J===5)
 ///   
-
-TEST ///
-L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}}};
-Y = checkPD(L);
-B = {matrix{{1, 0}, {0, 1}}};
-assert(Y===B)	
-///
-
-TEST ///
-L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}},matrix{{0,0},{0,0}}};
-Y = checkPSD(L);
-B = {matrix{{1, 0}, {0, 1}},matrix{{0,0},{0,0}}};
-assert(Y===B)	
-///
 
 TEST /// --score equations of sample data equals score equations of its sample covariance data with sampleData=>false    
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
@@ -1400,6 +1382,21 @@ J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
 J=sub(J,RU)
 assert(J==JU)
 ///    
+
+TEST /// --test checkPD
+L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}}};
+Y = checkPD(L);
+B = {matrix{{1, 0}, {0, 1}}};
+assert(Y===B)	
+///
+
+TEST /// --test checkPSD
+L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}},matrix{{0,0},{0,0}}};
+Y = checkPSD(L);
+B = {matrix{{1, 0}, {0, 1}},matrix{{0,0},{0,0}}};
+assert(Y===B)	
+///
+
 --------------------------------------
 --------------------------------------
 end--
@@ -1466,3 +1463,34 @@ installPackage("GraphicalModelsMLE")
 check "GraphicalModelsMLE"
 
 
+	Example
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
+	    R = gaussianRing(G)
+	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
+	    JU=scoreEquations(R,U)
+	    V = sampleCovarianceMatrix U
+	    JV=scoreEquations(R,V,sampleData=>false)
+            
+	Text
+	    @TO saturateOptions@ allows to use all functionalities of @TO saturate@.
+	    @TO doSaturate@ removes the saturation procedure. Note that the latter will not
+	    provide the score equations of the model. 
+        
+	Example
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
+	    R = gaussianRing(G)
+            U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
+            1, 8/3}}
+            J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
+            JnoSat=scoreEquations(R,U,doSaturate=>false)   
+	    
+	Text
+	   The ML-degree of the model is the degree of the score equations ideal. The ML-degree 
+	   of the running example is 1:
+	
+	Example
+	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
+	    R = gaussianRing(G)
+	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
+	    J = scoreEquations(R,U)
+	    dim J, degree J

@@ -39,8 +39,6 @@ newPackage(
 export {
     "checkPD",
     "checkPSD",
-    "isPD",
-    "isPSD",
     "chooseSolver",--optional argument in solverMLE
     "concentrationMatrix",-- optional argument in solverMLE
     "doSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
@@ -245,7 +243,7 @@ sampleCovarianceMatrix(List) := (U) -> (
 
 jacobianMatrixOfRationalFunction = method(TypicalValue =>Matrix);
 jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
-    if not class ring F===FractionField then error "Expected element in a field of fractions";
+    if not instance(ring F,FractionField) then error "Expected element in a field of fractions";
     f:=numerator(F);
     g:=denominator(F);
     R:=ring(f);
@@ -291,57 +289,51 @@ scoreEquations(List,Ring) := opts ->(U,R) -> (
     return scoreEquations(R,U,opts);
     );
 
-
-isPD = method()
-isPD Matrix := Boolean => (M) -> (
-    -- Check singularity
-    if det M==0 then return false;
-    -- Compute eigenvalues for each matrix
-    E:=eigenvalues M; 
-    --Check whether all of them are positive and real
-    flag := 0;
-    for e in E do 
-    (	 
-	if 0 >= e then flag = 1;
-	if not isReal e then flag=1;
-    );
-    if flag==0 then true else false
-);
-
-isPSD = method()
-isPSD Matrix := Boolean => (M) -> (
-    flag := 0;
-    -- Compute eigenvalues for each matrix
-    E:=eigenvalues M; 
-    --Check whether all of them are non-negative and real
-    for e in E do 
-    (	 
-	if 0 > e then flag = 1;
-	if not isReal e then flag=1;
-    );
-    if flag==0 then true else false
-);
-
-
 checkPD = method(TypicalValue =>List);
 checkPD(List) := (L) -> (
-   mat := {}; 
+   mat := {};
     for l in L do
-    (   if isPD(l)==true then mat=mat|{l};
+    (
+    	flag := 0;
+    	-- Compute eigenvalues for each matrix
+	L1 := eigenvalues l;
+    	--Check whether all of them are positive and real
+	for t in L1 do 
+    	(	 
+	    if 0 >= t then flag = 1;
+	    if not isReal t then flag=1;
+     	);
+        if flag == 0 then mat = mat | {l} ;
     );
     if mat == {} then print("none of the matrices are pd");
     return mat;
 );
+checkPD(Matrix):=(L)->{
+    return checkPD({L});
+};
 
 checkPSD = method(TypicalValue =>List);
 checkPSD(List) := (L) -> (
    mat := {};
     for l in L do
-    (   if isPSD(l)==true then mat=mat|{l};
+    (
+    	flag := 0;
+    	-- Compute eigenvalues for each matrix
+	L1 := eigenvalues l;
+    	--Check whether all of them are non-negative and real
+	for t in L1 do 
+    	(	 
+	    if 0 > t then flag = 1;
+	    if not isReal t then flag=1;
+     	);
+        if flag == 0 then mat = mat | {l} ;
     );
     if mat == {} then print("none of the matrices are psd");
     return mat;
 );
+checkPSD(Matrix):=(L)->{
+    return checkPSD({L});
+};
 
 MLdegree = method(TypicalValue =>ZZ);
 MLdegree(Ring):= (R) -> (
@@ -396,7 +388,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     --find the optimal points
     (maxPt, E):=maxMLE(L,V);
     if not opts.concentrationMatrix then (
-	if class E=== List then 	E=(for e in E list e=inverse e) else  E=inverse E
+	if instance(E,List) then E=(for e in E list e=inverse e) else  E=inverse E
 	);
     return  (maxPt,E,ML));    
 );
@@ -618,7 +610,7 @@ doc ///
     Key
         GraphicalModelsMLE
     Headline
-        a package for MLE estimates of parameters for statistical graphical models 
+        a package for MLE estimates of parameters for Gaussian graphical models 
     Description        
         Text
             The following text should include a general description and references...so far only some copy-paste   
@@ -1108,19 +1100,20 @@ doc   ///
     Key
     	checkPD
 	(checkPD,List)
+	(checkPD,Matrix)
     Headline
-    	checks which matrices from a list are positive definite
+    	returns positive definite matrices from a list of matrices
     Usage
     	checkPD(L)
     Inputs
     	L: List  
-	    list of matrices
+	   of matrices, or a single @TO Matrix@
     Outputs
     	 : List
-	   list of positive definite matrices
+	   of positive definite matrices
     Description
     	Text
-	   This function takes a list of matrices and returns another list with
+	   This function takes a list of matrices (or a single matrix) and returns another list with
 	   only positive definite matrices
       	Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}}}				
@@ -1131,19 +1124,20 @@ doc   ///
     Key
     	checkPSD
 	(checkPSD,List)
+	(checkPSD,Matrix)
     Headline
-    	checks which matrices from a list are positive semidefinite
+    	returns positive semidefinite matrices from a list of matrices
     Usage
     	checkPSD(L)
     Inputs
     	L: List  
-	    list of matrices
+	    of matrices, or a single @TO Matrix@
     Outputs
     	 : List
-	   list of positive semidefinite matrices
+	   of positive semidefinite matrices
     Description
     	Text
-	   This function takes a list of matrices and returns another list with
+	   This function takes a list of matrices (or a single matrix) and returns another list with
 	   only positive semidefinite matrices
       	Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}				
@@ -1163,7 +1157,7 @@ doc   ///
 	    defined as a @TO gaussianRing@ of @TO Graph@, or @TO Digraph@, or @TO Bigraph@, or @TO MixedGraph@ 
     Outputs
     	 : ZZ
-	   ML-degree of the model
+	   the ML-degree of the model
     Description
     	Text
 	   This function computes the ML-degree of a graphical model. It takes as input 
@@ -1275,15 +1269,20 @@ doc ///
 	    The same optional inputs as in @TO scoreEquations@ can be used, plus extra optional inputs related to
 	    the numerical solver (EigenSolver by default, NAG4M2 alternatively) and its functionalities.
 	    
-	    Below we compute Example 2.1.13 for an undirected graph in the book: Mathias Drton, Bernd Sturmfels and Seth Sullivant:
+	    Below we compute Example 2.1.13 for the 4-cycle in the book: Mathias Drton, Bernd Sturmfels and Seth Sullivant:
 	    {\em Lectures on Algebraic Statistics}, Oberwolfach Seminars, Vol 40, Birkhauser, Basel, 2009.
-	    The input is a @TO graph@ and a data sample given as a list:    
 	   
 	Example
 	    G=graph{{1,2},{2,3},{3,4},{1,4}}
-	    U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+	    U =matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 	    solverMLE(G,U)
         Text
+	    The data sample can also be given as a list:    
+	Example   
+            G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+	    solverMLE(G,U)       	
+	Text
 	    In the following example we compute the MLE for a @TO mixedGraph@ with
 	    directed and bidirected edges. In this case we give as input the sample covariance matrix:
 	Example

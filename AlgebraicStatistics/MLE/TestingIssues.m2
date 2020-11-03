@@ -355,3 +355,15 @@ pPartitionRing(divisorPoset 6, Strategy => "4ti2")
 check Posets
 
 needsPackage "FourTiTwo"
+
+----------------------------
+--- #Issue 155
+---------------------------
+restart
+needsPackage "StatGraphs"
+U = graph{{1,2},{2,3},{1,3}}
+D = digraph{{1,4},{3,7},{8,9}}
+B = bigraph{{4,5},{5,6},{7,9}}
+G = mixedGraph(U,D,B)
+partitionLMG G
+

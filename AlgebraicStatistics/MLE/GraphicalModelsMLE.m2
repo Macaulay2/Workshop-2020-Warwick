@@ -39,15 +39,15 @@ newPackage(
 export {
     "checkPD",
     "checkPSD",
-    "chooseSolver",--optional argument in solverMLE
-    "concentrationMatrix",-- optional argument in solverMLE
-    "doSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
+    "ChooseSolver",--optional argument in solverMLE
+    "ConcentrationMatrix",-- optional argument in solverMLE
+    "DoSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "jacobianMatrixOfRationalFunction",
-    "optionsES",--optional argument in solverMLE
-    "optionsNAG4M2",--optional argument in solverMLE
+    "OptionsEigenSolver",--optional argument in solverMLE
+    "OptionsNAG4M2",--optional argument in solverMLE
     "sampleCovarianceMatrix",
-    "sampleData",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
-    "saturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
+    "SampleData",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
+    "SaturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
     "MLdegree",
     "scoreEquations",
     "solverMLE"
@@ -62,16 +62,6 @@ export {
 --*************************************--
 --  Functions (local) used throughout  --
 --*************************************--
-
-
---------------------------------------------
--- turn the entries of an integer matrix into rational numbers
---------------------------------------------
-
-matZZtoQQ = (M) -> (
-    E:=entries M;   
-    return matrix apply(#E, i -> apply(#(E_i), j -> (1/1)*E_i_j))    
-);
 
 ------------------------------------------------------
 -- Substitues a list of points on a list of matrices
@@ -133,7 +123,7 @@ maxMLE=(L,V)->(
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
-scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(
+scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -183,7 +173,7 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     -- Compute score equations ideal
     ----------------------------------------------------
     -- Sample covariance matrix
-    if opts.sampleData then V:= sampleCovarianceMatrix(U) else V=U;
+    if opts.SampleData then V:= sampleCovarianceMatrix(U) else V=U;
     -- Jacobian of log-likelihood function
     C1 := trace(Sinv * V);
     C1derivative := jacobianMatrixOfRationalFunction(C1);
@@ -192,8 +182,8 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
     --Saturate
-    if opts.doSaturate then (
-        argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    if opts.DoSaturate then (
+        argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, newOpts);
     	for i from 0 to (#denoms-1) do (
 	    if degree denoms_i =={0} then J=J else  
 	    J=saturate(argSaturate(J,denoms_i))
@@ -205,17 +195,17 @@ scoreEquationsInternal={doSaturate => true, saturateOptions => options saturate,
 ----------------------------------------------------
 --scoreEquationsInternalUndir for undirected graphs
 ----------------------------------------------------
-scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options saturate, sampleData=>true}>>opts->(R,U)->(    
+scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true}>>opts->(R,U)->(    
     -- Sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) else V=U;
+    if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
     lpR:=coefficientRing(R)[gens R - set support covarianceMatrix R];
     K=sub(K,lpR);
     J:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*V)})};
-    if opts.doSaturate then 
-    (  	argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, newOpts);
+    if opts.DoSaturate then 
+    (  	argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, newOpts);
     	J=saturate(argSaturate(J,ideal{determinant(K)}));
 	);
     return (J,K);
@@ -227,10 +217,10 @@ scoreEquationsInternalUndir={doSaturate => true, saturateOptions => options satu
 sampleCovarianceMatrix = method(TypicalValue =>Matrix);
 sampleCovarianceMatrix(Matrix) := (U) -> (
    n := numRows U;
+   --Convert from integers to rationals if needed
+   if ring U===ZZ then U=sub(U,QQ);
    --Convert matrix into list of row matrices
    U = for i to n-1 list U^{i};
-   --Convert from integers to rationals if needed
-   U = apply(#U, i -> if ring(U_i)===ZZ then matZZtoQQ(U_i) else U_i);
    --Compute the mean vector
    Ubar := matrix{{(1/n)}} * sum(U);
    --Compute sample covariance matrix
@@ -252,14 +242,14 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquations = method(TypicalValue =>Ideal, Options =>{sampleData => true, doSaturate => true, saturateOptions => options saturate});
+scoreEquations = method(TypicalValue =>Ideal, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate});
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input
     ----------------------------------------------------
     if not R.?graph then error "Expected a ring created with gaussianRing of a Graph, Bigraph, Digraph or MixedGraph";
     if not numRows U==#vertices R.graph  then error "Size of sample data does not match the graph.";  
-    if not opts.sampleData then (if not U==transpose U then error "The sample covariance matrix must be symmetric.");
+    if not opts.SampleData then (if not U==transpose U then error "The sample covariance matrix must be symmetric.");
     ---------------------------------------------------
     -- Apply appropriate scoreEquations routine
     ---------------------------------------------------
@@ -277,7 +267,7 @@ scoreEquations(Ring,List) := opts ->(R, U) -> (
     ----------------------------------------------------
     --Check input
     ----------------------------------------------------
-    if not opts.sampleData then error "The sample covariance matrix must be a matrix.";
+    if not opts.SampleData then error "The sample covariance matrix must be a matrix.";
         
     ---------------------------------------------------
     -- Call scoreEquations routine with a matrix
@@ -344,22 +334,21 @@ MLdegree(Ring):= (R) -> (
 );
 
 
-solverMLE = method(TypicalValue =>Sequence, Options =>{sampleData=>true, concentrationMatrix=> true, doSaturate => true, saturateOptions => options saturate, chooseSolver=>"EigenSolver", optionsES => options zeroDimSolve, optionsNAG4M2=> options solveSystem});
+solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
     -- sample covariance matrix
-    if opts.sampleData then V := sampleCovarianceMatrix(U) 
+    if opts.SampleData then V := sampleCovarianceMatrix(U) 
     else (V=U; 
     if not V==transpose V then error "The sample covariance matrix must be symmetric.");
-    if det V==0 then print "Warning: The sample covariance matrix is singular";
     -- generate the ideal of the score equations
-    if opts.doSaturate then (
-	 argSaturate:=opts.saturateOptions  >>newOpts-> args ->(args, saturateOptions=>newOpts,sampleData=>false);
+    if opts.DoSaturate then (
+	 argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, SaturateOptions=>newOpts,SampleData=>false);
          (J,SInv):=scoreEquationsInternal(argSaturate(R,V));)
-    else (J,SInv)= scoreEquationsInternal(R,V,doSaturate=>false, sampleData=>false);
+    else (J,SInv)= scoreEquationsInternal(R,V,DoSaturate=>false, SampleData=>false);
     -- check that the system has finitely many solutions
     if dim J =!= 0 then (
 	print ("the ideal is not zero-dimensional");
@@ -367,13 +356,13 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
 	) else (
     ML:=degree J;
     -- solve system 
-    if opts.chooseSolver=="EigenSolver" then(
-	argES:=opts.optionsES  >>newOpts-> args ->(args, newOpts);
+    if opts.ChooseSolver=="EigenSolver" then(
+	argES:=opts.OptionsEigenSolver  >>newOpts-> args ->(args, newOpts);
         sols:=zeroDimSolve(argES(J));
 	) else (
-	if opts.chooseSolver=="NAG4M2" then (
+	if opts.ChooseSolver=="NAG4M2" then (
 	   sys:= (for i to (numcols gens J)-1 list (gens J)_(0,i)); 
-	   argNAG4M2:=opts.optionsNAG4M2 >>newOpts-> args ->(args, newOpts);
+	   argNAG4M2:=opts.OptionsNAG4M2 >>newOpts-> args ->(args, newOpts);
            sols=solveSystem(argNAG4M2(sys));
 	    )
 	else error "Accepted solver options are EigenSolver 
@@ -387,7 +376,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     L:=checkPD M;
     --find the optimal points
     (maxPt, E):=maxMLE(L,V);
-    if not opts.concentrationMatrix then (
+    if not opts.ConcentrationMatrix then (
 	if instance(E,List) then E=(for e in E list e=inverse e) else  E=inverse E
 	);
     return  (maxPt,E,ML));    
@@ -396,7 +385,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
 -- Allow list instead of matrix
 solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
     -- check input
-    if not opts.sampleData then error "The sample covariance matrix must be a matrix.";
+    if not opts.SampleData then error "The sample covariance matrix must be a matrix.";
     -- call solverMLE for a matrix
     return  solverMLE(G,matrix U,opts);    
 );
@@ -762,7 +751,7 @@ doc ///
 
 	U:Matrix
 	   or @TO List@ of sample data. 
-	   Alternatively, the input can be the sample covariance @TO Matrix@ by setting the optional input @TO sampleData@ to false
+	   Alternatively, the input can be the sample covariance @TO Matrix@ by setting the optional input @TO SampleData@ to false
     Outputs
          :Ideal
 	   generated by the score equations of the log-likelihood function of the Gaussian model
@@ -775,25 +764,25 @@ doc ///
 	    
 	    The input of this function is a @TO gaussianRing@ and statistical data.
 	    The latter can be given as a matrix or a list of observations. The rows of the matrix or the elements of the list are observation vectors given as lists.  
-            It is possible to input the sample covariance matrix directly by using the optional input @TO sampleData@.
+            It is possible to input the sample covariance matrix directly by using the optional input @TO SampleData@.
         Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 	    R = gaussianRing(G)
 	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
 	    JU=scoreEquations(R,U)
 	    V = sampleCovarianceMatrix U
-	    JV=scoreEquations(R,V,sampleData=>false)
+	    JV=scoreEquations(R,V,SampleData=>false)
         Text
-	    @TO saturateOptions@ allows to use all functionalities of @TO saturate@.
-	    @TO doSaturate@ removes the saturation procedure. Note that the latter will not
+	    @TO SaturateOptions@ allows to use all functionalities of @TO saturate@.
+	    @TO DoSaturate@ removes the saturation procedure. Note that the latter will not
 	    provide the score equations of the model. 
 
         Example
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 	    R = gaussianRing(G)
             U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
-            J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
-            JnoSat=scoreEquations(R,U,doSaturate=>false)   
+            J=scoreEquations(R,U,SaturateOptions => {Strategy => Eliminate})
+            JnoSat=scoreEquations(R,U,DoSaturate=>false)   
 	Text
 	   The ML-degree of the model is the degree of the score equations ideal. The ML-degree 
 	   of the running example is 1:
@@ -809,7 +798,7 @@ doc ///
     
 doc ///
   Key
-    doSaturate
+    DoSaturate
   Headline
     optional input to remove saturation 
   SeeAlso
@@ -819,24 +808,21 @@ doc ///
 
 doc ///
   Key
-    [scoreEquations, doSaturate]
-    [solverMLE, doSaturate]
+    [scoreEquations, DoSaturate]
   Headline
-     optional input to remove saturation 
+    remove saturation 
   Usage
-    scoreEquations(R,U,doSaturate=>true)
-    solverMLE(G,U,doSaturate=>true)  
+    scoreEquations(R,U,DoSaturate=>true)
   Inputs 
-    true: Boolean
-    
-  Description
-    
+     b:Boolean
+        default is true      
+  Description  
     Text
-     @TO doSaturate@ is set to true by default. 
+     @TO [scoreEquations,DoSaturate]@ is set to true by default. If b is false, saturation is not performed.
+      
      Note that avoiding saturation is only intended for big computations 
      when saturation cannot be computed or the computational time is very high. 
-     It will not provide the score equations but only the ideal before the saturation procedure, 
-     which is not 0-dimensional.
+     It might not provide the score equations but only the ideal before the saturation procedure.
     
      For graphs with only undirected edges, score equations are the saturation of the
      outputed ideal by the determinant of the concentration matrix. In the general case,
@@ -848,75 +834,133 @@ doc ///
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
      R=gaussianRing(G);
      U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
-     JnoSat=scoreEquations(R,U,doSaturate=>false);
+     JnoSat=scoreEquations(R,U,DoSaturate=>false);
      dim JnoSat  
      degree JnoSat     
      J=scoreEquations(R,U)
      degree JnoSat==degree J
      
-    Text
-     When we apply the no saturation option to solverMLE, the function returns the output
-     of @TO scoreEquations@ with @TO doSaturate@ set to false. 
-    Example
-     G=graph{{1,2},{2,3},{3,4},{1,4}}
-     U=random(ZZ^4,ZZ^4)
-     solverMLE(G,U,doSaturate=>false)     
   SeeAlso
      scoreEquations
-     solverMLE 	
 ///
 
 doc ///
   Key
-    saturateOptions
+    [solverMLE, DoSaturate]
   Headline
-    optional input to use options from @TO saturate@
+    remove saturation 
+  Usage
+    solverMLE(G,U,DoSaturate=>true)  
+  Inputs  
+     b:Boolean
+        default is true
+  Description
+    Text
+     
+     @TO [solverMLE,DoSaturate]@ is set to true by default.
+     If we set @TO DoSaturate@ to false in @TO solverMLE@, saturation will not be 
+     performed when computing the score equations of the log-likelihood function, 
+     see @TO [scoreEquations,DoSaturate]@. 
+     
+     If the ideal returned by @TO scoreEquations@ has positive dimension, @TO solverMLE@ 
+     gives this ideal as output.
+     
+     On the other hand, if we obtain a zero-dimensional ideal in @TO scoreEquations@, 
+     @TO solverMLE@ computes the solutions of this polynomial system and returns:
+     
+     * the maximal value of the log-likelihood function attained by positive definite matrices
+     corresponding to such solutions,
+     
+     * the positive definite matrices where the maximum is attained,
+     
+     * the degree of the zero-dimensional ideal.
+      
+     Be aware that this output might not correspond to the right MLE.
+      
+    Example
+     G=graph{{1,2},{2,3},{3,4},{1,4}}
+     U=random(ZZ^4,ZZ^4)
+     solverMLE(G,U,DoSaturate=>false)     
+
+  SeeAlso
+     solverMLE 
+     scoreEquations
+     [scoreEquations,DoSaturate]	
+///
+
+
+doc ///
+  Key
+    SaturateOptions
+  Headline
+    optional input to use options "saturate"
   SeeAlso
      scoreEquations
      solverMLE
-     doSaturate
+     DoSaturate
      saturate
    ///
 doc ///
   Key
-    [scoreEquations, saturateOptions]
-    [solverMLE, saturateOptions]
+    [scoreEquations, SaturateOptions]
   Headline
-    optional input to use options from @TO saturate@
+    use options from "saturate"
   Usage
-    scoreEquations(R,U,saturateOptions=>options saturate)
-    solverMLE(G,U,saturateOptions=>options saturate)  
+    scoreEquations(R,U,SaturateOptions=>options saturate)
   Inputs 
     L: List
-       list of options to set up saturation. Accepts any option from the function
+       of options to set up saturation. Accepts any option from the function
        @TO saturate@
-    
   Description
     Text
-     Default @TO saturateOptions@ in @TO scoreEquations@ and @TO solverMLE@ are the 
+     Default @TO SaturateOptions@ in @TO scoreEquations@ are the 
      default options in @TO saturate@. All optional input in @TO saturate@ is allowed.
      
     Example
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
      R=gaussianRing(G)
      U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
-     J=scoreEquations(R,U,saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})
+     J=scoreEquations(R,U,SaturateOptions => {DegreeLimit=>1, MinimalGenerators => false})
     
-    Example
-     G=graph{{1,2},{2,3},{3,4},{1,4}}
-     U=random(ZZ^4,ZZ^4)
-     solverMLE(G,U,saturateOptions => {DegreeLimit=>1, MinimalGenerators => false})     
-
   SeeAlso
      scoreEquations   
-     doSaturate
+     DoSaturate
      saturate
      solverMLE	
 ///
 
 doc ///
   Key
-    chooseSolver 
+    [solverMLE, SaturateOptions]
+  Headline
+    use options from "saturate"
+  Usage
+    solverMLE(G,U,SaturateOptions=>options saturate)  
+  Inputs 
+    L: List
+       of options to set up saturation. Accepts any option from the function
+       @TO saturate@
+    
+  Description
+    Text
+     Default @TO SaturateOptions@ in @TO solverMLE@ are the default options in @TO saturate@. 
+     All optional input in @TO saturate@ is allowed.
+     
+    Example
+     G=graph{{1,2},{2,3},{3,4},{1,4}}
+     U=random(ZZ^4,ZZ^4)
+     solverMLE(G,U,SaturateOptions => {DegreeLimit=>1, MinimalGenerators => false})     
+
+  SeeAlso
+     scoreEquations   
+     DoSaturate
+     saturate
+     solverMLE	
+///
+
+doc ///
+  Key
+    ChooseSolver 
   Headline
     optional input to choose numerical solver
   SeeAlso
@@ -928,11 +972,11 @@ doc ///
    ///
 doc ///
   Key
-    [solverMLE, chooseSolver]
+    [solverMLE, ChooseSolver]
   Headline
-    optional input to choose numerical solver
+    choose numerical solver
   Usage
-    solverMLE(G,U,chooseSolver=>"EigenSolver")  
+    solverMLE(G,U,ChooseSolver=>"EigenSolver")  
   Inputs 
     P: String
        name of the corresponding package
@@ -940,14 +984,15 @@ doc ///
   Description
     Text
       This option allows to choose which numerical solver to use to estimate the critical
-      points. There are two options: "EigenSolver" or "NAG4M2".
+      points. There are two options: "EigenSolver" or "NAG4M2" (Numerical Algebraic Geometry for Macaulay2).
       
       The default and strongly recommended option is "EigenSolver", in which case
-      the function @TO zeroDimSolve@. If "NAG4M2" is chosen, then @TO solveSystem@ is used.	  
+      the function @TO zeroDimSolve@ is used. 
+      If "NAG4M2" is chosen, then @TO solveSystem@ is used.	  
     Example
      G=mixedGraph(graph{{a,b},{b,c}})
-     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver")
-     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"NAG4M2")  
+     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"EigenSolver")
+     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"NAG4M2")  
   SeeAlso
      solverMLE
      EigenSolver
@@ -958,9 +1003,9 @@ doc ///
 
 doc ///
   Key
-    optionsES
+    OptionsEigenSolver
   Headline
-    optional input to set the parameters of zeroDimSolve in EigenSolver
+    optional input to use options of "zeroDimSolve" in "EigenSolver"
   SeeAlso
     solverMLE
     EigenSolver
@@ -968,20 +1013,29 @@ doc ///
    ///
 doc ///
   Key
-    [solverMLE, optionsES]
+    [solverMLE, OptionsEigenSolver]
   Headline
-    optional input to set the parameters of zeroDimSolve in EigenSolver
+    use options of "zeroDimSolve" in "EigenSolver"
   Usage
-    solverMLE(G,U,chooseSolver=>"EigenSolver",optionsES=>options zeroDimSolve)
+    solverMLE(G,U,ChooseSolver=>"EigenSolver",OptionsEigenSolver=>options zeroDimSolve)
   Inputs 
     L: List
-       list of optional inputs to @TO zeroDimSolve@
+       of optional inputs in @TO zeroDimSolve@
     
   Description
+    Text
+     Default @TO OptionsEigenSolver@ in @TO solverMLE@ are the default options in @TO zeroDimSolve@ in @TO EigenSolver@. 
+     All optional input in @TO zeroDimSolve@ is allowed.
     Example
      G=mixedGraph(graph{{a,b},{b,c}})
-     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"EigenSolver",optionsES=>{Multiplier =>1, Strategy=>"Stickelberger"})  
-     
+     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"EigenSolver",OptionsEigenSolver=>{Multiplier =>1, Strategy=>"Stickelberger"})  
+    Text
+     In fact, since @TO zeroDimSolve@ is the current default numerical solver.
+     the sintaxis below is enough:
+    Example
+     G=mixedGraph(graph{{a,b},{b,c}})
+     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},OptionsEigenSolver=>{Multiplier =>1, Strategy=>"Stickelberger"})  
+    
   SeeAlso
      solverMLE
      EigenSolver
@@ -990,7 +1044,7 @@ doc ///
 
 doc ///
   Key
-   optionsNAG4M2
+   OptionsNAG4M2
   Headline
    optional parameter to set the parameters of solveSystem in NumericalAlgebraicGeometry
   SeeAlso
@@ -1001,19 +1055,24 @@ doc ///
    
 doc ///
   Key
-    [solverMLE, optionsNAG4M2]
+    [solverMLE, OptionsNAG4M2]
   Headline
-    optional parameter to set the parameters of solveSystem in NumericalAlgebraicGeometry
+    use options of "solveSystem" in "NumericalAlgebraicGeometry"
   Usage
-    solverMLE(G,U,chooseSolver=>"NAG4M2",optionsES=>options solveSystem)
+    solverMLE(G,U,ChooseSolver=>"NAG4M2",OptionsEigenSolver=>options solveSystem)
   Inputs 
     L: List
-       list of optional inputs to @TO solveSystem@
+       of optional inputs to @TO solveSystem@
     
   Description
+    Text
+     Default @TO OptionsNAG4M2@ in @TO solverMLE@ when setting @TO [solverMLE,ChooseSolver]@ 
+     to "NAG4M2" are the default options of @TO solveSystem@ in @TO NumericalAlgebraicGeometry@. 
+     All optional input in @TO solveSystem@ is allowed.
+    
     Example
      G=mixedGraph(graph{{a,b},{b,c}})
-     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},chooseSolver=>"NAG4M2",optionsNAG4M2=>{tStep =>.01,numberSuccessesBeforeIncrease => 5})  
+     solverMLE(G,matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"NAG4M2",OptionsNAG4M2=>{tStep =>.01,numberSuccessesBeforeIncrease => 5})  
      
   SeeAlso
      solverMLE
@@ -1023,7 +1082,7 @@ doc ///
 
 doc ///
   Key
-    sampleData
+    SampleData
   Headline
     optional input to allow to input the sample covariance matrix instead of sample data
   SeeAlso
@@ -1032,31 +1091,52 @@ doc ///
    ///
 doc ///
   Key
-    [scoreEquations, sampleData]
-    [solverMLE, sampleData]
+    [scoreEquations, SampleData]
   Headline
-    optional input to allow to input the sample covariance matrix instead of sample data
+    input sample covariance matrix instead of sample data
   Usage
-    scoreEquations(R,U,sampleData=>true)
-    solverMLE(G,U,sampleData=>true)  
+    scoreEquations(R,U,SampleData=>true)
   Inputs 
-    true: Boolean
-    
+    b: Boolean
+        default is true
   Description
+    Text
+      @TO scoreEquations@ requires a matrix or a list of sample data as part of the default input.
+      Setting @TO [scoreEquations,SampleData]@ to false allows the user to enter a sample
+      covariance matrix instead of sample data. It must be a symmetric matrix.
     Example
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
      R=gaussianRing(G);
      U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
-     J=scoreEquations(R,U,sampleData=>true)
+     J=scoreEquations(R,U,SampleData=>true)
      V=sampleCovarianceMatrix(U)
-     I=scoreEquations(R,V,sampleData=>false)
+     I=scoreEquations(R,V,SampleData=>false)
      
+  SeeAlso
+     scoreEquations 	
+///
+
+doc ///
+  Key
+    [solverMLE, SampleData]
+  Headline
+    input sample covariance matrix instead of sample data
+  Usage
+    solverMLE(G,U,SampleData=>true)  
+  Inputs 
+    b: Boolean
+        default is true    
+  Description
+    Text
+      @TO solverMLE@ requires a matrix or a list of sample data as part of the default input.
+      Setting @TO [solverMLE,SampleData]@ to false allows the user to enter a sample
+      covariance matrix as input. It must be a symmetric matrix.  
     Example
      G=graph{{1,2},{2,3},{3,4},{1,4}}
      U=random(ZZ^4,ZZ^4)
-     solverMLE(G,U,sampleData=>true)
+     solverMLE(G,U,SampleData=>true)
      V=sampleCovarianceMatrix(U)
-     solverMLE(G,V,sampleData=>false)     
+     solverMLE(G,V,SampleData=>false)     
   SeeAlso
      scoreEquations
      solverMLE 	
@@ -1064,29 +1144,34 @@ doc ///
 
 doc ///
   Key
-    concentrationMatrix
+    ConcentrationMatrix
   Headline
-    optional input to output covariance matrices instead of concentration matrices
+    optional input to output MLE for concentration matrix instead of MLE for covariance matrix
   SeeAlso
     solverMLE
    ///
 doc ///
   Key
-    [solverMLE, concentrationMatrix]
+    [solverMLE, ConcentrationMatrix]
   Headline
-    optional input to output covariance matrices instead of concentration matrices
+    output MLE for concentration matrix instead of MLE for covariance matrix
   Usage
-    solverMLE(G,U,concentrationMatrix=>true)  
+    solverMLE(G,U,ConcentrationMatrix=>false)  
   Inputs 
-    true: Boolean
-    
+    b: Boolean
+        false by default
   Description
     Text
-     By default, solverMLE outputs the MLE for the concentration matrix.
+     By default, @TO solverMLE@ outputs the MLE for the covariance matrix. By setting
+     @TO [solverMLE, ConcentrationMatrix]@ to true, @TO solverMLE@ provides the MLE for
+     the concentration matrix. 
+     
+     Note that both the maximum value attained in the log-likelihood function and 
+     the ML-degree remain the same.
     Example
       G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
-      solverMLE (G, random(QQ^7,QQ^7), concentrationMatrix=>true)
-      solverMLE (G, random(QQ^7,QQ^7), concentrationMatrix=>false)    
+      solverMLE (G, random(QQ^7,QQ^7))    
+      solverMLE (G, random(QQ^7,QQ^7), ConcentrationMatrix=>true)
   SeeAlso
      solverMLE 	
 ///
@@ -1245,53 +1330,86 @@ doc ///
  	  or @ofClass Digraph@, or @ofClass Bigraph@, or @ofClass MixedGraph@ 
 	U:Matrix
 	  or @ofClass List@ of sample data. 
-	  Alternatively, the sample covariance matrix can be given as input by setting @TO sampleData@ false
+	  Alternatively, the sample covariance matrix can be given as input 
+	  by setting @TO SampleData@ to false
 
     Outputs
         : Sequence
 	   consisting of (RR,Matrix,ZZ) or (RR,List,ZZ)
            where the real number is the maximum value attained in the log-likelihood function,
-	   the matrix (or list of matrices) is the MLE for the concentration matrix
-	   and the integer is the ML-degree of the model   
+	   the matrix (or list of matrices) is the MLE for the covariance matrix
+	   and the integer is the ML-degree of the model.   
+	   Alternatively, the MLE for the concentration matrix can be given as output 
+	   by setting @TO ConcentrationMatrix@ to true
+
     Description
-    	Text
+    	
+	Text
 	    This function takes as input a @TO Graph@, or a @TO Digraph@, or a @TO Bigraph@ or a @TO MixedGraph@ and a list or matrix that encodes, by default, the sample data.
 	    It computes the critical points of the score equations and 
 	    selects the maximum value achieved among those that lie in the cone of positive-definite matrices.
-	    The default output is the maximum value in the log-likelihood function, maximum likelihood estimators (MLE) for the concentration matrix
+	    The default output is the maximum value in the log-likelihood function, maximum likelihood estimators (MLE) for the covariance matrix
 	    and the ML-degree of the model.
-	    MLE for the covariance matrix can be obtained by setting the optional input @TO concentrationMatrix@ to false.
+	    MLE for the concentration matrix can be obtained by setting the optional input @TO ConcentrationMatrix@ to false.
 	    
 	    The same optional inputs as in @TO scoreEquations@ can be used, plus extra optional inputs related to
 	    the numerical solver (EigenSolver by default, NAG4M2 alternatively) and its functionalities.
 	    
-	    Below we compute Example 2.1.13 for the 4-cycle in the book: Mathias Drton, Bernd Sturmfels and Seth Sullivant:
+	    Below we reproduce Example 2.1.13 for the 4-cycle in the book: Mathias Drton, Bernd Sturmfels and Seth Sullivant:
 	    {\em Lectures on Algebraic Statistics}, Oberwolfach Seminars, Vol 40, Birkhauser, Basel, 2009.
 	   
 	Example
 	    G=graph{{1,2},{2,3},{3,4},{1,4}}
 	    U =matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 	    solverMLE(G,U)
-        Text
+        
+	Text
 	    The data sample can also be given as a list:    
+	
 	Example   
             G=graph{{1,2},{2,3},{3,4},{1,4}}
 	    U = {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 	    solverMLE(G,U)       	
+        
 	Text
-	    In the following example we compute the MLE for a @TO mixedGraph@ with
+	    In the following example we compute the MLE for the covariance matrix of a @TO mixedGraph@ with
 	    directed and bidirected edges. In this case we give as input the sample covariance matrix:
+	
 	Example
 	    G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
             S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
-            solverMLE(G,S,sampleData=>false)
+            solverMLE(G,S,SampleData=>false)
 
 	Text
-	   Finally, we provide the MLE of a @TO mixedGraph@ with undirected, directed and bidirected edges:
+	   Next we provide the MLE for the concentration matrix of a @TO mixedGraph@ with undirected, directed and bidirected edges:
+	
 	Example
 	   G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}})
            S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
-           sol = solverMLE(G,S,sampleData=>false,concentrationMatrix=>false) 
+           solverMLE(G,S,SampleData=>false,ConcentrationMatrix=>true) 
+        
+	Text
+	   Finally, @TO solverMLE@ can also be used to solve positive definite matrix completion problems. 
+	   For instance, to complete the following matrix
+	   
+	   | 115/16 -13/8   x    47/8  |
+           
+	   | -13/8  5/4   7/8      y   |
+           
+	   |   x    7/8   27/16  -21/8 |
+           
+	   | 47/8    y    -21/8  29/4  |
+        
+	   into a PD matrix we give values to x and y and compute the MLE for the concentration matrix in the Gaussian graphical model 
+	   given by the 4-cycle. Note that not all values for x and y will result in a maximum likelihood estimate.
+	   Observe in the last line below that only the entries of the outputed matrix that correspond to non-edges of the graph
+	   differ from the entries of the input matrix. 
+         
+	Example
+	    G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    V=matrix{{115/16, -13/8, -29/16, 47/8}, {-13/8, 5/4, 7/8, -11/4}, {-29/16, 7/8, 27/16, -21/8}, {47/8, -11/4, -21/8, 29/4}}            
+            (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+            sub(V,RR)       	
     SeeAlso				
        checkPD 
        checkPSD
@@ -1360,14 +1478,14 @@ assert(dim J===0)
 assert(degree J===5)
 ///   
 
-TEST /// --score equations of sample data equals score equations of its sample covariance data with sampleData=>false    
+TEST /// --score equations of sample data equals score equations of its sample covariance data with SampleData=>false    
 G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 R = gaussianRing(G)
 U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
 JU=scoreEquations(R,U)
 RU=ring(JU)
 V = sampleCovarianceMatrix U
-JV=scoreEquations(R,V,sampleData=>false)
+JV=scoreEquations(R,V,SampleData=>false)
 JV=sub(JV,RU)
 assert(JU==JV)
 ///
@@ -1378,7 +1496,7 @@ R = gaussianRing(G)
 U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
 JU=scoreEquations(R,U)
 RU=ring(JU)
-J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
+J=scoreEquations(R,U,SaturateOptions => {Strategy => Eliminate})
 J=sub(J,RU)
 assert(J==JU)
 ///    
@@ -1403,94 +1521,3 @@ end--
 --------------------------------------
 --------------------------------------
 
-
---blank documentation node:
-doc /// 
-    Key
-       gaussianMatrix
-       (gaussianMatrix,Digraph,Matrix,List) 
-    Headline
-    Usage
-    Inputs
-    Outputs
-    Description 
-        Text
-        Example
-    SeeAlso
-///
-
-restart
-uninstallPackage "GraphicalModelsMLE"
-restart
---installPackage("Graphs", UserMode=>true)
-installPackage ("GraphicalModelsMLE", RemakeAllDocumentation => true, UserMode=>true)
-installPackage("GraphicalModelsMLE",UserMode=>true,DebuggingMode => true)
-installPackage("GraphicalModelsMLE",UserMode=>true,DebuggingMode => true, FileName =>"/Users/lgp/Software/Macaulay2/Workshop-2020-Warwick/AlgebraicStatistics/GraphicalModelsMLE.m2")
-check GraphicalModelsMLE
-
-viewHelp "GraphicalModelsMLE"
-help GraphicalModelsMLE
-
-----------------------
--- Parameterization -- ????????????????????????????????????????????????????????????????????????
----------------------- 
----- We need this for both directed and undirected graphs:
-
-----  parameterizations and for toric varieties the corresponding matrix. 
-----  In the case of toric varieties the matrix is easy.  Here is the code, 
-----  commented out to be used later when we are ready. 
----- 
-----  toAMatrix = method()
-----  toAMatrix List := Matrix => (M) -> (
-----      if any(M,isMonomial)
-----         then error "this parameterization does not correspond to a toric ideal." 
-----         else (
-----              Mexp := apply(M, exponents);
-----              transpose matrix apply(Mexp, flatten)))
-----
----- isMonomial = method()
----- isMonomial RingElement := Boolean => (m) -> (
-----      termList := terms m;
-----      if #termList == 1 then true else false)
-
----- isMonomial works well as long as m is actually a polynomial or monomial and not 
----- an element of ZZ, QQ, RR, etc.
-
-
-end;
-restart
-installPackage("GraphicalModelsMLE")
-check "GraphicalModelsMLE"
-
-
-	Example
-	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
-	    R = gaussianRing(G)
-	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
-	    JU=scoreEquations(R,U)
-	    V = sampleCovarianceMatrix U
-	    JV=scoreEquations(R,V,sampleData=>false)
-            
-	Text
-	    @TO saturateOptions@ allows to use all functionalities of @TO saturate@.
-	    @TO doSaturate@ removes the saturation procedure. Note that the latter will not
-	    provide the score equations of the model. 
-        
-	Example
-	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
-	    R = gaussianRing(G)
-            U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
-            1, 8/3}}
-            J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
-            JnoSat=scoreEquations(R,U,doSaturate=>false)   
-	    
-	Text
-	   The ML-degree of the model is the degree of the score equations ideal. The ML-degree 
-	   of the running example is 1:
-	
-	Example
-	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
-	    R = gaussianRing(G)
-	    U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}}
-	    J = scoreEquations(R,U)
-	    dim J, degree J

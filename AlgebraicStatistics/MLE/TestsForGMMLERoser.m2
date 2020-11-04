@@ -640,22 +640,26 @@ help checkPD
 help checkPSD
 
 help scoreEquations 
-help doSaturate
-help [scoreEquations,doSaturate]
-help saturateOptions
-help [scoreEquations,saturateOptions]
-help sampleData
-help [scoreEquations,sampleData]
+help DoSaturate
+help [scoreEquations,DoSaturate]
+help DaturateOptions
+help [scoreEquations,SaturateOptions]
+help SampleData
+help [scoreEquations,SampleData]
 
 help solverMLE
-help chooseSolver
-help [solverMLE, chooseSolver]
-help optionsES
-help [solverMLE, optionsES]
-help optionsNAG4M2
-help [solverMLE, optionsNAG4M2]
-help concentrationMatrix
-help [solverMLE, concentrationMatrix]
+help [solverMLE, DoSaturate]
+help [solverMLE, SaturateOptions]
+help [solverMLE, SampleData]
+help ChooseSolver
+help [solverMLE, ChooseSolver]
+help OptionsEigenSolver
+help [solverMLE, OptionsEigenSolver]
+help OptionsNAG4M2
+help [solverMLE, OptionsNAG4M2]
+help ConcentrationMatrix
+help [solverMLE, ConcentrationMatrix]
+
 ----------------------------------------------
 ---documentation of scoreEquations: examples
 ---------------------------------------------

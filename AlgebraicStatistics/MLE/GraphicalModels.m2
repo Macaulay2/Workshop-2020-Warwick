@@ -578,11 +578,8 @@ connectedComponentsMG := (g) -> (
 
 gaussianRingList := new MutableHashTable;
 
---GaussianRing = new Type of PolynomialRing;
-
 gaussianRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, sVariableName=>"s", lVariableName=>"l", 
 	  pVariableName=>"p", kVariableName=>"k"})
---gaussianRing ZZ :=  GaussianRing => opts -> (n) -> (  
 gaussianRing ZZ :=  Ring => opts -> (n) -> (
      -- s_{1,2} is the (1,2) entry in the covariance matrix.
      -- this assumes r.v.'s are labeled by integers.
@@ -602,11 +599,9 @@ gaussianRing ZZ :=  Ring => opts -> (n) -> (
      R.gaussianVariables = H;
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,n)) = R;); 
-     gaussianRingList#((kk,s,n))
-     --new GaussianRing from gaussianRingList#((kk,s,n))     
+     gaussianRingList#((kk,s,n))    
      )
 
---gaussianRing Graph := GaussianRing => opts -> (g) -> (
 gaussianRing Graph := Ring => opts -> (g) -> (    
     bb := graph g;
     vv := sort vertices g;
@@ -637,11 +632,9 @@ gaussianRing Graph := Ring => opts -> (g) -> (
     R.graph= g;
     -- fill into internal gaussianRingList
     gaussianRingList#((kk,s,k,bb)) = R;); 
-    --new GaussianRing from gaussianRingList#((kk,s,k,bb))
     gaussianRingList#((kk,s,k,bb))
     )
 
---gaussianRing Digraph :=  GaussianRing => opts -> (G) -> (
 gaussianRing Digraph :=  Ring => opts -> (G) -> (
     return gaussianRing (mixedGraph G, opts);
      )
@@ -649,7 +642,6 @@ gaussianRing Digraph :=  Ring => opts -> (G) -> (
 gaussianRing Bigraph :=  Ring => opts -> (G) -> (
     return gaussianRing (mixedGraph G, opts);
      )
---gaussianRing MixedGraph := GaussianRing => opts -> (g) -> (
 
 gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- convert mixedGraph to hash table
@@ -706,7 +698,6 @@ gaussianRing MixedGraph := Ring => opts -> (g) -> (
      -- fill into internal gaussianRingList
      gaussianRingList#((kk,s,k,l,p,vv)) = R;); 
      gaussianRingList#((kk,s,k,l,p,vv))
-     --new GaussianRing from gaussianRingList#((kk,s,k,l,p,vv)) 
      )
 
 
@@ -1944,6 +1935,7 @@ doc ///
     gaussianRing
     (gaussianRing,ZZ)
     (gaussianRing, Graph)
+    (gaussianRing, Bigraph)
     (gaussianRing, Digraph)
     (gaussianRing, MixedGraph)
   Headline
@@ -2631,6 +2623,240 @@ doc ///
       gens Rnew
 ///
 
+----------------------------------------------------------------------------------
+-- Documentation gaussianRingData and its elements     --
+----------------------------------------------------------------------------------
+doc ///
+  Key
+    gaussianRingData
+  Headline
+    hash table with key parameters of a gaussian ring
+  Description
+    Text
+     The contents of gaussianRingData depend on the type of gaussian ring.
+     
+     First, we show an example of a gaussian ring with 5 variables
+    
+    Example
+     R = gaussianRing 5
+     gaussianRingData
+     
+    Text
+     In case of the gaussian ring of a graph, there are two options. First one, is when the graph is
+     of class @TO Graph@ .
+     
+    Example 		 	    
+     R=gaussianRing graph {{1,2},{2,3}}
+     R.gaussianRingData
+     
+    Text
+     If the graph is of any other class -i.e.,  @TO Bigraph@,  @TO Digraph@,  
+     @TO MixedGraph@ - then it is internally converted to a @TO MixedGraph@ and
+     the gaussianRingData has the same structure.
+     
+    Example 
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData	 	 
+  SeeAlso
+    gaussianRing
+    kVar
+    pVar
+    lVar
+    sVar
+    compU
+    compW
+    nn    
+///
+
+doc ///
+  Key
+    nn
+  Headline
+     key in hash table gaussian Ring Data: total number of variables 
+  Description
+    Text
+     This key is present in every gaussianRingData hash table
+    
+    Example
+     R = gaussianRing 5
+     R.gaussianRingData
+     
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing U
+     R4 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData
+     R4.gaussianRingData
+     	 	 
+  SeeAlso
+    gaussianRingData
+    kVar
+    pVar
+    lVar
+    sVar
+    compU
+    compW   
+///
+
+doc ///
+  Key
+    kVar
+  Headline
+     key in hash table gaussian Ring Data: labels of k variables
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph. 
+     It is equal to the value of the optional input  @TO [gaussianRing, kVariableName]@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing U
+     R4 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData
+     R4.gaussianRingData
+     	 	 
+  SeeAlso
+    kVariableName 
+    gaussianRingData
+    pVar
+    lVar
+    sVar
+    compU
+    compW
+    nn   
+///
+
+doc ///
+  Key
+    sVar
+  Headline
+     key in hash table gaussian Ring Data: labels of s variables
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph. 
+     It is equal to the value of the optional input  @TO [gaussianRing, sVariableName]@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing U
+     R4 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData
+     R4.gaussianRingData
+     	 	 
+  SeeAlso
+    sVariableName 
+    gaussianRingData
+    pVar
+    lVar
+    kVar
+    compU
+    compW
+    nn   
+///
+
+doc ///
+  Key
+    pVar
+  Headline
+     key in hash table gaussian Ring Data: labels of p variables
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph. 
+     It is equal to the value of the optional input  @TO [gaussianRing, pVariableName]@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing U
+     R4 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData
+     R4.gaussianRingData
+     	 	 
+  SeeAlso
+    pVariableName 
+    gaussianRingData
+    kVar
+    lVar
+    sVar
+    compU
+    compW
+    nn   
+///
+
+doc ///
+  Key
+    lVar
+  Headline
+     key in hash table gaussian Ring Data: labels of l variables
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph. 
+     It is equal to the value of the optional input  @TO [gaussianRing, lVariableName]@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+     R3 = gaussianRing U
+     R4 = gaussianRing mixedGraph(U,B,D)
+     
+     R1.gaussianRingData
+     R2.gaussianRingData
+     R3.gaussianRingData
+     R4.gaussianRingData
+     	 	 
+  SeeAlso
+    lVariableName 
+    gaussianRingData
+    kVar
+    pVar
+    sVar
+    compU
+    compW
+    nn   
+///
 --------------------------------------------
 -- Documentation conditionalIndependenceIdeal
 --------------------------------------------

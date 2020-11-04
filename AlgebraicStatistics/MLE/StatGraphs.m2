@@ -201,13 +201,15 @@ bigraph MixedGraph := opts -> g -> g#graph#Bigraph
 vertices MixedGraph := G -> toList sum(apply(keys(G#graph),i->set keys(graph (G#graph)#i)))
 vertexSet MixedGraph := G -> vertices G
 
-descendents (MixedGraph, Thing) := (G,v) -> descendents(digraph G, v)
-nondescendents (MixedGraph, Thing) := (G,v) -> nondescendents(digraph G, v)
-parents (MixedGraph, Thing) := (G,v) -> parents(digraph G, v)
-foreFathers (MixedGraph, Thing) := (G,v) -> foreFathers(digraph G, v)
-children (MixedGraph, Thing) := (G,v) -> children(digraph G, v)
-neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
-nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
+descendents (MixedGraph, Thing) := (G,v) -> descendents(digraph collateVertices G, v)
+descendants (MixedGraph, Thing) := (G,v) -> descendants(digraph collateVertices G, v)
+nondescendents (MixedGraph, Thing) := (G,v) -> nondescendents(digraph collateVertices G, v)
+nondescendants (MixedGraph, Thing) := (G,v) -> nondescendants(digraph collateVertices G, v)
+parents (MixedGraph, Thing) := (G,v) -> parents(digraph collateVertices G, v)
+foreFathers (MixedGraph, Thing) := (G,v) -> foreFathers(digraph collateVertices G, v)
+children (MixedGraph, Thing) := (G,v) -> children(digraph collateVertices G, v)
+neighbors (MixedGraph, Thing) := (G,v) -> neighbors(undirectedGraph collateVertices G, v)
+nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(undirectedGraph  collateVertices G, v)
 
 
 collateVertices = method(TypicalValue =>MixedGraph)
@@ -371,23 +373,53 @@ doc ///
     Key
         StatGraphs
     Headline
-        a package for graphs that are used primarily in statistical models.
+        a package for graphs that are used in statistical models.
     Description        
         Text
             This package contains the types of graphs that are used in algebraic 
-      	    statistics: @TO Bigraph@,  @TO LabeledGraph@,  @TO MixedGraph@ and  @TO SortedDigraph@. 
+      	    statistics: @TO Bigraph@ and  @TO MixedGraph@. 
 	    
-	    A Bigraph is a simple graph with bidirected edges. 
-	    A MixedGraph is a graph with undirected, directed and bidirected edges. 
+	    A bigraph is a simple graph with bidirected edges. 
+	    A mixed graph is a graph with undirected, directed and bidirected edges. 
+	    
+	    This is an example of a bigraph on 4 vertices. It is created using the method @TO bigraph@.
 	    
         Example	   
 	    G = bigraph {{3,4},{1,2},{2,4}}
-	    	    
+	
+	Text
+	    Next is an example of a mixed graph on 4 vertices with undirected, directed and bidirected edges. It is created using
+	    the method @TO mixedGraph@. 
+	       
         Example	   
 	    G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
-
 	    
-   	
+	Text
+	    One can extract key information about mixed graphs using:
+	    @TO (undirectedGraph,MixedGraph)@,
+	    @TO (bigraph,MixedGraph)@,
+	    @TO (digraph,MixedGraph)@,
+	    @TO (vertices,MixedGraph)@,
+	    @TO (partitionLMG,MixedGraph)@
+	    
+	    or convert a mixed graph into a more convenient form using:
+	    @TO (collateVertices,MixedGraph)@,
+	    @TO (indexLabelGraph,MixedGraph)@. 
+	    
+	    There are several methods that allow to check the properties of mixed graphs:
+	    @TO (isCyclic,MixedGraph)@, 
+	    @TO (isLoopless,MixedGraph)@,
+	    @TO (isSimple,MixedGraph)@.
+	     
+	    One can also study the properties of vertices using:
+	    @TO (children, MixedGraph, Thing)@,     
+    	    @TO (parents, MixedGraph, Thing)@,  
+    	    @TO (descendants, MixedGraph, Thing)@,	    
+    	    @TO (nondescendants, MixedGraph, Thing)@,
+    	    @TO (forefathers, MixedGraph, Thing)@,
+    	    @TO (neighbors, MixedGraph, Thing)@,
+	    @TO (nonneighbors, MixedGraph, Thing)@.
+	    	    	       	
     Caveat
        StatGraphs requires  @TO Graphs@ version 0.3.2 or later.
        
@@ -413,7 +445,7 @@ doc ///
   Description
      Text  
          Bigraph is a simple graph that has  bidirected edges.
-	 To create a Bigraph, use @TO bigraph@. 
+	 To create a bigraph, use @TO bigraph@. 
 	
   SeeAlso
      bigraph
@@ -435,7 +467,7 @@ doc ///
 
     
   Headline
-     this function creates a Bigraph 
+     this function creates a bigraph 
   Usage
      G= bigraph(H) 
      G= bigraph(L) 
@@ -458,7 +490,7 @@ doc ///
     
   Description
     Text
-        This is a constructor of a simple graph of type Bigraph.  One can use the same input types
+        This is a constructor of a simple graph of class @TO Bigraph@.  One can use the same input types
 	as in @TO graph@. 
     Example
         G = bigraph {{3,4},{1,2},{2,4}}
@@ -468,6 +500,53 @@ doc ///
 
 ///
 
+--------------------------------------------
+-- Optional arguments for bigraph
+--------------------------------------------
+doc ///
+  Key 
+    [bigraph,EntryMode]
+
+  Headline
+     choose among 'auto', 'edges', or 'neighbors' 
+  Description
+      Text
+          The options for EntryMode are 'auto'(the default), 'neighbors' and  'edges'.
+	  If 'edges' is selected, then the input should contain a list of lists and
+	  the inner lists correspond to pairs of vertices incident to a given edge.
+	  If 'neighbors' is selected, then the input should contain a list of lists and
+	  in the inner lists, the 0th entry is a vertex and the 1st entry is the list of
+	  its neighbors.
+	  The default 'auto' option distinguished between the other two options automatically.
+      
+      Example    
+	   graph ({{a,{b,c,d,e}}, {b,{d,e}}, {e,{a}}},EntryMode=>"neighbors")
+	   graph ({{a,{b,c,d,e}}, {b,{d,e}}, {e,{a}}},EntryMode=>"auto")
+	   graph ({{a,b}, {b,d}, {c,d},EntryMode=>"edges"})
+	   graph ({{a,b}, {b,d}, {c,d},EntryMode=>"auto"})
+  SeeAlso
+     bigraph
+     [graph,EntryMode]
+     graph
+
+///
+
+doc ///
+  Key 
+    [bigraph,Singletons]
+
+  Headline
+     list of isolated vertices in a bigraph  
+  Description
+     Example
+          bigraph({{1,2},{2,3},{3,4}}, Singletons => {5,6,7})
+	
+  SeeAlso
+     bigraph
+     [bigraph,Singletons]
+     graph
+
+///
 --------------------------------------------
 -- Documentation MixedGraph
 --------------------------------------------
@@ -481,8 +560,9 @@ doc ///
   Description
      Text  
          MixedGraph is a graph that has undirected, directed and bidirected edges.
-	 To create a MixedGraph, use @TO mixedGraph@. Each subgraph (undirected,
-	 directed and bidirected) is a simple graph.
+	 To create a mixed graph, use @TO mixedGraph@. Each subgraph (undirected,
+	 directed and bidirected) is a simple graph. Each type of subgraphs can
+     	 appear at most once.
 	
   SeeAlso
      mixedGraph
@@ -514,7 +594,7 @@ doc ///
      (mixedGraph, Bigraph)
     
   Headline
-     this function creates a MixedGraph from a combination of Graph, Digraph and Bigraph 
+     this function creates a mixed graph from a combination of undirected graph, digraph and bigraph 
   Usage
      G= mixedGraph(U, D, B) 
      G= mixedGraph G 
@@ -537,8 +617,9 @@ doc ///
     
   Description
     Text
-        This is a constructor of graphs of type MixedGraph from a combination of Graph, Digraph and Bigraph.  One can also input any subset 
-        and any permutation of the arguments.
+        This is a constructor of graphs of class @TO MixedGraph@ from a combination of subgraphs of classes @TO Graph@, 
+	@TO Digraph@ and @TO Bigraph@.  One can also input any subset 
+        and any permutation of the arguments. Each type of subgraph can appear at most once.
     
         Note that this constructor does not check the input satisfies the properties of loopless mixed graphs from 
         Sadeghi and Lauritzen, 2020 <@HREF"https://arxiv.org/pdf/1109.5909.pdf"@>.
@@ -563,7 +644,7 @@ doc ///
   Key
      (bigraph, MixedGraph)
   Headline
-     Extract the Bigraph component of a MixedGraph
+     Extract the bigraph component of a mixed graph
   Usage
      B=bigraph G
  
@@ -575,7 +656,7 @@ doc ///
     
   Description
     Text
-        This method extracts the Bigraph component of a MixedGraph
+        This method extracts the largest component of class @TO Bigraph@ of a mixed graph.
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -597,7 +678,7 @@ doc ///
   Key
      (digraph, MixedGraph)
   Headline
-     Extract the Digraph component of a MixedGraph
+     Extract the digraph component of a mixed graph
   Usage
      D=digraph G
  
@@ -609,7 +690,7 @@ doc ///
     
   Description
     Text
-        This method extracts the Digraph component of a MixedGraph
+        This method extracts the largest component of class @TO Digraph@ of a mixed graph.
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -632,7 +713,7 @@ doc ///
      undirectedGraph
      (undirectedGraph, MixedGraph)
   Headline
-     extract the Digraph component of a MixedGraph
+     extract the undirected graph component of a mixed graph
   Usage
      U=undirectedGraph G
  
@@ -644,7 +725,7 @@ doc ///
     
   Description
     Text
-        This method extracts the Graph component of a MixedGraph
+        This method extracts the largest component of class @TO Graph@ of a mixed graph.
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -666,7 +747,7 @@ doc ///
   Key
      (graph, MixedGraph)
   Headline
-     convert MixedGraph to a HashTable
+     convert mixed graph to a hash table.
   Usage
      U=graph G
  
@@ -678,8 +759,8 @@ doc ///
     
   Description
     Text
-        This method creates a HashTable whose key-value pairs correspond to the
-	components of G
+        This method creates a hash table whose key-value pairs correspond to the
+	components of G.
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -705,7 +786,7 @@ doc ///
         (collateVertices, MixedGraph) 
 	
     Headline
-        converts a MixedGraph so that each component subgraph has the same set of vertices.
+        converts into a new mixed graph where each component subgraph has the same set of vertices.
     Usage
         collateVertices(G)
     Inputs
@@ -736,7 +817,7 @@ doc ///
     Key 
         (isSimple, MixedGraph) 
     Headline
-        checks whether a MixedGraph contains is simple
+        checks whether a mixed graph is simple
     Usage
         isSimple(G)
     Inputs
@@ -747,8 +828,8 @@ doc ///
         Text
 	  This method checks whether a graph is simple: does not contain
 	  loops or multiple edges.
-	  Note that since @TO Graph@, @TO Digraph@ and @TO Bigraph@ do not
-	  allow multiple edges, a @TO MixedGraph@ can only have multiple edges
+	  Note that since @TO graph@, @TO digraph@ and @TO bigraph@ do not
+	  allow multiple edges, a graph of class @TO MixedGraph@ can only have multiple edges
 	  of different types.
 	  
 	  In the following example, there are no loops or multiple edges.
@@ -770,7 +851,7 @@ doc ///
 	   isSimple G
 	   
 	Text    
-	   This example contains a loop
+	   This example contains a loop.
 	Example
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{2,5}}
@@ -787,7 +868,7 @@ doc ///
   Key
      (indexLabelGraph, MixedGraph)
   Headline
-     Relabels the vertices of a MixedGraph according to their indices, indexed from 0.
+     Relabels the vertices of a mixed graph according to their indices, indexed from 0.
   Usage
      G=indexLabelGraph G
  
@@ -799,8 +880,9 @@ doc ///
     
   Description
     Text
-        This method relabels the vertices of a MixedGraph according to their indices. The method indexes from 0 to the number of vertices minus one.
-	This is an adaptation of @TO indexLabelGraph@.
+        This method relabels the vertices of a graph of class @TO MixedGraph@  according to their indices. 
+	The method indexes from 0 to the number of vertices minus one.
+	This is an adaptation of the method @TO indexLabelGraph@.
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -829,7 +911,7 @@ doc ///
         isLoopless(G)
     Inputs
         G:
-	 graph of Type MixedGraph, Graph or Digraph
+	 graph of class  @TO MixedGraph@,  @TO Graph@,  @TO Digraph@ or  @TO Bigraph@
     Outputs
          :Boolean 
     Description 
@@ -865,7 +947,7 @@ doc ///
         (isCyclic, MixedGraph) 
 	
     Headline
-        checks whether a MixedGraph contains a directed cycle
+        checks whether a mixed graph contains a directed cycle
     Usage
         isCyclic(G)
     Inputs
@@ -877,9 +959,9 @@ doc ///
 	   This method checks whether a @TO MixedGraph@ is cyclic, i.e. contains
 	   a directed cycle. 
 	   
-	   A directed cycle is a cycle in the @TO Digraph@ constructed from G by
-	   identifying all connected components on bidirected and undirected edges.
-	   Such a connected component contain either bidirected edges only or 
+	   A directed cycle is a cycle in the @TO Digraph@ constructed from a
+	   mixed graph G by identifying all connected components on bidirected and undirected edges.
+	   Such a connected component contains either bidirected edges only or 
 	   undirected edges only.
 	   
 	   In the following example, there are no directed cycles.	    
@@ -913,7 +995,7 @@ doc ///
    ///
    
 --------------------------------------------
--- Documentation noDirCycles 
+-- Documentation partitionLMG
 --------------------------------------------
 
 doc /// 
@@ -932,10 +1014,12 @@ doc ///
 	  (U,W) where U are vertices adjacent to undirected edges and W are vertices adjacent to bidirected edges 
     Description 
         Text
-	   Makes a partition $U\cup W$ of the vertices V of a loopless mixed graph (inputed as a mixedGraph) 
+	   Makes a partition $U\cup W$ of the vertices V of a loopless mixed graph 
    	   such that U contains all the vertices adjacent to undirected edges, 
 	   W contains all the vertices adjacent to bidirected edges 
 	   and there are no directed edges from W to U and all vertices in U have lower value than those in W.
+	   
+	   This method checks that the input contains no loops.
         Example
 	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7}}
@@ -960,7 +1044,73 @@ doc ///
 	   G = mixedGraph(U,D,B)
 	   partitionLMG G
 
-   ///   
+   ///  
+--------------------------------------------
+-- Printing of a MixedGraph
+--------------------------------------------   
+--------------------------------------------
+-- Documentation (net,MixedGraph)
+--------------------------------------------
+doc ///
+  Key
+    (net,MixedGraph)
+    
+  Headline
+    prints a mixed graph as a  net 
+  Usage
+    net G
+ 
+  Inputs
+    G: MixedGraph
+    
+  Outputs
+     :Net
+    
+  Description
+    Text
+        This methods defines how to manipulate a mixed graph to produce a  @TO Net@
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+    	net G
+
+  SeeAlso
+    MixedGraph
+    (toString, MixedGraph)
+    Net
+
+///  
+
+--------------------------------------------
+-- Documentation (toString, MixedGraph)
+--------------------------------------------
+doc ///
+  Key
+    (toString, MixedGraph)
+    
+  Headline
+    prints a mixed graph as a string 
+  Usage
+    toString G
+ 
+  Inputs
+    G: MixedGraph
+    
+  Outputs
+     :String
+    
+  Description
+    Text
+        This methods defines how to manipulate a mixed graph to produce a  @TO String@
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+    	toString G
+
+  SeeAlso
+    MixedGraph
+    (net, MixedGraph)
+    String
+
+///   
 --------------------------------------------
 -- Operations on vertices of a  MixedGraph
 --------------------------------------------  
@@ -973,7 +1123,7 @@ doc ///
      (children,MixedGraph,Thing)
     
   Headline
-    returns the children of a vertex of the Digraph component of a MixedGraph
+    returns the children of a vertex of a mixed graph
   Usage
     children (G,v)
  
@@ -989,7 +1139,7 @@ doc ///
     Text
         The children of v are the all the vertices u such that v,u is in the directed edge 
 	set of the @TO MixedGraph@ G. So the children of a vertex v are exactly those 
-	vertices of the Digraph component of a  MixedGraph that v points to.
+	vertices of the largest digraph component of a  mixed graph that v points to.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	children (G,1)
@@ -999,6 +1149,8 @@ doc ///
   SeeAlso
     MixedGraph
     children
+    parents
+    (parents, MixedGraph, Thing)
 
 ///
 
@@ -1010,7 +1162,7 @@ doc ///
      (parents,MixedGraph,Thing)
     
   Headline
-    returns the parents of a vertex of the Digraph component of a MixedGraph
+    returns the parents of a vertex of a mixed graph
   Usage
     parents (G,v)
  
@@ -1026,7 +1178,7 @@ doc ///
     Text
         The parents of v are the all the vertices u such that u,v is in the directed edge 
 	set of the @TO MixedGraph@ G. So the parents of a vertex v are exactly those 
-	vertices of the Digraph component of a  MixedGraph that point to v.
+	vertices of the largest digraph component of a mixed graph that point to v.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	parents (G,1)
@@ -1036,20 +1188,23 @@ doc ///
   SeeAlso
     MixedGraph
     parents
+    children
+    (children, MixedGraph, Thing)
 
 ///
  
---------------------------------------------
--- Documentation descendents
---------------------------------------------
+--------------------------------------------------------------------
+-- Documentation descendents(MixedGraph) and descendants(MixedGraph)
+--------------------------------------------------------------------
 doc ///
   Key
-     (descendents,MixedGraph,Thing)
+     (descendants,MixedGraph,Thing)
     
   Headline
-    returns the descendents of a vertex of the Digraph component of a MixedGraph
+    returns the descendents of a vertex of a mixed graph
   Usage
     descendents (G,v)
+    descendants (G,v)
  
   Inputs
     G: MixedGraph
@@ -1061,24 +1216,189 @@ doc ///
     
   Description
     Text
-        The children of v are the all the vertices u such that u is reachable from v in the directed edge 
-	set of the @TO MixedGraph@ G. Another way to more intuitively see what the descendents are is to 
-	see the descendents of a vertex v can be found by first taking the children of v. Then if you take 
+        The descendants of v are the all the vertices u such that u is reachable from v in the directed edge 
+	set of the @TO MixedGraph@ G. Another way to more intuitively see what the descendants are is to 
+	see the descendants of a vertex v can be found by first taking the children of v. Then if you take 
 	the children of each of the children, and continue the process until the list stops growing, this 
-	will form all the descendents of v.
+	will form all the descendants of v.
 	
 	The output also includes the vertex v from the input in the set of the descendents.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
-	descendents (G,1)
-	descendents (G,2)
-    	descendents (G,3)
+	descendants (G,1)
+	descendants (G,2)
+    	descendants (G,3)
 
   SeeAlso
     MixedGraph
-    descendents
+    descendants
+    foreFathers
+    (forefathers, MixedGraph, Thing)
+    nondescendants
+    (nondescendants, MixedGraph, Thing)
 
 /// 
+
+--------------------------------------------------------------------
+-- Documentation nondescendents(MixedGraph) and nondescendants(MixedGraph)
+--------------------------------------------------------------------
+doc ///
+  Key
+     (nondescendants,MixedGraph,Thing)
+    
+  Headline
+    returns the nondescendents of a vertex of a mixed graph
+  Usage
+    nondescendents (G,v)
+    nondescendants (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The nondescendant  of v are the all the vertices u such that u is not reachable
+	from v in the directed edge set of the @TO MixedGraph@ G. 
+	
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	nondescendants (G,1)
+	nondescendants (G,2)
+    	nondescendants (G,3)
+
+  SeeAlso
+    MixedGraph
+    nondescendants
+    descendants
+    (descendants, MixedGraph, Thing)
+
+/// 
+
+--------------------------------------------------------------------
+-- Documentation foreFathers (MixedGraph)
+--------------------------------------------------------------------
+doc ///
+  Key
+     (foreFathers,MixedGraph,Thing)
+    
+  Headline
+    returns the forefathers of a vertex of a mixed graph 
+  Usage
+    foreFathers (G,v)
+    foreFathers (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The forefathers of v are the all the vertices u such that v is reachable from u in the directed edge 
+	set of the @TO MixedGraph@ G. 
+	
+	The output also includes the vertex v from the input in the set of the forefathers.
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	foreFathers (G,1)
+	foreFathers (G,2)
+    	foreFathers (G,3)
+
+  SeeAlso
+    MixedGraph
+    foreFathers 
+    descendants
+    (descendants, MixedGraph, Thing)
+
+/// 
+
+--------------------------------------------------------------------
+-- Documentation neighbors (MixedGraph)
+--------------------------------------------------------------------
+doc ///
+  Key
+     (neighbors,MixedGraph,Thing)
+    
+  Headline
+    returns the neighbors of a vertex of a mixed graph
+  Usage
+    neighbors (G,v)
+    neighbors (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The neighbors of v are the all the vertices u such that u,v is an undirected
+	edge in G. 
+	
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+        neighbors (G,1)
+	neighbors (G,2)
+
+  SeeAlso
+    MixedGraph
+    neighbors 
+    nonneighbors
+    (nonneighbors, MixedGraph, Thing)
+
+/// 
+
+--------------------------------------------------------------------
+-- Documentation nonneighbors (MixedGraph)
+--------------------------------------------------------------------
+doc ///
+  Key
+     (nonneighbors,MixedGraph,Thing)
+    
+  Headline
+    returns the neighbors of a vertex of a mixed graph
+  Usage
+    nonneighbors (G,v)
+    nonneighbors (G,v)
+ 
+  Inputs
+    G: MixedGraph
+    v: Thing
+       a vertex of G
+    
+  Outputs
+     :Set
+    
+  Description
+    Text
+        The nonneighbors of v are the all the vertices u such that u,v is not an undirected
+	edge in G. 
+	
+    Example
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+        nonneighbors (G,1)
+	nonneighbors (G,2)
+
+  SeeAlso
+    MixedGraph
+    nonneighbors
+    neighbors
+    (neighbors, MixedGraph, Thing) 
+
+/// 
+
+
 --------------------------------------------
 -- Documentation vertices and vertexSet
 --------------------------------------------
@@ -1089,7 +1409,7 @@ doc ///
      (vertexSet, MixedGraph)
     
   Headline
-     this function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+     creates a union of all vertices of a mixed graph.
   Usage
      V=vertices G
      V=vertexSet G
@@ -1102,7 +1422,7 @@ doc ///
     
   Description
     Text
-        This function creates a union of all the vertices of Graph, Bigraph, Digraph components of a MixedGraph.
+        This function creates a union of all vertices of a graph of class @TO MixedGraph@.
 	This is an adaptation of vertices and vertexSet from @TO Graphs@.
       
     Example
@@ -1114,66 +1434,6 @@ doc ///
     MixedGraph
 
 ///
---------------------------------------------
--- Topological sorting functions
---------------------------------------------
-
---------------------------------------------
--- Documentation topologicalSort
---------------------------------------------
-
-doc /// 
-    Key
-        topologicalSort
-        (topologicalSort, Digraph) 
-	(topologicalSort, Digraph, String) 
-    Headline
-        outputs a list of vertices in a topologically sorted order of a DAG.
-    Usage
-        topologicalSort(D)
-    Inputs
-        D:Digraph
-	S:String
-    Outputs
-         :List 
-    Description 
-        Text
-	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG).
-        Example
-	   D = digraph{{2,1},{3,1}}
-	   topologicalSort D
-   ///
-
---------------------------------------------
--- Documentation topSort
---------------------------------------------
-doc /// 
-    Key
-        topSort
-        (topSort, Digraph) 
-    Headline
-        outputs a list of vertices in a topologically sorted order of a DAG.
-    Usage
-        topologicalSort(D)
-    Inputs
-        D:Digraph
-	  needs to be a directed acyclice graph DAG  
-    Outputs
-         :HashTable 
-    Description 
-        Text
-	    This method outputs a HashTable with keys digraph, map and newDigraph, where digraph is the original digraph,
-	    map is the relation between old ordering and the new ordering of vertices and newDigraph is the Digraph with 
-	    topologically sorted vertices.
-
-        Example
-	   D = digraph{{2,1},{3,1}}
-	   H = topSort D
-	   H#digraph
-	   H#map
-	   H#newDigraph
-   ///
-
 --******************************************--
 -- TESTS     	       	    	      	    --
 --******************************************--
@@ -1265,7 +1525,7 @@ TEST ///
 --------------------------------------------
 -- Tests for  isSimple(MixedGraph)  
 --------------------------------------------
-
+--9
 TEST /// 
    
 	   U = graph{{1,2},{2,3},{3,4}}
@@ -1274,7 +1534,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert (isSimple G)
  ///	  
-  
+--10  
 TEST ///       
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{1,2},{2,5}}
@@ -1286,7 +1546,7 @@ TEST ///
 --------------------------------------------
 -- Tests for indexLabelGraph
 --------------------------------------------
---9
+--11
 TEST ///
         G1 = mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
 	G2 = indexLabelGraph G1
@@ -1298,7 +1558,7 @@ TEST ///
 --------------------------------------------
 -- Tests for  isLoopless 
 --------------------------------------------
---10
+--12
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{2,5}}
@@ -1307,7 +1567,7 @@ TEST ///
 	   assert(isLoopless G)  
    ///
    
---11
+--13
 TEST /// 
 	   U = graph{{1,1}}
 	   assert (not isLoopless U)   
@@ -1316,7 +1576,7 @@ TEST ///
 --------------------------------------------
 -- Tests for noDirCycles 
 --------------------------------------------
---12
+--14
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
@@ -1324,14 +1584,14 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(not isCyclic G)    
 ///
---13
+--15
 TEST /// 
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
 	   assert(isCyclic G)     
 ///
---14
+--16
 TEST /// 
 	   U = graph{{1,2}}
 	   B = bigraph{{3,4}}
@@ -1343,7 +1603,7 @@ TEST ///
 --------------------------------------------
 -- Tests for partititionLMG 
 --------------------------------------------
-
+--17
 TEST /// 
 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
@@ -1352,12 +1612,14 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)
   ///
+--18  
 TEST ///
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
 	   assert(try partitionLMG G then false else true)
   ///
+--19  
 TEST ///
 	   U = graph{{1,2}}
 	   B = bigraph{{3,4}}
@@ -1365,23 +1627,23 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)    
    ///
-
+--20
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{4,1},{3,7}}
 	   B = bigraph{{4,5},{5,6},{7,8}}
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)   
-   ///	 
+   ///
+--21   	 
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7}}
 	   B = bigraph{{4,5},{5,6},{7,8}}
 	   G = mixedGraph(U,D,B)
 	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8}))
-   ///  
-   
-   
+   ///     
+--22   
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7},{8,9}}
@@ -1389,7 +1651,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8, 9}))
    ///  
-   
+--23   
 TEST ///      	   
 	   U = graph{{2,3},{3,4},{4,2}}
 	   D = digraph{{1,2},{2,5},{4,9}}
@@ -1404,7 +1666,7 @@ TEST ///
 --------------------------------------------
 -- Tests for children
 --------------------------------------------
---15
+--24
 TEST ///
 
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
@@ -1416,7 +1678,7 @@ TEST ///
 --------------------------------------------
 -- Tests for parents
 --------------------------------------------
-
+--26
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(parents (G,1)===set{})
@@ -1424,18 +1686,62 @@ TEST ///
     	assert(parents (G,3)===set{2})
 ///	
 --------------------------------------------
--- Tests for descendents
+-- Tests for descendants
 --------------------------------------------
+--27
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
-	assert(descendents (G,1)===set{1,2,3})
-	assert(descendents (G,2)===set{2,3})
-    	assert(descendents (G,3)===set{3})	
+	assert(descendants (G,1)===set{1,2,3})
+	assert(descendants (G,2)===set{2,3})
+    	assert(descendants (G,3)===set{3})	
 ///
+
+--------------------------------------------
+-- Tests for nondescendants
+--------------------------------------------
+--28
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(nondescendents (G,1)===set{4})
+	assert(nondescendents (G,2)===set{1,4})
+    	assert(nondescendents (G,3)===set{1,2,4})	
+///
+
+--------------------------------------------
+-- Tests for foreFathers
+--------------------------------------------
+--29
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(foreFathers (G,1)===set{1})
+	assert(foreFathers (G,2)===set{1,2})
+    	assert(foreFathers (G,3)===set{1,2,3})	
+///
+
+--------------------------------------------
+-- Tests for neighbors
+--------------------------------------------
+--30
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(neighbors (G,1)===set{3})
+	assert(neighbors (G,2)===set{})	
+///
+
+--------------------------------------------
+-- Tests for nonneighbors
+--------------------------------------------
+--31
+TEST ///
+        G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
+	assert(nonneighbors (G,1)===set{2,4})
+	assert(nonneighbors (G,2)===set{1,3,4})	
+///
+
 --------------------------------------------
 -- Tests for  vertices and vertexSet
 --------------------------------------------
---16
+--32
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
 	assert(vertices G=== {1,2,3,4})

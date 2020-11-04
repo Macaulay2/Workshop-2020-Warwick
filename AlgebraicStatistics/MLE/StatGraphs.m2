@@ -41,7 +41,7 @@ export {
     "isLoopless",
     "hasDirCycles",
     "hasMultipleEdges",
-    "undirGraph"
+    "undirectedGraph"
     }
 
 if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
@@ -195,8 +195,8 @@ toString MixedGraph := g -> concatenate(
 
 graph MixedGraph := opts -> g -> g#graph     	     --used to transform the MixedGraph into a hashtable
 
-undirGraph = method()
-undirGraph MixedGraph := g -> g#graph#Graph
+undirectedGraph = method()
+undirectedGraph MixedGraph := g -> g#graph#Graph
 
 digraph MixedGraph := opts -> g -> g#graph#Digraph
 bigraph MixedGraph := opts -> g -> g#graph#Bigraph
@@ -583,7 +583,7 @@ doc ///
     MixedGraph
     (digraph, MixedGraph) 
     (graph, MixedGraph)
-    (undirGraph, MixedGraph) 
+    (undirectedGraph, MixedGraph) 
 
 ///
 
@@ -617,22 +617,22 @@ doc ///
     MixedGraph
     (bigraph, MixedGraph) 
     (graph, MixedGraph)
-    (undirGraph, MixedGraph) 
+    (undirectedGraph, MixedGraph) 
 
 ///
 
 --------------------------------------------
--- Documentation undirGraph(MixedGraph)
+-- Documentation undirectedGraph(MixedGraph)
 --------------------------------------------
 
 doc ///
   Key
-     undirGraph
-     (undirGraph, MixedGraph)
+     undirectedGraph
+     (undirectedGraph, MixedGraph)
   Headline
-     Extract the Digraph component of a MixedGraph
+     extract the Digraph component of a MixedGraph
   Usage
-     U=undirGraph G
+     U=undirectedGraph G
  
   Inputs
      G:MixedGraph
@@ -646,7 +646,7 @@ doc ///
       
     Example
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
-        undirGraph G
+        undirectedGraph G
 
   SeeAlso
     MixedGraph
@@ -690,7 +690,7 @@ doc ///
     MixedGraph
     (bigraph, MixedGraph)
     (digraph, MixedGraph) 
-    (undirGraph, MixedGraph) 
+    (undirectedGraph, MixedGraph) 
 
 ///
 --------------------------------------------
@@ -1193,12 +1193,12 @@ TEST ///
 ///
 
 --------------------------------------------
---  Tests for undirGraph(MixedGraph)
+--  Tests for undirectedGraph(MixedGraph)
 --------------------------------------------
 --5
 TEST ///
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
-	assert(undirGraph G=== G#graph#Graph)
+	assert(undirectedGraph G=== G#graph#Graph)
 ///
 
 --------------------------------------------

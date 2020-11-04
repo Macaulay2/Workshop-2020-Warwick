@@ -39,7 +39,6 @@ export {
     "collateVertices",
     "partitionLMG",
     "isLoopless",
-    "hasDirCycles",
     "undirectedGraph"
     }
 
@@ -268,7 +267,7 @@ partitionLMG MixedGraph := g -> (
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
    --check there are no directed cycles
-   if hasDirCycles g  then print ("Warning: the expected input is a loopless mixed graph without directed cycles.");
+   if isCyclic g  then print ("Warning: the expected input is a loopless mixed graph without directed cycles.");
    --naive partition (vertices only adjacent to directed edges are not considered) 
    U:=vertices G;
    W:=vertices B;
@@ -338,9 +337,8 @@ isSimple MixedGraph := Boolean => G -> (
     )
 
 
--- Check whether a MixedGraph does not contain any directed cycles
-hasDirCycles=method()
-hasDirCycles MixedGraph := Boolean => g -> (
+-- Check whether a MixedGraph is cyclic, i.e., does not contain any directed cycles
+isCyclic MixedGraph := Boolean => g -> (
     G:=indexLabelGraph g;
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
@@ -859,48 +857,59 @@ doc ///
    ///
 
 --------------------------------------------
--- Documentation noDirCycles 
+-- Documentation (isCyclic, MixedGraph)
 --------------------------------------------
 
 doc /// 
     Key
-        hasDirCycles 
-        (hasDirCycles, MixedGraph) 
+        (isCyclic, MixedGraph) 
 	
     Headline
         checks whether a MixedGraph contains a directed cycle
     Usage
-        hasDirCycles(G)
+        isCyclic(G)
     Inputs
         G:MixedGraph
     Outputs
          :Boolean 
     Description 
         Text
-	   This method checks whether a @TO MixedGraph@ a directed cycle. 
+	   This method checks whether a @TO MixedGraph@ is cyclic, i.e. contains
+	   a directed cycle. 
 	   
 	   A directed cycle is a cycle in the @TO Digraph@ constructed from G by
 	   identifying all connected components on bidirected and undirected edges.
 	   Such a connected component contain either bidirected edges only or 
 	   undirected edges only.
-	    
+	   
+	   In the following example, there are no directed cycles.	    
         Example
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
 	   B = bigraph{{1,5}}
 	   G = mixedGraph(U,D,B)
-	   hasDirCycles G
+	   isCyclic G
+	   
+	Text
+	  In the next example, there are no cycles inside the digraph of the 
+	  mixed graph, but there is a directed cycle after you identify the 
+	  vertices {1,2} and {3,4}.
+	  	   
         Example
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
-	   hasDirCycles G 
+	   isCyclic G 
+	
+	Text
+	  This is a similar example as before, but now the vertices {1,2} are
+	  connected by an undirected edge and {3,4} by a bidirected edge.
 	Example
 	   U = graph{{1,2}}
 	   B = bigraph{{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D,B)
-	   hasDirCycles G      
+	   isCyclic G      
    ///
    
 --------------------------------------------
@@ -1313,14 +1322,14 @@ TEST ///
 	   D = digraph{{2,1},{3,1},{7,8}}
 	   B = bigraph{{1,5}}
 	   G = mixedGraph(U,D,B)
-	   assert(not hasDirCycles G)    
+	   assert(not isCyclic G)    
 ///
 --13
 TEST /// 
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
-	   assert(hasDirCycles G)     
+	   assert(isCyclic G)     
 ///
 --14
 TEST /// 
@@ -1328,7 +1337,7 @@ TEST ///
 	   B = bigraph{{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D,B)
-	   assert(hasDirCycles G)      
+	   assert(isCyclic G)      
 ///
 
 --------------------------------------------

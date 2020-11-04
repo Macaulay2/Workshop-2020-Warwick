@@ -633,6 +633,8 @@ jacobianMatrixOfRationalFunction(G)
 
 restart
 needsPackage "GraphicalModelsMLE"
+help GraphicalModelsMLE
+
 help sampleCovarianceMatrix
 help jacobianMatrixOfRationalFunction
 help MLdegree

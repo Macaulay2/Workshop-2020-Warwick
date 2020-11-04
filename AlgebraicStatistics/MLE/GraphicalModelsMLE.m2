@@ -619,15 +619,14 @@ doc ///
 	    
 	    as a function of $\Sigma^{-1}$.
 	    
-	    References
+           References
 	    
 	   
 	    Sullivant, S., 2018. Algebraic statistics (Vol. 194). American Mathematical Soc.
 
 	    
 	    In the example below, we create the score equations (defining the critical points of the log likelihood function written in terms of the covariance matrix) associated to the four data vectors $(1,2,1,-1)$, $(2,1,3,0)$, $(-1,0,1,1)$, $(-5,3,4,-6)$ for a graphical model with four vertices, five directed edges, and one bidirected edge.
-
-
+          
 	    
         Example	   
 	    G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}})
@@ -636,17 +635,17 @@ doc ///
             scoreEquations(R,U)
 	    
 	    
-       Example
+        Example
            G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
            solverMLE (G, random(QQ^7,QQ^7))
     		   	    
-       Example
+        Example
            M = matrix{{1, 2, 0}, {-1, 0, 5/1},{3, 5, 2/1}, {-1, -4, 1/1}};
 	   sampleCovarianceMatrix(M)
 	   U= matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};
 	   sampleCovarianceMatrix(U)
 	   
-       Example
+        Example
 	   R=QQ[x,y];
 	   FR=frac R;
 	   F=1/(x^2+y^2);
@@ -655,11 +654,11 @@ doc ///
 	   FR=frac R;
 	   jacobianMatrixOfRationalFunction( (t_1^2*t_2)/(t_1+t_2^2+t_3^3) )
 	   
-      Example
+        Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}}}				
     	    checkPD(L)
        
-      Example
+        Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}				
     	    checkPSD(L)	   	
     Caveat
@@ -1335,8 +1334,8 @@ doc ///
 
     Outputs
         : Sequence
-	   consisting of (RR,Matrix,ZZ) or (RR,List,ZZ)
-           where the real number is the maximum value attained in the log-likelihood function,
+	   consisting of (CC,Matrix,ZZ) or (CC,List,ZZ)
+           where the first element is always a real number - the maximum value attained in the log-likelihood function,
 	   the matrix (or list of matrices) is the MLE for the covariance matrix
 	   and the integer is the ML-degree of the model.   
 	   Alternatively, the MLE for the concentration matrix can be given as output 
@@ -1513,6 +1512,45 @@ L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},m
 Y = checkPSD(L);
 B = {matrix{{1, 0}, {0, 1}},matrix{{0,0},{0,0}}};
 assert(Y===B)	
+///
+
+TEST /// --test MLdegree
+G=graph{{1,2},{2,3},{3,4},{4,1}}
+assert(MLdegree(gaussianRing G)==5)
+///
+
+TEST /// --test solverMLE graph
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+U =matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
+(mx,MLE,ML)=solverMLE(G,U)
+assert(round(4,realPart mx)==-6.2615)
+assert(ML==5)
+///
+
+TEST /// --test solverMLE for mixedGraph with directed and bidirected edges
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
+(mx,MLE,ML)=solverMLE(G,S,SampleData=>false)
+assert(ML==5)
+assert(round(5,realPart mx)==-1.14351)
+///
+
+TEST /// --test solverMLE for mixedGraph with all kind of edges and concentration matrix
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}})
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
+(mx,MLE,ML)=solverMLE(G,S,SampleData=>false,ConcentrationMatrix=>true) 
+assert(ML==5)
+assert(round(4,realPart mx)==-.8362)
+///
+
+TEST /// --test solverMLE graph with complete test
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+V =matrix{{5,1,3,2},{1,5,1,6},{3,1,5,1},{2,6,1,5}}
+(mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix=>true)
+assert(round(4,realPart mx)==-10.1467)
+assert(ML==5)
+assert(round(6,realPart MLE_(0,2))==.541381)
+assert(round(6,realPart MLE_(1,3))==.541381)
 ///
 
 --------------------------------------

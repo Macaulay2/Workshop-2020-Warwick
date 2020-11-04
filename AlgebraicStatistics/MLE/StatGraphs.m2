@@ -40,7 +40,6 @@ export {
     "partitionLMG",
     "isLoopless",
     "hasDirCycles",
-    "hasMultipleEdges",
     "undirectedGraph"
     }
 
@@ -195,7 +194,7 @@ toString MixedGraph := g -> concatenate(
 
 graph MixedGraph := opts -> g -> g#graph     	     --used to transform the MixedGraph into a hashtable
 
-undirectedGraph = method()
+undirectedGraph = method(TypicalValue =>Graph)
 undirectedGraph MixedGraph := g -> g#graph#Graph
 
 digraph MixedGraph := opts -> g -> g#graph#Digraph
@@ -212,7 +211,7 @@ neighbors (MixedGraph, Thing) := (G,v) -> neighbors(G#graph#Graph, v)
 nonneighbors (MixedGraph, Thing) := (G,v) -> nonneighbors(G#graph#Graph, v)
 
 
-collateVertices = method()
+collateVertices = method(TypicalValue =>MixedGraph)
 collateVertices MixedGraph := g -> (
     v := vertices g;
     hh := new MutableHashTable;
@@ -260,7 +259,7 @@ indexLabelGraph MixedGraph := MixedGraph => G -> (
 -- W contains all the vertices adjacent to bidirected edges 
 -- and there are no directed edges from W to U
 -- and all vertices in U have lower value than those in W.
-partitionLMG = method()
+partitionLMG = method(TypicalValue =>Sequence)
 partitionLMG MixedGraph := g -> (
    --check it's a simple graph
    if isLoopless(g)==false then print ("Warning: the expected input is a loopless mixed graph.");
@@ -294,7 +293,7 @@ partitionLMG MixedGraph := g -> (
 )
 
 --Check whether a graph is loopless in each type of edges
-isLoopless = method()
+isLoopless = method(TypicalValue =>Boolean)
 isLoopless MixedGraph := Boolean => g -> (
    --retrieve graph, digraph and bigraph
    G:= g#graph#Graph;
@@ -316,9 +315,8 @@ isLoopless Digraph := Boolean => g -> (
    isSimple(underlyingGraph g)
    )
 
--- Checks whether a MixedGraph contains multiple edges
-hasMultipleEdges = method()
-hasMultipleEdges MixedGraph := Boolean => g -> (
+-- Internal function to check whether a MixedGraph contains multiple edges
+hasMultipleEdges = g -> (
    --retrieve graph, digraph and bigraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
@@ -333,6 +331,12 @@ hasMultipleEdges MixedGraph := Boolean => g -> (
    --check there are no repetitions
    not #d==#e
    )
+
+-- Check whether a MixedGraph is simple
+isSimple MixedGraph := Boolean => G -> (
+    isLoopless G and not hasMultipleEdges G
+    )
+
 
 -- Check whether a MixedGraph does not contain any directed cycles
 hasDirCycles=method()
@@ -727,41 +731,54 @@ doc ///
    ///
    
 --------------------------------------------
--- Documentation hasMultipleEdges  
+-- Documentation isSimple(MixedGraph)  
 --------------------------------------------
 
 doc /// 
-    Key
-        hasMultipleEdges  
-        (hasMultipleEdges, MixedGraph) 
+    Key 
+        (isSimple, MixedGraph) 
     Headline
-        checks whether a MixedGraph contains multiple edges
+        checks whether a MixedGraph contains is simple
     Usage
-        hasMultipleEdges(G)
+        isSimple(G)
     Inputs
         G:MixedGraph
     Outputs
          :Boolean 
     Description 
         Text
-	  This method checks whether a graph contains multiple edges.
+	  This method checks whether a graph is simple: does not contain
+	  loops or multiple edges.
 	  Note that since @TO Graph@, @TO Digraph@ and @TO Bigraph@ do not
 	  allow multiple edges, a @TO MixedGraph@ can only have multiple edges
 	  of different types.
+	  
+	  In the following example, there are no loops or multiple edges.
 
         Example
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{2,5}}
 	   B = bigraph{{5,6}}
 	   G = mixedGraph(U,D,B)
-	   hasMultipleEdges G
+	   isSimple G
 	   
+	Text
+	   This example contains multiple edges on vertices 1 and 2.
 	Example
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{1,2},{2,5}}
 	   B = bigraph{{5,6}}
 	   G = mixedGraph(U,D,B)
-	   hasMultipleEdges G 
+	   isSimple G
+	   
+	Text    
+	   This example contains a loop
+	Example
+	   U = graph{{1,2},{2,3},{3,4}}
+	   D = digraph{{2,5}}
+	   B = bigraph{{5,6},{5,5}}
+	   G = mixedGraph(U,D,B)
+	   isSimple G
    ///
    
 --------------------------------------------
@@ -1237,7 +1254,7 @@ TEST ///
 
    
 --------------------------------------------
--- Tests for  hasMultipleEdges  
+-- Tests for  isSimple(MixedGraph)  
 --------------------------------------------
 
 TEST /// 
@@ -1246,7 +1263,7 @@ TEST ///
 	   D = digraph{{2,5}}
 	   B = bigraph{{5,6}}
 	   G = mixedGraph(U,D,B)
-	   assert (not hasMultipleEdges G)
+	   assert (isSimple G)
  ///	  
   
 TEST ///       
@@ -1254,7 +1271,7 @@ TEST ///
 	   D = digraph{{1,2},{2,5}}
 	   B = bigraph{{5,6}}
 	   G = mixedGraph(U,D,B)
-	   assert (hasMultipleEdges G) 
+	   assert (not isSimple G) 
    ///
 
 --------------------------------------------

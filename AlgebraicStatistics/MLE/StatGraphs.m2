@@ -31,8 +31,8 @@ export {
     "SortedDigraph",
     "Bigraph",
     "bigraph",
-    "LabeledGraph",
-    "labeledGraph",
+   -- "LabeledGraph",
+    --"labeledGraph",
     "MixedGraph",
     "mixedGraph",
     "newDigraph",
@@ -97,7 +97,9 @@ bigraph (List, List):= opts -> (V,L) -> new Bigraph from graph(V,L, opts)
 bigraph (List, Matrix) :=  opts -> (V,A) -> new Bigraph from graph(V,A, opts)
 bigraph Matrix := opts -> A -> new Bigraph from graph(A, opts)
 
+-* 
 
+--This code is written for an older version of Graphs and is not functional with current version of the packages.
 graphData = "graphData"
 labels = "labels"
 
@@ -146,7 +148,7 @@ toString LabeledGraph := g -> concatenate(
 
 graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph into a hashtable
 
-
+*- 
 
 
 MixedGraph = new Type of HashTable

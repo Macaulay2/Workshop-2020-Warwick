@@ -1555,7 +1555,7 @@ doc ///
     :RingMap
   Description
     Text
-      The ring $R$ must be a ring of probability distributions on $n$ random variables created using {\tt markovRing}. The integer $i$
+      The ring $R$ must be a ring of probability distributions on $n$ random variables created using @TO markovRing@. The integer $i$
       must be in the range from 1 to $n$.  
        
       Let $p_{u_1,u_2,\dots, +,\dots,u_n}$ denote the linear form $p_{u_1,u_2,\dots, 1,\dots,u_n} + \dots + p_{u_1,u_2,\dots, d_i,\dots,u_n}$, where $d_i$ is the number of
@@ -2624,7 +2624,7 @@ doc ///
 ///
 
 ----------------------------------------------------------------------------------
--- Documentation gaussianRingData and its elements     --
+-- Documentation of hash table gaussianRingData and its keys     --
 ----------------------------------------------------------------------------------
 doc ///
   Key
@@ -2953,7 +2953,18 @@ doc ///
     compU
     nn   
 ///
-
+--------------------------------------------
+-- Documentation graphType
+--------------------------------------------
+doc ///
+  Key
+     graphType
+  Headline
+     class of graph used to generate a gaussian ring   	 	 
+  SeeAlso
+     gaussianRing
+     gaussianRingData
+///
 --------------------------------------------
 -- Documentation conditionalIndependenceIdeal
 --------------------------------------------
@@ -2973,7 +2984,7 @@ doc///
     Stmts:List
       list of conditional independence statements
     VarNames:List
-       list of names of random variables in conditional independence statements in $S$.  If this is omited
+       list of names of random variables in conditional independence statements in Stmts.  If this is omited
        it is assumed that these are integers 1 to $n$ where $n$ is the number of variables in the
        declaration of {\tt markovRing} or {\tt gaussianRing}
   Outputs
@@ -3167,6 +3178,15 @@ doc ///
      optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
   SeeAlso
      gaussianVanishingIdeal
+///
+
+doc ///
+  Key
+    [gaussianVanishingIdeal, oldVersion]
+  Headline
+     optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  SeeAlso
+     gaussianVanishingIdeal	
 ///
 -----------------------------------------
 -- Documentation discreteVanishingIdeal--

@@ -3157,7 +3157,17 @@ doc ///
      trekIdeal
 ///
 
-
+-----------------------------------------
+-- Documentation oldVersion--
+-----------------------------------------
+doc ///
+  Key
+     oldVersion
+  Headline
+     optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  SeeAlso
+     gaussianVanishingIdeal
+///
 -----------------------------------------
 -- Documentation discreteVanishingIdeal--
 -----------------------------------------

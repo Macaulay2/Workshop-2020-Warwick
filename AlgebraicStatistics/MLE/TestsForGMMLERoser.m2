@@ -662,6 +662,10 @@ help [solverMLE, OptionsNAG4M2]
 help ConcentrationMatrix
 help [solverMLE, ConcentrationMatrix]
 
+
+restart
+needsPackage "StatGraphs"
+help partitionLMG
 ----------------------------------------------
 ---documentation of scoreEquations: examples
 ---------------------------------------------
@@ -689,3 +693,28 @@ J=sub(J,RU)
 assert(J==JU)
 JnoSat=scoreEquations(R,U,doSaturate=>false)
 J==JnoSat
+
+
+restart
+needsPackage "GraphicalModelsMLE"
+R=QQ[x,y];
+G=matrix{{115,-13,x,47},{-13,5,7,y},{x,7,27,-21},{47,y,-21,29}}
+
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}}
+(mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+
+
+	   {{115/16,-13/8, x    47/8  |
+           
+	   | -13/8  5/4   7/8      y   |
+           
+	   |   x    7/8   27/16  -21/8 |
+           
+	   | 47/8    y    -21/8  29/4  |
+
+G=graph{{1,2},{2,3},{3,4},{1,4}}
+	    V=matrix{{115/16, -13/8, -29/16, 47/8}, {-13/8, 5/4, 7/8, -11/4}, {-29/16, 7/8, 27/16, -21/8}, {47/8, -11/4, -21/8, 29/4}}            
+            (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+            sub(V,RR)
+      

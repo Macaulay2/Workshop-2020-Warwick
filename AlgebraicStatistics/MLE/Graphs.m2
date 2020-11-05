@@ -217,7 +217,12 @@ export {
     "reindexBy",
     "removeNodes",
     "spanningForest",
-    "vertexMultiplication"
+    "vertexMultiplication",
+    
+     "topologicalSort",
+    "topSort",
+    "SortedDigraph",
+    "newDigraph"
     }
 
 ------------------------------------------
@@ -1128,6 +1133,8 @@ spec = spectrum
 spectrum = method()
 spectrum Graph := List => G -> sort toList eigenvalues (adjacencyMatrix G, Hermitian => true)
 
+
+-*
 topologicalSort = method()
 topologicalSort Digraph := List => D -> topologicalSort(D, "")
 topologicalSort (Digraph, String) := List => (D,s) -> (
@@ -1148,6 +1155,52 @@ topologicalSort (Digraph, String) := List => (D,s) -> (
         );
     L
     )
+*-
+
+
+topologicalSort = method(TypicalValue =>List)
+topologicalSort Digraph := List => D -> topologicalSort(D, "")
+topologicalSort (Digraph, String) := List => (D,s) -> (
+    if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
+    s = toLower s;
+    processor := if s == "random" then random
+        else if s == "min" then sort
+        else if s == "max" then rsort
+        else if s == "degree" then L -> last \ sort transpose {apply(L, v -> degree(D, v)), L}
+        else identity;
+    S := processor sources D;
+    L := {};
+    v := null;
+    while S != {} do (
+        v = S_0;
+        L = append(L, v);
+        S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
+        );
+    L
+    )
+
+
+
+
+SortedDigraph = new Type of HashTable;
+
+-- Keys:
+--      digraph: the original digraph
+--      NewDigraph: the digraph with vertices labeled as integers obtained from sorting
+--      map: the map giving the sorted order
+
+topSort = method(TypicalValue =>HashTable)
+topSort Digraph := SortedDigraph => D ->  topSort(D,"") 
+topSort (Digraph, String) := SortedDigraph => (D,s) -> ( 
+L := topologicalSort (D,s);
+g := graph D;
+new SortedDigraph from {
+digraph => D,
+newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
+map => hashTable apply(#L, i -> L_i => i + 1)
+}
+)
+
 
 vertexCoverNumber = method()
 vertexCoverNumber Graph := ZZ => G -> min apply(vertexCovers G, i -> #i)

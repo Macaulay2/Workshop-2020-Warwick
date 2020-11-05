@@ -2984,9 +2984,11 @@ doc///
     Stmts:List
       list of conditional independence statements
     VarNames:List
-       list of names of random variables in conditional independence statements in Stmts.  If this is omited
-       it is assumed that these are integers 1 to $n$ where $n$ is the number of variables in the
-       declaration of {\tt markovRing} or {\tt gaussianRing}
+       list of names of random variables in conditional independence statements in Stmts. This argument
+       allows to choose a subset of random variables and is only available for markov rings. By default, 
+       this is a list of integers 1 to $n$ where $n$ is the number of variables in the
+       declaration of {\tt markovRing} or {\tt gaussianRing}. If R is a gaussian ring, then only the
+       default input is accepted.
   Outputs
     :Ideal
       ideal of conditional independence relations

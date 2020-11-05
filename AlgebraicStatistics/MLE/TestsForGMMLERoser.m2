@@ -666,6 +666,12 @@ help [solverMLE, RealPrecision]
 restart
 needsPackage "StatGraphs"
 help partitionLMG
+
+restart
+needsPackage "GraphicalModels"
+help gaussianRing
+help OldVersion
+help [gaussianVanishingIdeal, OldVersion]
 ----------------------------------------------
 ---documentation of scoreEquations: examples
 ---------------------------------------------

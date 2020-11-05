@@ -11,7 +11,7 @@ newPackage(
 	   HomePage => "http://www.shsu.edu/~ldg005"},
        
           {Name=> "Roser Homs Pons", 
-	   Email=> "roserhp@gmail.com",
+	   Email=> "roser.homs@tum.de",
 	   HomePage=>"https://personal-homepages.mis.mpg.de/homspons/index.html"},
        
           {Name=> "Olga Kuznetsova", 

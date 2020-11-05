@@ -1021,12 +1021,24 @@ doc ///
 	  (U,W) where U are vertices adjacent to undirected edges and W are vertices adjacent to bidirected edges 
     Description 
         Text
-	   Makes a partition $U\cup W$ of the vertices V of a loopless mixed graph 
-   	   such that U contains all the vertices adjacent to undirected edges, 
-	   W contains all the vertices adjacent to bidirected edges 
-	   and there are no directed edges from W to U and all vertices in U have lower value than those in W.
-	   
-	   This method checks that the input contains no loops.
+	   This function makes a partition $U\cup W$ of the vertices V of a loopless mixed graph such that:
+   	   
+            - if $i-j$ in $G$ then $i,j\in U$,
+    
+            - if $i\leftarrow \rightarrow j$ in $G$ then $i,j\in W$ 
+    
+            - there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
+    
+           For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
+      
+           1. all vertices in U come before vertices in W,
+      
+           2. if there is a directed edge from $i$ to $j$, then $i<j$. 
+
+	   This method checks that the input contains no loops and 
+	   it requires the graph to be directed acyclic, i.e., there should not be any
+           directed cycles after the identification of the connected undirected and bidirected components. 
+    
         Example
 	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7}}

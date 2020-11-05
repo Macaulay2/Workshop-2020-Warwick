@@ -661,7 +661,7 @@ help OptionsNAG4M2
 help [solverMLE, OptionsNAG4M2]
 help ConcentrationMatrix
 help [solverMLE, ConcentrationMatrix]
-
+help [solverMLE, RealPrecision]
 
 restart
 needsPackage "StatGraphs"
@@ -680,7 +680,7 @@ U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
 JU=scoreEquations(R,U)
 RU=ring(JU)
 V = sampleCovarianceMatrix U
-JV=scoreEquations(R,V,sampleData=>false)
+JV=scoreEquations(R,V,SampleData=>false)
 JV=sub(JV,RU)
 JU==JV
 	    
@@ -688,7 +688,7 @@ G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}})
 R = gaussianRing(G)
 U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,
             1, 8/3}}
-J=scoreEquations(R,U,saturateOptions => {Strategy => Eliminate})
+J=scoreEquations(R,U,SaturateOptions => {Strategy => Eliminate})
 J=sub(J,RU)
 assert(J==JU)
 JnoSat=scoreEquations(R,U,doSaturate=>false)
@@ -704,17 +704,10 @@ G=graph{{1,2},{2,3},{3,4},{1,4}}
 V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}}
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
 
-
-	   {{115/16,-13/8, x    47/8  |
-           
-	   | -13/8  5/4   7/8      y   |
-           
-	   |   x    7/8   27/16  -21/8 |
-           
-	   | 47/8    y    -21/8  29/4  |
-
+restart
+needsPackage "GraphicalModelsMLE"      
 G=graph{{1,2},{2,3},{3,4},{1,4}}
-	    V=matrix{{115/16, -13/8, -29/16, 47/8}, {-13/8, 5/4, 7/8, -11/4}, {-29/16, 7/8, 27/16, -21/8}, {47/8, -11/4, -21/8, 29/4}}            
-            (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
-            sub(V,RR)
-      
+V=matrix{{115.2534,-13,-29.445,47},{-13,5,7,-11},{-29.445,7,27,-21},{47,-11,-21,29}}
+scoreEquations(gaussianRing G,V,RealPrecision=>2)
+(mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+(mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true, RealPrecision=>4)

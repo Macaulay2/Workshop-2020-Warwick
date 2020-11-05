@@ -41,14 +41,15 @@ export {
     "checkPSD",
     "ChooseSolver",--optional argument in solverMLE
     "ConcentrationMatrix",-- optional argument in solverMLE
-    "DoSaturate",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
+    "DoSaturate",-- optional argument in scoreEquations and solverMLE
     "jacobianMatrixOfRationalFunction",
+    "MLdegree",
     "OptionsEigenSolver",--optional argument in solverMLE
     "OptionsNAG4M2",--optional argument in solverMLE
+    "RealPrecision",--optional argument in solverMLE and scoreEquations
     "sampleCovarianceMatrix",
-    "SampleData",-- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
-    "SaturateOptions", -- optional argument in scoreEquationsFromCovarianceMatrix and solverMLE
-    "MLdegree",
+    "SampleData",-- optional argument in scoreEquations and solverMLE
+    "SaturateOptions", -- optional argument in scoreEquations and solverMLE
     "scoreEquations",
     "solverMLE"
      } 
@@ -117,13 +118,24 @@ maxMLE=(L,V)->(
 -- 
 -------------------------------------------
 
+-----------------------------------------------
+-- method for approximating real matrices to rational matrices. 
+--The code of this function is directly taken from DeterminantalRepresentations package in M2.
+-- We use it to deal with real sample data and sample covariance matrices
+-----------------------------------------------
+roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
+-------------------------------------------
+-- 
+-------------------------------------------
+
+
 -------------------------------------------
 -- scoreEquationsInternal - function that returns
 -- both the ideal and the corresponding SInv matrix.
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
-scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true}>>opts->(R,U)->(
+scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -174,6 +186,7 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
     ----------------------------------------------------
     -- Sample covariance matrix
     if opts.SampleData then V:= sampleCovarianceMatrix(U) else V=U;
+    if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
     -- Jacobian of log-likelihood function
     C1 := trace(Sinv * V);
     C1derivative := jacobianMatrixOfRationalFunction(C1);
@@ -195,9 +208,10 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
 ----------------------------------------------------
 --scoreEquationsInternalUndir for undirected graphs
 ----------------------------------------------------
-scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true}>>opts->(R,U)->(    
+scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53}>>opts->(R,U)->(    
     -- Sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
+    if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
@@ -242,7 +256,7 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquations = method(TypicalValue =>Ideal, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate});
+scoreEquations = method(TypicalValue =>Ideal, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate,RealPrecision=>53});
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input
@@ -332,15 +346,11 @@ MLdegree(Ring):= (R) -> (
 );
 
 
-roundMatrix = method() -- method for approximating real matrices to rational matrices. The code of this function is directly taken from DeterminantalRepresentations package in M2.
-roundMatrix (ZZ, Matrix) := Matrix => (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ))
-
-solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem});
+solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 53});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
-    U = roundMatrix(53,U);
     R:= gaussianRing(G);
     -- sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) 
@@ -635,7 +645,7 @@ doc ///
       sampleCovarianceMatrix(U)	  
      Text
       The ideal generated by the score equations of the log-likelihood function of the graphical model associated to the 
-      graph $1\rightarrow 2,1\rightarrow 3,2\rightarrow 3,3\rightarrow 4,3\leftrightarrow 4$ is computed as follows:
+      graph $1\rightarrow 2,1\rightarrow 3,2\rightarrow 3,3\rightarrow 4,3<-> 4$ is computed as follows:
      Example
       G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph{{3,4}});
       R = gaussianRing(G);
@@ -648,7 +658,7 @@ doc ///
       MLdegree(gaussianRing G)
      Text
       Next compute the MLE for the covariance matrix of the graphical model associated
-      to the graph $1\rightarrow 3,2\rightarrow 4,3\leftrightarrow 4,1 - 2$.
+      to the graph $1\rightarrow 3,2\rightarrow 4,3<-> 4,1 - 2$.
       The input is the sample covariance instead of the sample data.
      Example
       G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}});
@@ -1103,6 +1113,63 @@ doc ///
 
 doc ///
   Key
+    RealPrecision
+  Headline
+    optional input to choose the number of decimals used to round to QQ when inputing data in RR
+  SeeAlso
+     scoreEquations
+     solverMLE
+   ///
+doc ///
+  Key
+    [scoreEquations, RealPrecision]
+  Headline
+    number of decimals used to round input data in RR to data in QQ
+  Usage
+    scoreEquations(R,U,RealPrecision=>53)
+  Inputs 
+    n: ZZ
+        default is 53
+  Description
+    Text
+     This optional input only applies when the sample data or the sample covariance matrix has real entries.
+     By default, the precision is 53, the default precision for real numbers in M2.
+    Example
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+     R=gaussianRing(G);
+     U = matrix{{6.2849049, 10.292875, 1.038475, 1.1845757}, {3.1938475, 3.2573, 1.13847, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
+     J=scoreEquations(R,U,RealPrecision=>3)
+     
+  SeeAlso
+     scoreEquations 	
+///
+
+doc ///
+  Key
+    [solverMLE, RealPrecision]
+  Headline
+    number of decimals used to round input data in RR to data in QQ
+  Usage
+    solverMLE(G,U,RealPrecision=>53)
+  Inputs 
+    n: ZZ
+        default is 53
+  Description
+    Text
+     This optional input only applies when the sample data or the sample covariance matrix has real entries.
+     By default, the precision is 53, the default precision for real numbers in M2.
+    Example
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+     U = matrix{{6.2849049, 10.292875, 1.038475, 1.1845757}, {3.1938475, 3.2573, 1.13847, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
+     solverMLE(G,U,RealPrecision=>10)
+     
+  SeeAlso
+     scoreEquations 
+     solverMLE	
+///
+
+doc ///
+  Key
     SampleData
   Headline
     optional input to allow to input the sample covariance matrix instead of sample data
@@ -1396,8 +1463,7 @@ doc ///
         
 	Text
 	    In the following example we compute the MLE for the covariance matrix of
-	    the graphical model associated to the graph
-	    $1\rightarrow 2,1\rightarrow 3,2\rightarrow 3,3\rightarrow 4,3\leftrightarrow 4$
+	    the graphical model associated to the graph $1\rightarrow 2,1\rightarrow 3,2\rightarrow 3,3\rightarrow 4,3<-> 4$
 	    In this case we give as input the sample covariance matrix:
 	
 	Example
@@ -1407,7 +1473,7 @@ doc ///
 
 	Text
 	   Next we provide the MLE for the concentration matrix of the graphical model 
-	   associated to the graph $1\rightarrow 3,2\rightarrow 4,3\leftrightarrow 4,1 - 2$.
+	   associated to the graph $1\rightarrow 3,2\rightarrow 4,3<->4,1 - 2$.
            Again the sample covariance matrix is given as input.
    
 	Example
@@ -1586,22 +1652,4 @@ assert(round(6,realPart MLE_(1,3))==.541381)
 end--
 --------------------------------------
 --------------------------------------
-
- 
-LMG are required to be directed acyclic graphs, i.e., there should not be any
-      directed cycles after the identification of the connected undirected and bidirected components. 
-      
-      The set of vertices V of a loopless mixed graph is partitioned as $V=U\cup W$ such that: 
-      
-      - if $i-j$ in $G$ then $i,j\in U$,
-    
-      - if $i\leftarrow \rightarrow j$ in $G$ then $i,j\in W$ 
-    
-      - there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
-    
-      For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
-      
-      1. all vertices in U come before vertices in W,
-      
-      2. if there is a directed edge from $i$ to $j$, then $i<j$. 
       

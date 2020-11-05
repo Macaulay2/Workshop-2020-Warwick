@@ -26,16 +26,12 @@ newPackage(
         )
 
 export {
-    -- "topologicalSort",
-    --"topSort",
-    --"SortedDigraph",
     "Bigraph",
     "bigraph",
    -- "LabeledGraph",
     --"labeledGraph",
     "MixedGraph",
     "mixedGraph",
-    --"newDigraph",
     "collateVertices",
     "partitionLMG",
     "isLoopless",
@@ -43,54 +39,6 @@ export {
     }
 
 if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
-
-
--*
-topologicalSort = method(TypicalValue =>List)
-topologicalSort Digraph := List => D -> topologicalSort(D, "")
-topologicalSort (Digraph, String) := List => (D,s) -> (
-    if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
-    s = toLower s;
-    processor := if s == "random" then random
-        else if s == "min" then sort
-        else if s == "max" then rsort
-        else if s == "degree" then L -> last \ sort transpose {apply(L, v -> degree(D, v)), L}
-        else identity;
-    S := processor sources D;
-    L := {};
-    v := null;
-    while S != {} do (
-        v = S_0;
-        L = append(L, v);
-        S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
-        );
-    L
-    )
-
-
-
-
-SortedDigraph = new Type of HashTable;
-
--- Keys:
---      digraph: the original digraph
---      NewDigraph: the digraph with vertices labeled as integers obtained from sorting
---      map: the map giving the sorted order
-
-topSort = method(TypicalValue =>HashTable)
-topSort Digraph := SortedDigraph => D ->  topSort(D,"") 
-topSort (Digraph, String) := SortedDigraph => (D,s) -> ( 
-L := topologicalSort (D,s);
-g := graph D;
-new SortedDigraph from {
-digraph => D,
-newDigraph => digraph hashTable apply(#L, i -> i + 1 => apply(toList g#(L_i), j -> position(L, k -> k == j) + 1)),
-map => hashTable apply(#L, i -> L_i => i + 1)
-}
-)
-
-*-
-
 
 Bigraph = new Type of Graph
 
@@ -269,14 +217,14 @@ indexLabelGraph MixedGraph := MixedGraph => G -> (
 -- and all vertices in U have lower value than those in W.
 partitionLMG = method(TypicalValue =>Sequence)
 partitionLMG MixedGraph := g -> (
-   --check it's a simple graph
-   if isLoopless(g)==false then print ("Warning: the expected input is a loopless mixed graph.");
+   --check it's a loopless graph
+   if isLoopless(g)==false then error ("The expected input is a loopless mixed graph.");
    --retrieve graph, bigraph and digraph
    G:= g#graph#Graph;
    B:= g#graph#Bigraph;
    D:= g#graph#Digraph;
    --check there are no directed cycles
-   if isCyclic g  then print ("Warning: the expected input is a loopless mixed graph without directed cycles.");
+   if isCyclic g  then error ("The expected input is a loopless mixed graph without directed cycles.");
    --naive partition (vertices only adjacent to directed edges are not considered) 
    U:=vertices G;
    W:=vertices B;
@@ -386,7 +334,7 @@ doc ///
             This package contains the types of graphs that are used in algebraic 
       	    statistics: @TO Bigraph@ and  @TO MixedGraph@. 
 	    
-	    A bigraph is a simple graph with bidirected edges. 
+	    A bigraph is graph with bidirected edges and no multiple edges. 
 	    A mixed graph is a graph with undirected, directed and bidirected edges. 
 	    
 	    This is an example of a bigraph on 4 vertices. It is created using the method @TO bigraph@.
@@ -407,7 +355,6 @@ doc ///
 	    @TO (bigraph,MixedGraph)@,
 	    @TO (digraph,MixedGraph)@,
 	    @TO (vertices,MixedGraph)@,
-	    @TO (partitionLMG,MixedGraph)@
 	    
 	    or convert a mixed graph into a more convenient form using:
 	    @TO (collateVertices,MixedGraph)@,

@@ -26,16 +26,16 @@ newPackage(
         )
 
 export {
-     "topologicalSort",
-    "topSort",
-    "SortedDigraph",
+    -- "topologicalSort",
+    --"topSort",
+    --"SortedDigraph",
     "Bigraph",
     "bigraph",
    -- "LabeledGraph",
     --"labeledGraph",
     "MixedGraph",
     "mixedGraph",
-    "newDigraph",
+    --"newDigraph",
     "collateVertices",
     "partitionLMG",
     "isLoopless",
@@ -44,6 +44,8 @@ export {
 
 if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
 
+
+-*
 topologicalSort = method(TypicalValue =>List)
 topologicalSort Digraph := List => D -> topologicalSort(D, "")
 topologicalSort (Digraph, String) := List => (D,s) -> (
@@ -87,6 +89,8 @@ map => hashTable apply(#L, i -> L_i => i + 1)
 }
 )
 
+*-
+
 
 Bigraph = new Type of Graph
 
@@ -100,6 +104,7 @@ bigraph Matrix := opts -> A -> new Bigraph from graph(A, opts)
 -* 
 
 --This code is written for an older version of Graphs and is not functional with current version of the packages.
+
 graphData = "graphData"
 labels = "labels"
 

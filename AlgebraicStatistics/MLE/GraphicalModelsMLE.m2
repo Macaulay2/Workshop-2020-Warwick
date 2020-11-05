@@ -332,11 +332,15 @@ MLdegree(Ring):= (R) -> (
 );
 
 
+roundMatrix = method() -- method for approximating real matrices to rational matrices. The code of this function is directly taken from DeterminantalRepresentations package in M2.
+roundMatrix (ZZ, Matrix) := Matrix => (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ))
+
 solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
+    U = roundMatrix(53,U);
     R:= gaussianRing(G);
     -- sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) 

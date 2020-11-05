@@ -144,7 +144,24 @@ S = matrix{{2.93, -1.7, 0.76, -0.06},
 {-1.7, 1.64, -0.78, 0.1},
 {0.76, -0.78, 1.66, -0.78},
 {-0.06, 0.1, -0.78, 0.81}}
+solverMLE(G,S)
 
+
+
+roundMatrix = method() -- only accepts real matrices
+roundMatrix (ZZ, Matrix) := Matrix => (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ))
+
+S
+roundMatrix(53,S)
+
+M = matrix{{sqrt(2),sqrt(3)}}
+
+roundMatrix(51,M)
+for i from 1 to 100 do 
+(
+    print i;
+    print roundMatrix(i,M);
+)
 
 roundList = method(); 
 roundList (ZZ, List) := List => (n, L) -> apply(L, r -> r/(e -> (round(n,0.0+e))^QQ))
@@ -166,3 +183,24 @@ X
 
 
 
+
+
+
+--checks for installations
+
+restart
+uninstallPackage "Graphs"
+uninstallPackage "StatGraphs"
+uninstallPackage "EigenSolver"
+uninstallPackage "GraphicalModels"
+uninstallPackage "GraphicalModelsMLE"
+
+
+restart
+installPackage "Graphs"
+installPackage "StatGraphs"
+installPackage "EigenSolver"
+installPackage "GraphicalModels"
+installPackage "GraphicalModelsMLE"
+
+help StatGraphs

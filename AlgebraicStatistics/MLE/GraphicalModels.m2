@@ -1555,7 +1555,7 @@ doc ///
     :RingMap
   Description
     Text
-      The ring $R$ must be a ring of probability distributions on $n$ random variables created using {\tt markovRing}. The integer $i$
+      The ring $R$ must be a ring of probability distributions on $n$ random variables created using @TO markovRing@. The integer $i$
       must be in the range from 1 to $n$.  
        
       Let $p_{u_1,u_2,\dots, +,\dots,u_n}$ denote the linear form $p_{u_1,u_2,\dots, 1,\dots,u_n} + \dots + p_{u_1,u_2,\dots, d_i,\dots,u_n}$, where $d_i$ is the number of
@@ -2624,7 +2624,7 @@ doc ///
 ///
 
 ----------------------------------------------------------------------------------
--- Documentation gaussianRingData and its elements     --
+-- Documentation of hash table gaussianRingData and its keys     --
 ----------------------------------------------------------------------------------
 doc ///
   Key
@@ -2857,6 +2857,114 @@ doc ///
     compW
     nn   
 ///
+
+doc ///
+  Key
+    compU
+  Headline
+     key in hash table gaussian Ring Data: component of undirected edges in vertex set of a mixed graph
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph of class @TO MixedGraph@. 
+     It is equal to the set of vertices that are incident to undirected edges. For more details,
+     check component U in @TO partitionLMG@.
+    
+    Example 
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+     R = gaussianRing mixedGraph(U,B,D)	
+     R.gaussianRingData
+     
+    Text 
+     Since the gaussian rings of graphs of classes @TO Digraph@ and @TO Bigraph@ are
+     created by first changing the class to  @TO MixedGraph@, the key compU is also
+     present in the gaussianRingData hashtables of these two classes of graphs and
+     the corresponding value is computed according to the rules described in 
+     @TO partitionLMG@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+         
+     R1.gaussianRingData
+     R2.gaussianRingData
+
+     	 	 
+  SeeAlso
+    partitionLMG
+    gaussianRingData
+    kVar
+    pVar
+    sVar
+    lVar
+    compW
+    nn   
+///
+
+doc ///
+  Key
+    compW
+  Headline
+     key in hash table gaussian Ring Data: component of bidirected edges in vertex set of a mixed graph
+  Description
+    Text
+     This key is present in every gaussianRingData that comes from a graph of class @TO MixedGraph@. 
+     It is equal to the set of vertices that are incident to bidirected edges. For more details,
+     check component W in @TO partitionLMG@.
+    
+    Example 
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+     R = gaussianRing mixedGraph(U,B,D)	
+     R.gaussianRingData
+     
+    Text 
+     Since the gaussian rings of graphs of classes @TO Digraph@ and @TO Bigraph@ are
+     created by first changing the class to  @TO MixedGraph@, the key compW is also
+     present in the gaussianRingData hashtables of these two classes of graphs and
+     the corresponding value is computed according to the rules described in 
+     @TO partitionLMG@.
+    
+    Example
+     U = graph {{1,2},{2,3}}
+     B = bigraph{{4,5}}
+     D = digraph {{1,4}}
+
+     R1 = gaussianRing B
+     R2 = gaussianRing D
+         
+     R1.gaussianRingData
+     R2.gaussianRingData
+
+     	 	 
+  SeeAlso
+    partitionLMG
+    gaussianRingData
+    kVar
+    pVar
+    sVar
+    lVar
+    compU
+    nn   
+///
+--------------------------------------------
+-- Documentation graphType
+--------------------------------------------
+doc ///
+  Key
+     graphType
+  Headline
+     class of graph used to generate a gaussian ring   	 	 
+  SeeAlso
+     gaussianRing
+     gaussianRingData
+///
 --------------------------------------------
 -- Documentation conditionalIndependenceIdeal
 --------------------------------------------
@@ -2876,9 +2984,11 @@ doc///
     Stmts:List
       list of conditional independence statements
     VarNames:List
-       list of names of random variables in conditional independence statements in $S$.  If this is omited
-       it is assumed that these are integers 1 to $n$ where $n$ is the number of variables in the
-       declaration of {\tt markovRing} or {\tt gaussianRing}
+       list of names of random variables in conditional independence statements in Stmts. This argument
+       allows to choose a subset of random variables and is only available for markov rings. By default, 
+       this is a list of integers 1 to $n$ where $n$ is the number of variables in the
+       declaration of {\tt markovRing} or {\tt gaussianRing}. If R is a gaussian ring, then only the
+       default input is accepted.
   Outputs
     :Ideal
       ideal of conditional independence relations
@@ -3060,7 +3170,26 @@ doc ///
      trekIdeal
 ///
 
+-----------------------------------------
+-- Documentation oldVersion--
+-----------------------------------------
+doc ///
+  Key
+     oldVersion
+  Headline
+     optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  SeeAlso
+     gaussianVanishingIdeal
+///
 
+doc ///
+  Key
+    [gaussianVanishingIdeal, oldVersion]
+  Headline
+     optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  SeeAlso
+     gaussianVanishingIdeal	
+///
 -----------------------------------------
 -- Documentation discreteVanishingIdeal--
 -----------------------------------------

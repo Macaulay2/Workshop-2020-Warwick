@@ -115,21 +115,6 @@ maxMLE=(L,V)->(
     );
 
 -------------------------------------------
--- 
--------------------------------------------
-
------------------------------------------------
--- method for approximating real matrices to rational matrices. 
---The code of this function is directly taken from DeterminantalRepresentations package in M2.
--- We use it to deal with real sample data and sample covariance matrices
------------------------------------------------
-roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
--------------------------------------------
--- 
--------------------------------------------
-
-
--------------------------------------------
 -- scoreEquationsInternal - function that returns
 -- both the ideal and the corresponding SInv matrix.
 -- The user-facing scoreEquations method returns only 
@@ -225,6 +210,21 @@ scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options satu
     return (J,K);
  );
 
+
+-------------------------------------------
+-- Methods copied from package DeterminantalRepresentations
+-------------------------------------------
+-----------------------------------------------
+-- method for approximating real matrices to rational matrices. 
+--The code of this function is directly taken from DeterminantalRepresentations package in M2.
+-- We use it to deal with real sample data and sample covariance matrices
+-----------------------------------------------
+roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
+-------------------------------------------
+-- 
+-------------------------------------------
+realPartMatrix = A -> matrix apply(entries A, r -> r/realPart)
+
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
@@ -307,7 +307,7 @@ checkPD(List) := (L) -> (
 	    if 0 >= t then flag = 1;
 	    if not isReal t then flag=1;
      	);
-        if flag == 0 then mat = mat | {l} ;
+        if flag == 0 then mat = mat | {realPartMatrix l} ; 
     );
     return mat;
 );
@@ -329,7 +329,7 @@ checkPSD(List) := (L) -> (
 	    if 0 > t then flag = 1;
 	    if not isReal t then flag=1;
      	);
-        if flag == 0 then mat = mat | {l} ;
+        if flag == 0 then mat = mat | {realPartMatrix l} ;
     );
     return mat;
 );
@@ -1617,7 +1617,7 @@ TEST /// --test solverMLE graph
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 U =matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 (mx,MLE,ML)=solverMLE(G,U)
-assert(round(4,realPart mx)==-6.2615)
+assert(round(4,mx)==-6.2615)
 assert(ML==5)
 ///
 
@@ -1626,7 +1626,7 @@ G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
 S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
 (mx,MLE,ML)=solverMLE(G,S,SampleData=>false)
 assert(ML==5)
-assert(round(5,realPart mx)==-1.14351)
+assert(round(5, mx)==-1.14351)
 ///
 
 TEST /// --test solverMLE for mixedGraph with all kind of edges and concentration matrix
@@ -1634,17 +1634,17 @@ G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}})
 S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
 (mx,MLE,ML)=solverMLE(G,S,SampleData=>false,ConcentrationMatrix=>true) 
 assert(ML==5)
-assert(round(4,realPart mx)==-.8362)
+assert(round(4,mx)==-.8362)
 ///
 
 TEST /// --test solverMLE graph with complete test
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 V =matrix{{5,1,3,2},{1,5,1,6},{3,1,5,1},{2,6,1,5}}
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix=>true)
-assert(round(4,realPart mx)==-10.1467)
+assert(round(4,mx)==-10.1467)
 assert(ML==5)
-assert(round(6,realPart MLE_(0,2))==.541381)
-assert(round(6,realPart MLE_(1,3))==.541381)
+assert(round(6,MLE_(0,2))==.541381)
+assert(round(6,MLE_(1,3))==.541381)
 ///
 
 --------------------------------------

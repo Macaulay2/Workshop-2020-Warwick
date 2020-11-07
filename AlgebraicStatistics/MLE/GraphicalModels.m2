@@ -1340,10 +1340,29 @@ doc ///
       David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
-     GraphicalModels requires Graphs.m2. This package allows the user to create graphs whose vertices are labeled arbitrarily. 
-     However, several functions in GraphicalModels sort the vertices of the graph. Hence, graphs used as input to methods 
-     in GraphicalModels must have sortable vertex labels, e.g., all numbers or all letters. 
-     GraphicalModels also requires StatGraphs.m2. This package allows the user to work with objects such as bigraphs and mixedGraphs.
+     GraphicalModels requires Graphs.m2 and StatGraphs.m2. This packages allow the user to 
+     create graphs whose vertices are labeled arbitrarily. 
+     However, several functions in GraphicalModels sort the vertices of the graph. 
+     Hence, graphs used as input to methods 
+     in GraphicalModels must have sortable vertex labels, e.g., 
+     all numbers or all letters. 
+     
+     The methods in GraphicalModels differ in the classes of acceptable graphs for input:
+     
+     - functions used in package GraphicalModelsMLE (@TO gaussianRing@, 
+	 @TO covarianceMatrix@,  @TO bidirectedEdgesMatrix@, @TO directedEdgesMatrix@, 
+	 @TO directedEdgesMatrix@, @TO undirectedEdgesMatrix@) and 
+         @TO conditionalIndependenceIdeal@ accept @TO Graph@,  
+         @TO Digraph@, @TO Bigraph@ and @TO MixedGraph@.  
+     
+     - conditional independence statement generators (@TO pairMarkov@, 
+	 @TO localMarkov@ and @TO globalMarkov@) accept only @TO Graph@ or  
+         @TO Digraph@;
+    	
+     - the remaining functions that accepts graphs, only accept @TO Graph@,  
+         @TO Digraph@ or @TO MixedGraph@ without undirected edges. 	 
+	 
+	   	
 ///;
 
 --------------------------------
@@ -2263,7 +2282,7 @@ doc///
      M = gaussianParametrization(R)
    Inputs
      R:Ring
-       which should be a gaussianRing
+       which should be a gaussianRing of a mixed graph without undirected edges
    Outputs
      M:Matrix
        the parametrization of the covariance matrix in terms of treks
@@ -3182,7 +3201,7 @@ doc ///
      gaussianVanishingIdeal(R)
    Inputs
      R:Ring
-       created with @TO gaussianRing@  using a Graph, Digraph or Mixedgraph as input
+       created with @TO gaussianRing@  using a graphs of classes @TO Graph@,  @TO Digraph@ or  @TO MixedGraph@ without undirected edges as input. 
    Outputs
      :Ideal
         ideal in R
@@ -3199,7 +3218,7 @@ doc ///
        ideal mingens J / print;
 
      Text
-       This method works for graphs, digraphs and mixedgraphs
+       This method works for graphs, digraphs and mixed graphs without undirected edges.
 
      Example
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
@@ -3208,7 +3227,10 @@ doc ///
        H = mixedGraph(digraph {{a,{c}},{b,{c}}, {c,{d}}},bigraph {{c,d}})
        S = gaussianRing H
        gaussianVanishingIdeal(S) 
-       
+     
+   Caveat
+     This method currently works on really small examples because it computes 
+     the vanishing ideal as an elimination ideal.  
    SeeAlso
      gaussianRing
      trekIdeal

@@ -1340,10 +1340,29 @@ doc ///
       David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
-     GraphicalModels requires Graphs.m2. This package allows the user to create graphs whose vertices are labeled arbitrarily. 
-     However, several functions in GraphicalModels sort the vertices of the graph. Hence, graphs used as input to methods 
-     in GraphicalModels must have sortable vertex labels, e.g., all numbers or all letters. 
-     GraphicalModels also requires StatGraphs.m2. This package allows the user to work with objects such as bigraphs and mixedGraphs.
+     GraphicalModels requires Graphs.m2 and StatGraphs.m2. This packages allow the user to 
+     create graphs whose vertices are labeled arbitrarily. 
+     However, several functions in GraphicalModels sort the vertices of the graph. 
+     Hence, graphs used as input to methods 
+     in GraphicalModels must have sortable vertex labels, e.g., 
+     all numbers or all letters. 
+     
+     The methods in GraphicalModels differ in the classes of acceptable graphs for input:
+     
+     - functions used in package GraphicalModelsMLE (@TO gaussianRing@, 
+	 @TO covarianceMatrix@,  @TO bidirectedEdgesMatrix@, @TO directedEdgesMatrix@, 
+	 @TO directedEdgesMatrix@, @TO undirectedEdgesMatrix@) and 
+         @TO conditionalIndependenceIdeal@ accept @TO Graph@,  
+         @TO Digraph@, @TO Bigraph@ and @TO MixedGraph@.  
+     
+     - conditional independence statement generators (@TO pairMarkov@, 
+	 @TO localMarkov@ and @TO globalMarkov@) accept only @TO Graph@ or  
+         @TO Digraph@;
+    	
+     - the remaining functions that accepts graphs, only accept @TO Graph@,  
+         @TO Digraph@ or @TO MixedGraph@ without undirected edges. 	 
+	 
+	   	
 ///;
 
 --------------------------------

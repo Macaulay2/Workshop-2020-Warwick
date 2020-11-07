@@ -2263,7 +2263,7 @@ doc///
      M = gaussianParametrization(R)
    Inputs
      R:Ring
-       which should be a gaussianRing
+       which should be a gaussianRing of a mixed graph without undirected edges
    Outputs
      M:Matrix
        the parametrization of the covariance matrix in terms of treks

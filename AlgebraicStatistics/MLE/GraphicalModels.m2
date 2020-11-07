@@ -3182,7 +3182,7 @@ doc ///
      gaussianVanishingIdeal(R)
    Inputs
      R:Ring
-       created with @TO gaussianRing@  using a Graph, Digraph or Mixedgraph as input
+       created with @TO gaussianRing@  using a graphs of classes @TO Graph@,  @TO Digraph@ or  @TO MixedGraph@ without undirected edges as input. 
    Outputs
      :Ideal
         ideal in R
@@ -3199,7 +3199,7 @@ doc ///
        ideal mingens J / print;
 
      Text
-       This method works for graphs, digraphs and mixedgraphs
+       This method works for graphs, digraphs and mixed graphs without undirected edges.
 
      Example
        G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}}
@@ -3208,7 +3208,10 @@ doc ///
        H = mixedGraph(digraph {{a,{c}},{b,{c}}, {c,{d}}},bigraph {{c,d}})
        S = gaussianRing H
        gaussianVanishingIdeal(S) 
-       
+     
+   Caveat
+     This method currently works on really small examples because it computes 
+     the vanishing ideal as an elimination ideal.  
    SeeAlso
      gaussianRing
      trekIdeal

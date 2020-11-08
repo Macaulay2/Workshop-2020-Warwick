@@ -203,7 +203,22 @@ installPackage "EigenSolver"
 installPackage "GraphicalModels"
 installPackage "GraphicalModelsMLE"
 
+installPackage "ReactionNetworks"
+installPackage "Visualize"
+installPackage "BinomialEdgeIdeals"
+installPackage "GraphicalModels"
+installPackage "Chordal"
+installPackage "PhylogeneticTrees"
+installPackage "Matroids"
+installPackage "NautyGraphs"
+installPackage "Posets"
+installPackage "SimplicialPosets"
 
+
+
+installPackage "DeterminantalRepresentations"
+uninstallPackage "Graphs"
+installPackage "Graphs"
 
 viewHelp topologicalSort 
 viewHelp topSort

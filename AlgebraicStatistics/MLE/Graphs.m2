@@ -5106,6 +5106,72 @@ doc ///
 ///
 
 
+doc /// 
+    Key
+        topologicalSort
+        (topologicalSort, Digraph) 
+	(topologicalSort, Digraph, String) 
+    Headline
+        outputs a list of vertices in a topologically sorted order of a DAG.
+    Usage
+        topologicalSort(D,S)
+	topologicalSort(D)
+    Inputs
+        D:Digraph
+	S:String
+    Outputs
+         :List 
+    Description 
+        Text
+	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG). 
+	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    Permissible values of S are: "random", "max", "min", "degree".
+        Example
+	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
+	   topologicalSort G
+	   topologicalSort(G,"min")
+	   topologicalSort(G,"max")
+	   topologicalSort(G,"random")
+	   topologicalSort(G,"degree")
+   ///
+
+--------------------------------------------
+-- Documentation topSort
+--------------------------------------------
+doc /// 
+    Key
+        topSort
+        (topSort, Digraph) 
+	(topSort, Digraph, String)
+    Headline
+        outputs a hashtable containing orginal digraph, new digraph with vertices topologically sorted and a map from vertices of original digraph to new digraph.
+    Usage
+        topSort(D)
+	topSort(D,S)
+    Inputs
+        D:Digraph
+	S: String
+	  needs to be a directed acyclice graph DAG  
+    Outputs
+         :HashTable 
+    Description 
+        Text
+	    This method outputs a HashTable with keys digraph, map and newDigraph, where digraph is the original digraph,
+	    map is the relation between old ordering and the new ordering of vertices and newDigraph is the Digraph with 
+	    topologically sorted vertices.
+	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    Permissible values of S are: "random", "max", "min", "degree".
+
+        Example
+	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
+	   H = topSort G
+	   H#digraph
+	   H#map
+	   topSort(G,"min")
+	   topSort(G,"max")
+	   topSort(G,"random")
+	   topSort(G,"degree")
+   ///
 
 
 
@@ -5203,6 +5269,22 @@ assert( isRigid ( graph({{0,4},{0,5},{0,6},{1,4},{1,5},{1,6},{2,4},{2,5},{2,6}})
 assert( isRigid(graph{{0,1}}) === true )
 assert( isRigid(graph{{0,1},{1,2}}) === false )
 ///
+
+TEST ///
+
+   D = digraph{{2,1},{3,1}}
+   assert(topologicalSort D==={2,3,1})
+///
+
+
+TEST ///
+
+   D = digraph{{2,1},{3,1}}
+   assert(topSort D ===  new SortedDigraph from {map => new HashTable from {1 => 3, 2 => 1, 3
+  => 2}, newDigraph => digraph ({1, 2, 3}, {{1, 3}, {2, 3}}), digraph =>
+  digraph ({2, 1, 3}, {{2, 1}, {3, 1}})})
+///
+
 
 end;
 

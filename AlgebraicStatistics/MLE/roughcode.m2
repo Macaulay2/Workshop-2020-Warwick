@@ -203,4 +203,7 @@ installPackage "EigenSolver"
 installPackage "GraphicalModels"
 installPackage "GraphicalModelsMLE"
 
-help StatGraphs
+
+
+viewHelp topologicalSort 
+viewHelp topSort

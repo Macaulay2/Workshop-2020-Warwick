@@ -719,10 +719,10 @@ doc ///
     Description 
         Text
 	    The sample covariance matrix is $S = \frac{1}{n} \sum_{i=1}^{n} (X^{(i)}-\bar{X}) (X^{(i)}-\bar{X})^T$.  
-	    Note that for normally distributed random variables $S$ is the maximum likelihood estimator (MLE) of the 
+	    Note that for normally distributed random variables, $S$ is the maximum likelihood estimator (MLE) for the 
 	    covariance matrix. This is different from the unbiased estimator, which uses a denominator of $n-1$ instead of $n$.
 	    
-	    Sample data is inputed as a matrix or a list.
+	    Sample data is input as a matrix or a list.
 	    The rows of the matrix or the elements of the list are observation vectors.  
 	Example
           L= {{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}};

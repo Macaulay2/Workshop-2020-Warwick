@@ -514,8 +514,8 @@ doc ///
   Description
      Text  
          MixedGraph is a graph that has undirected, directed and bidirected edges.
-	 To create a mixed graph, use @TO mixedGraph@. Each subgraph (undirected,
-	 directed and bidirected) is a simple graph. Each type of subgraphs can
+	 To create a mixed graph, use @TO mixedGraph@. Each type of subgraph (undirected,
+	 directed and bidirected) does not have multiple edges and can
      	 appear at most once.
 	
   SeeAlso

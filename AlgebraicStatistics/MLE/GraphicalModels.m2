@@ -1340,7 +1340,7 @@ doc ///
       David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
-     GraphicalModels requires Graphs.m2 and StatGraphs.m2. This packages allow the user to 
+     GraphicalModels requires Graphs.m2 and StatGraphs.m2. These packages allow the user to 
      create graphs whose vertices are labeled arbitrarily. 
      However, several functions in GraphicalModels sort the vertices of the graph. 
      Hence, graphs used as input to methods 

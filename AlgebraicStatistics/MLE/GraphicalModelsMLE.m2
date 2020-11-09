@@ -51,7 +51,8 @@ export {
     "SampleData",-- optional argument in scoreEquations and solverMLE
     "SaturateOptions", -- optional argument in scoreEquations and solverMLE
     "scoreEquations",
-    "solverMLE"
+    "solverMLE",
+    "ZeroTolerance"
      } 
 
 --**************************--
@@ -113,21 +114,6 @@ maxMLE=(L,V)->(
         for i in indexOptimal do E=E | {L_i};);
     return (maxPt, E) 
     );
-
--------------------------------------------
--- 
--------------------------------------------
-
------------------------------------------------
--- method for approximating real matrices to rational matrices. 
---The code of this function is directly taken from DeterminantalRepresentations package in M2.
--- We use it to deal with real sample data and sample covariance matrices
------------------------------------------------
-roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
--------------------------------------------
--- 
--------------------------------------------
-
 
 -------------------------------------------
 -- scoreEquationsInternal - function that returns
@@ -225,6 +211,21 @@ scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options satu
     return (J,K);
  );
 
+
+-------------------------------------------
+-- Methods copied from package DeterminantalRepresentations
+-------------------------------------------
+-----------------------------------------------
+-- method for approximating real matrices to rational matrices. 
+--The code of this function is directly taken from DeterminantalRepresentations package in M2.
+-- We use it to deal with real sample data and sample covariance matrices
+-----------------------------------------------
+roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
+-------------------------------------------
+-- 
+-------------------------------------------
+realPartMatrix = A -> matrix apply(entries A, r -> r/realPart)
+
 --**************************--
 --  METHODS 	      	   	  --
 --**************************--
@@ -293,8 +294,8 @@ scoreEquations(List,Ring) := opts ->(U,R) -> (
     return scoreEquations(R,U,opts);
     );
 
-checkPD = method(TypicalValue =>List);
-checkPD(List) := (L) -> (
+checkPD = method(TypicalValue =>List, Options =>{ZeroTolerance=>1e-10});
+checkPD(List) :=  opts -> (L) -> (
    mat := {};
     for l in L do
     (
@@ -304,19 +305,19 @@ checkPD(List) := (L) -> (
     	--Check whether all of them are positive and real
 	for t in L1 do 
     	(	 
-	    if 0 >= t then flag = 1;
-	    if not isReal t then flag=1;
+	    if realPart t<= opts.ZeroTolerance then flag = 1;
+	    if abs(imaginaryPart t )>opts.ZeroTolerance then flag=1;
      	);
-        if flag == 0 then mat = mat | {l} ;
+        if flag == 0 then mat = mat | {realPartMatrix l} ; 
     );
     return mat;
 );
-checkPD(Matrix):=(L)->{
-    return checkPD({L});
+checkPD(Matrix):= opts -> (L)->{
+    return checkPD({L},opts);
 };
 
-checkPSD = method(TypicalValue =>List);
-checkPSD(List) := (L) -> (
+checkPSD = method(TypicalValue =>List, Options =>{ZeroTolerance=>1e-10});
+checkPSD(List) :=  opts -> (L) -> (
    mat := {};
     for l in L do
     (
@@ -326,15 +327,15 @@ checkPSD(List) := (L) -> (
     	--Check whether all of them are non-negative and real
 	for t in L1 do 
     	(	 
-	    if 0 > t then flag = 1;
-	    if not isReal t then flag=1;
+	    if realPart t< -opts.ZeroTolerance then flag = 1;
+	    if abs(imaginaryPart t )>opts.ZeroTolerance then flag=1;	    
      	);
-        if flag == 0 then mat = mat | {l} ;
+        if flag == 0 then mat = mat | {realPartMatrix l} ;
     );
     return mat;
 );
-checkPSD(Matrix):=(L)->{
-    return checkPSD({L});
+checkPSD(Matrix):= opts -> (L)->{
+    return checkPSD({L},opts);
 };
 
 MLdegree = method(TypicalValue =>ZZ);
@@ -346,7 +347,7 @@ MLdegree(Ring):= (R) -> (
 );
 
 
-solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 53});
+solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 6, ZeroTolerance=>1e-10});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
@@ -383,7 +384,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     --evaluate matrices on solutions
     M:=genListMatrix(sols,SInv);
     --consider only PD matrices    
-    L:=checkPD M;
+    L:=checkPD (M, ZeroTolerance=>opts.ZeroTolerance);
     --find the optimal points
     (maxPt, E):=maxMLE(L,V);
     if not opts.ConcentrationMatrix then (
@@ -1285,6 +1286,10 @@ doc   ///
 	   This function takes a list of matrices (or a single matrix) and returns another list with
 	   only positive definite matrices. 
 	   If there are no positive definite matrices in the list, it returns an empty list.
+	   
+	   If a matrix contains an imaginary part below the tolerance level, then only
+	   the real part is reported in the output. (See  @TO [checkPD, ZeroTolerance]@)
+	   
       	Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}}}				
     	    checkPD(L)
@@ -1314,6 +1319,113 @@ doc   ///
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}				
     	    checkPSD(L)
      	 ///
+	 
+doc ///
+  Key
+    ZeroTolerance
+  Headline
+    optional input to set the largest absolute value that should be treated as zero
+  SeeAlso
+     checkPD
+     checkPSD
+     solverMLE
+   ///
+
+doc ///
+  Key
+    [solverMLE, ZeroTolerance]
+  Headline
+    optional input to set the largest absolute value that should be treated as zero
+  Usage
+    solverMLE(G,U,ZeroTolerance=>1e-10)  
+  Inputs 
+    n: RR
+        default is 1e-10   
+  Description
+    Text
+     After computing the variety of the zero-dimensional ideal of the score equations,
+     {\tt solverMLE} needs to determine which points lie in the PD cone. A matrix is 
+     assumed to be positive definite if for all eigenvalues e:
+     
+     -  @TO realPart@ e > ZeroTolerance
+     
+     -  @TO abs @ @TO imaginaryPart@ e <= ZeroTolerance
+     
+     If an MLE matrix contains an imaginary part below the tolerance level, then only
+     the real part is reported in the output. (See  @TO [checkPD, ZeroTolerance]@)
+     
+    
+  SeeAlso
+     checkPD 	
+///  
+
+
+doc ///
+  Key
+    [checkPD, ZeroTolerance]
+  Headline
+    optional input to set the largest absolute value that should be treated as zero
+  Usage
+    checkPD(L,ZeroTolerance=>1e-10)  
+  Inputs 
+    n: RR
+        default is 1e-10   
+  Description
+    Text
+     A matrix is assumed to be positive definite if for all eigenvalues e:
+     
+     -  @TO realPart@ e > ZeroTolerance
+     
+     -  @TO abs @ @TO imaginaryPart@ e <= ZeroTolerance
+     
+     If a matrix contains an imaginary part below the tolerance level, then only
+     the real part is reported in the output.
+    
+    Example
+     L={matrix{{10^(-9)+10^(-10)*sqrt(-1),0},{0,10^(-9)+10^(-10)*sqrt (-1)}}, 
+	 matrix{{10^(-10)+10^(-10)*sqrt(-1),0},{0,10^(-10)+10^(-10)*sqrt (-1)}},
+	 matrix{{1+10^(-10)*sqrt(-1),0},{0,1+10^(-10)*sqrt (-1)}},
+	 matrix{{1-10^(-9)*sqrt(-1),0},{0,1+10^(-9)*sqrt (-1)}}
+	 }
+     checkPD L
+    
+  SeeAlso
+     [checkPSD, ZeroTolerance]
+     solverMLE 	
+/// 
+
+doc ///
+  Key
+    [checkPSD, ZeroTolerance]
+  Headline
+    optional input to set the largest absolute value that should be treated as zero
+  Usage
+    checkPD(L,ZeroTolerance=>1e-10)  
+  Inputs 
+    n: RR
+        default is 1e-10   
+  Description
+    Text
+     A matrix is assumed to be positive semidefinite if for all eigenvalues e:
+     
+     -  @TO realPart@ e >= -ZeroTolerance
+     
+     -  @TO abs @ @TO imaginaryPart@ e <= ZeroTolerance
+     
+     If a matrix contains an imaginary part below the tolerance level, then only
+     the real part is reported in the output.
+    
+    Example
+     L={matrix{{10^(-9)+10^(-10)*sqrt(-1),0},{0,10^(-9)+10^(-10)*sqrt (-1)}}, 
+	 matrix{{10^(-10)+10^(-10)*sqrt(-1),0},{0,10^(-10)+10^(-10)*sqrt (-1)}},
+	 matrix{{1+10^(-10)*sqrt(-1),0},{0,1+10^(-10)*sqrt (-1)}},
+	 matrix{{1-10^(-9)*sqrt(-1),0},{0,1+10^(-9)*sqrt (-1)}}
+	 }
+     checkPD L
+    
+  SeeAlso
+     [checkPD, ZeroTolerance]	
+/// 	 
 
 doc   ///
     Key
@@ -1601,6 +1713,16 @@ B = {matrix{{1, 0}, {0, 1}}};
 assert(Y===B)	
 ///
 
+TEST /// --test ZeroTolerance checkPD
+L={matrix{{10^(-9)+10^(-10)*sqrt(-1),0},{0,10^(-9)+10^(-10)*sqrt (-1)}}, matrix{{10^(-10)+10^(-10)*sqrt(-1),0},{0,10^(-10)+10^(-10)*sqrt (-1)}},matrix{{1+10^(-10)*sqrt(-1),0},{0,1+10^(-10)*sqrt (-1)}},matrix{{1-10^(-9)*sqrt(-1),0},{0,1+10^(-9)*sqrt (-1)}}}
+assert(checkPD L ==={matrix {{1e-9, 0}, {0, 1e-9}}, sub(matrix {{1, 0}, {0, 1}},RR)}) 
+///
+
+TEST /// --test ZeroTolerance checkPSD
+L={matrix{{10^(-9)+10^(-10)*sqrt(-1),0},{0,10^(-9)+10^(-10)*sqrt (-1)}}, matrix{{-10^(-10)+10^(-10)*sqrt(-1),0},{0,-10^(-10)+10^(-10)*sqrt (-1)}},matrix{{1+10^(-10)*sqrt(-1),0},{0,1+10^(-10)*sqrt (-1)}},matrix{{1-10^(-9)*sqrt(-1),0},{0,1+10^(-9)*sqrt (-1)}}}
+assert(checkPSD L ==={matrix {{1e-9, 0}, {0, 1e-9}},matrix {{-1e-10, 0}, {0, -1e-10}}, sub(matrix {{1, 0}, {0, 1}},RR)})
+
+///
 TEST /// --test checkPSD
 L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0.0001*sqrt(-1),0},{0,0.0000001*sqrt (-1)}},matrix{{0,0},{0,0}}};
 Y = checkPSD(L);
@@ -1617,7 +1739,7 @@ TEST /// --test solverMLE graph
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 U =matrix{{1,2,1,-1},{2,1,3,0},{-1, 0, 1, 1},{-5, 3, 4, -6}}
 (mx,MLE,ML)=solverMLE(G,U)
-assert(round(4,realPart mx)==-6.2615)
+assert(round(4,mx)==-6.2615)
 assert(ML==5)
 ///
 
@@ -1626,7 +1748,7 @@ G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
 S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
 (mx,MLE,ML)=solverMLE(G,S,SampleData=>false)
 assert(ML==5)
-assert(round(5,realPart mx)==-1.14351)
+assert(round(5, mx)==-1.14351)
 ///
 
 TEST /// --test solverMLE for mixedGraph with all kind of edges and concentration matrix
@@ -1634,17 +1756,17 @@ G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}})
 S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}}
 (mx,MLE,ML)=solverMLE(G,S,SampleData=>false,ConcentrationMatrix=>true) 
 assert(ML==5)
-assert(round(4,realPart mx)==-.8362)
+assert(round(4,mx)==-.8362)
 ///
 
 TEST /// --test solverMLE graph with complete test
 G=graph{{1,2},{2,3},{3,4},{1,4}}
 V =matrix{{5,1,3,2},{1,5,1,6},{3,1,5,1},{2,6,1,5}}
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix=>true)
-assert(round(4,realPart mx)==-10.1467)
+assert(round(4,mx)==-10.1467)
 assert(ML==5)
-assert(round(6,realPart MLE_(0,2))==.541381)
-assert(round(6,realPart MLE_(1,3))==.541381)
+assert(round(6,MLE_(0,2))==.541381)
+assert(round(6,MLE_(1,3))==.541381)
 ///
 
 --------------------------------------

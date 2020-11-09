@@ -38,7 +38,7 @@ export {
     "undirectedGraph"
     }
 
-if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
+if Graphs.Options.Version < "0.3.3" then error "StatGraphs requires Graphs version 0.3.3 or later"
 
 Bigraph = new Type of Graph
 
@@ -375,7 +375,7 @@ doc ///
 	    @TO (nonneighbors, MixedGraph, Thing)@.
 	    	    	       	
     Caveat
-       StatGraphs requires  @TO Graphs@ version 0.3.2 or later.
+       StatGraphs requires  @TO Graphs@ version 0.3.3 or later.
        
     SeeAlso
        Graphs

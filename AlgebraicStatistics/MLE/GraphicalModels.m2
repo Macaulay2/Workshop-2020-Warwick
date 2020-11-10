@@ -3345,7 +3345,7 @@ doc ///
      Text
        {\tt gaussianVanishingIdeal} computes the ideal in $R$ of homogeneous polynomial relations 
        on the variance-covariance parameters of a graphical model on $G$ as explained in 
-       ``Lectures on Algebraic Statistics'' by Drton, Sturmfels, and Sullivant.
+       Chapter 3.3 of ``Lectures on Algebraic Statistics'' by Drton, Sturmfels, and Sullivant.
        
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
@@ -3381,6 +3381,13 @@ doc ///
      OldVersion
   Headline
      optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  Description
+    Text
+     Alternative computation of the vanishing ideal of a Gaussian directed graphical
+     model using (2) from Seth Sullivant, Kelli Talaska, and Jan Draisma, 
+     {\em Trek separation for Gaussian graphical models}, The Annals of Statistics 
+     38.3 (2010): 1665-1685.
+       
   SeeAlso
      gaussianVanishingIdeal
 ///

@@ -373,7 +373,7 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
         sols:=zeroDimSolve(argES(J));
 	) else (
 	if opts.ChooseSolver=="NAG4M2" then (
-	   sys:= (for i to (numcols gens J)-1 list (gens J)_(0,i)); 
+	   sys:= flatten entries gens J;
 	   argNAG4M2:=opts.OptionsNAG4M2 >>newOpts-> args ->(args, newOpts);
            sols=solveSystem(argNAG4M2(sys));
 	    )
@@ -1022,9 +1022,10 @@ doc ///
       the function @TO zeroDimSolve@ is used. 
       If "NAG4M2" is chosen, then @TO solveSystem@ is used.	  
     Example
-     G=mixedGraph(graph{{a,b},{b,c}})
-     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"EigenSolver")
-     solverMLE (G, matrix{{1,0,0},{0,1,0},{0,0,1}},ChooseSolver=>"NAG4M2")  
+     G=mixedGraph(graph{{a,b}},digraph{{a,d}},bigraph{{c,d}})
+     U=matrix{{1, 2, 5, 1}, {5, 3, 2, 1}, {4, 3, 5, 10}, {2, 5,1, 3}};
+     solverMLE (G,U,ChooseSolver=>"EigenSolver")
+     solverMLE (G,U,ChooseSolver=>"NAG4M2")  
   SeeAlso
      solverMLE
      EigenSolver
@@ -1769,6 +1770,17 @@ assert(round(6,MLE_(0,2))==.541381)
 assert(round(6,MLE_(1,3))==.541381)
 ///
 
+
+TEST /// -- test solverMLE with NAG4M2
+G=mixedGraph(graph{{a,b}},digraph{{a,d}},bigraph{{c,d}})
+U=matrix{{1, 2, 5, 1}, {5, 3, 2, 1}, {4, 3, 5, 10}, {2, 5,1, 3}}
+(mx,MLE,ML)= solverMLE (G,U,ChooseSolver=>"NAG4M2")
+assert(round(5,mx)==-8.4691)
+assert(ML==1)
+assert(MLE_(1,0)==0)
+assert(round(6,MLE_(1,1))== .842105)
+assert(round(6,MLE_(3,2))== -.111056)
+///
 --------------------------------------
 --------------------------------------
 end--

@@ -1283,6 +1283,11 @@ doc ///
       Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, {\em Identifying causal effects with computer algebra}, 
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
           
+      Furthermore, this package allows to construct the Gaussian rings of 
+      loopless mixed graphs (LMG) and the corresponding matrices of indeterminates
+      as introduced in Kayvan Sadeghi and Steffen Lauritzen, {\em Markov properties for mixed graphs}, 
+      Bernoulli 20.2 (2014): 676-696.
+      
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
       represents the probability distributions on four binary random variables  satisfying the
       conditional independence statements coming from the "diamond" graph $4 \to 3, 4 \to 2, 3 \to 1, 2 \to 1$.
@@ -1563,7 +1568,7 @@ doc ///
     marginMap
     (marginMap,ZZ,Ring)
   Headline
-    generates a linear map on joint distributions for discrete random variables replacing marginals for indeterminates
+    linear map on joint distributions for discrete random variables replacing marginals for indeterminates
   Usage
     marginMap(i,R)
   Inputs
@@ -1625,7 +1630,7 @@ doc ///
     inverseMarginMap
     (inverseMarginMap,ZZ,Ring)
   Headline
-    computes the inverse of the marginMap
+    inverse of the marginMap
   Usage
     inverseMarginMap(i,R)
   Inputs
@@ -1896,7 +1901,7 @@ doc ///
     (markovMatrices,Ring,List)
     (markovMatrices,Ring,List,List) 
   Headline
-    the matrices whose minors form the ideal of a list of independence statements
+    matrices whose minors form the ideal of a list of independence statements
   Usage
     markovMatrices(R,S)
     markovMatrices(R,S,VarNames)
@@ -1954,7 +1959,7 @@ doc ///
   Key 
     gaussianRing
   Headline
-    ring of Gaussian correlations on n random variables
+    ring of Gaussian correlations on n random variables or a graphical model
   Usage
     gaussianRing n 
     gaussianRing G 
@@ -2046,7 +2051,7 @@ doc ///
   Key 
     (gaussianRing, Graph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a graph
+    ring of Gaussian correlations of a graphical model coming from an undirected graph
   Usage
     gaussianRing G 
   Inputs
@@ -2079,7 +2084,7 @@ doc ///
   Key 
     (gaussianRing, Bigraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a bigraph
+    ring of Gaussian correlations of a graphical model coming from a bigraph
   Usage
     gaussianRing G 
   Inputs
@@ -2089,7 +2094,7 @@ doc ///
       a ring with indeterminates $s_{(i,j)}, p_{(i,j)}$       
   Description
     Text
-      A {\tt gaussianRing} of a bidirected graph is build 
+      A {\tt gaussianRing} of a bidirected graph is built 
       as a {\tt gaussianRing} of a mixed graph with only bidirected edges, see @TO (gaussianRing,MixedGraph)@.
 
     Example
@@ -2108,7 +2113,7 @@ doc ///
   Key 
     (gaussianRing, Digraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a digraph
+    ring of Gaussian correlations of a graphical model coming from a digraph
   Usage
     gaussianRing G 
   Inputs
@@ -2129,7 +2134,7 @@ doc ///
       in the graphical model associatd to a mixed graph with bidirected edges. 
       
       Note that since version 2.0 of the package, 
-      {\tt gaussianRing} of a directed graph is build as a {\tt gaussianRing} of a mixed graph with only directed edges, see @TO (gaussianRing,MixedGraph)@.
+      {\tt gaussianRing} of a directed graph is built as a {\tt gaussianRing} of a mixed graph with only directed edges, see @TO (gaussianRing,MixedGraph)@.
 
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
@@ -2145,7 +2150,7 @@ doc ///
   Key 
     (gaussianRing, MixedGraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a mixed graph
+    ring of Gaussian correlations of a graphical model coming from a mixed graph
   Usage 
     gaussianRing G 
   Inputs
@@ -2255,7 +2260,7 @@ doc///
      covarianceMatrix
      (covarianceMatrix,Ring)
    Headline
-     the covariance matrix of a Gaussian graphical model
+     covariance matrix of a Gaussian graphical model
    Usage
      covarianceMatrix R
    Inputs
@@ -2307,7 +2312,7 @@ doc///
      bidirectedEdgesMatrix
      (bidirectedEdgesMatrix,Ring)
    Headline
-     the matrix corresponding to the bidirected edges of a bigraph or a mixed graph
+     matrix corresponding to the bidirected edges of a bigraph or a mixed graph
    Usage
      bidirectedEdgesMatrix R
    Inputs
@@ -2363,7 +2368,7 @@ doc///
      directedEdgesMatrix
      (directedEdgesMatrix,Ring)
    Headline
-     the matrix corresponding to the directed edges of a digraph or a mixed graph
+     matrix corresponding to the directed edges of a digraph or a mixed graph
    Usage
      directedEdgesMatrix R
    Inputs
@@ -2407,7 +2412,7 @@ doc///
      gaussianParametrization
      (gaussianParametrization,Ring)
    Headline
-     the parametrization of the covariance matrix in terms of treks
+     parametrization of the covariance matrix in terms of treks
    Usage
      M = gaussianParametrization(R)
    Inputs
@@ -2565,7 +2570,7 @@ doc///
      (trekIdeal,Ring,Digraph)
      (trekIdeal,Ring,Graph)
    Headline
-     the trek separation ideal of a mixed graph 
+     trek separation ideal of a mixed graph 
    Usage
      I = trekIdeal(R,G) 
    Inputs
@@ -2627,7 +2632,7 @@ doc///
      trekSeparation
      (trekSeparation,MixedGraph)
    Headline
-     the trek separation statements of a mixed graph 
+     trek separation statements of a mixed graph 
    Usage
      trekSeparation(G)
    Inputs
@@ -2669,7 +2674,7 @@ doc ///
   Key
     sVariableName
   Headline
-    optional input to choose the variable for the covariance matrix
+    optional input to choose the variable names for the covariance matrix
   Description
     Text
       Put {\tt sVariableName =>  Symbol} for a choice of a symbol s as an argument in the function @TO gaussianRing@
@@ -2702,7 +2707,7 @@ doc ///
   Key
     lVariableName
   Headline
-    optional input to choose the variable name for the regression matrix
+    optional input to choose the variable names for the regression matrix
   Description
     Text
       Put {\tt lVariableName => Symbol} for a choice of a symbol l as an argument in 
@@ -2734,7 +2739,7 @@ doc ///
   Key
     pVariableName
   Headline
-    optional input to choose the variable name for the error covariance matrix
+    optional input to choose the variable names for the covariance matrix of the error terms
   Description
     Text
       Put {\tt pVariableName => Symbol} for a choice of a symbol p as an argument in 
@@ -2754,7 +2759,7 @@ doc ///
       a @TO Symbol@ or a @TO String@ 
   Description
     Text
-      The option {\tt gaussianRing(G,pVariableName=>q)} changes the symbol used for intedeterminates in the error covariance matrix 
+      The option {\tt gaussianRing(G,pVariableName=>q)} changes the symbol used for intedeterminates in the covariance matrix of the error terms 
       in a polynomial ring created with @TO gaussianRing@.
     
     Example
@@ -2769,7 +2774,7 @@ doc ///
   Key
     kVariableName
   Headline
-    optional input to choose variable name for concentration matrix in gaussianRing
+    optional input to choose the variable names for concentration matrix in gaussianRing
   Description
     Text
       The option {\tt kVariableName => Symbol} changes the symbol used for intedeterminates in a polynomial ring created with @TO gaussianRing@.
@@ -2808,7 +2813,7 @@ doc ///
   Key
     gaussianRingData
   Headline
-    hash table with key parameters of a gaussian ring
+    hash table with main parameters of a gaussian ring
   Description
     Text
      The contents of gaussianRingData depend on the type of gaussian ring.
@@ -2859,7 +2864,7 @@ doc ///
   Key
     nn
   Headline
-     key in hash table gaussian Ring Data: total number of variables 
+     key in hash table gaussianRingData: total number of variables 
   Description
     Text
      This key is present in every gaussianRingData hash table
@@ -2896,7 +2901,7 @@ doc ///
   Key
     kVar
   Headline
-     key in hash table gaussian Ring Data: labels of k variables
+     key in hash table gaussianRingData: labels of k variables
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph. 
@@ -2932,7 +2937,7 @@ doc ///
   Key
     sVar
   Headline
-     key in hash table gaussian Ring Data: labels of s variables
+     key in hash table gaussianRingData: labels of s variables
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph. 
@@ -2968,7 +2973,7 @@ doc ///
   Key
     pVar
   Headline
-     key in hash table gaussian Ring Data: labels of p variables
+     key in hash table gaussianRingData: labels of p variables
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph. 
@@ -3004,7 +3009,7 @@ doc ///
   Key
     lVar
   Headline
-     key in hash table gaussian Ring Data: labels of l variables
+     key in hash table gaussianRingData: labels of l variables
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph. 
@@ -3040,7 +3045,7 @@ doc ///
   Key
     compU
   Headline
-     key in hash table gaussian Ring Data: component of undirected edges in vertex set of a mixed graph
+     key in hash table gaussianRingData: component of undirected edges in vertex set of a mixed graph
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph of class @TO MixedGraph@. 
@@ -3088,7 +3093,7 @@ doc ///
   Key
     compW
   Headline
-     key in hash table gaussian Ring Data: component of bidirected edges in vertex set of a mixed graph
+     key in hash table gaussianRingData: component of bidirected edges in vertex set of a mixed graph
   Description
     Text
      This key is present in every gaussianRingData that comes from a graph of class @TO MixedGraph@. 
@@ -3158,7 +3163,7 @@ doc///
     (conditionalIndependenceIdeal, Ring, List)
     (conditionalIndependenceIdeal, Ring, List, List)
   Headline
-    the ideal of a list of conditional independent statements
+    ideal of a list of conditional independent statements
   Usage
     conditionalIndependenceIdeal(R,Stmts)
     conditionalIndependenceIdeal(R,Stmts,VarNames)
@@ -3279,7 +3284,7 @@ doc///
      undirectedEdgesMatrix
      (undirectedEdgesMatrix,Ring)
    Headline
-     the matrix corresponding to the edges of an undirected graph
+     matrix corresponding to the edges of an undirected graph
    Usage
      undirectedEdgesMatrix(R)
    Inputs
@@ -3328,7 +3333,7 @@ doc ///
      gaussianVanishingIdeal
      (gaussianVanishingIdeal,Ring)
    Headline
-     the vanishing ideal of a Gaussian graphical model 
+     vanishing ideal of a Gaussian graphical model 
    Usage
      gaussianVanishingIdeal(R)
    Inputs
@@ -3341,7 +3346,7 @@ doc ///
      Text
        {\tt gaussianVanishingIdeal} computes the ideal in $R$ of homogeneous polynomial relations 
        on the variance-covariance parameters of a graphical model on $G$ as explained in 
-       ``Lectures on Algebraic Statistics'' by Drton, Sturmfels, and Sullivant.
+       Chapter 3.3 of ``Lectures on Algebraic Statistics'' by Drton, Sturmfels, and Sullivant.
        
      Example
        G = graph({{a,b},{b,c},{c,d},{a,d}})
@@ -3377,6 +3382,13 @@ doc ///
      OldVersion
   Headline
      optional argument in gaussianVanishingIdeal to use old method for gaussianRings coming from directed graphs    	 	 
+  Description
+    Text
+     Alternative computation of the vanishing ideal of a Gaussian directed graphical
+     model using (2) from Seth Sullivant, Kelli Talaska, and Jan Draisma, 
+     {\em Trek separation for Gaussian graphical models}, The Annals of Statistics 
+     38.3 (2010): 1665-1685.
+       
   SeeAlso
      gaussianVanishingIdeal
 ///
@@ -3394,7 +3406,11 @@ doc ///
   Description
     Text
      By default, @TO gaussianVanishingIdeal@ uses the code of the current version. However, if the graph
-     only has directed edges, the user can choose to use the code from the previous version.
+     only has directed edges, the user can choose to use the code from the previous version which is based on
+     (2) from Seth Sullivant, Kelli Talaska, and Jan Draisma, 
+     {\em Trek separation for Gaussian graphical models}, The Annals of Statistics 
+     38.3 (2010): 1665-1685.
+     
   SeeAlso
      gaussianVanishingIdeal	
 ///
@@ -3406,7 +3422,7 @@ doc///
      discreteVanishingIdeal
      (discreteVanishingIdeal,Ring,Digraph) 
    Headline
-     the vanishing ideal of a discrete graphical model 
+     vanishing ideal of a discrete graphical model 
    Usage
      discreteVanishingIdeal(R,G)
    Inputs

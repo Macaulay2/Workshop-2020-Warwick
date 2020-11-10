@@ -982,7 +982,11 @@ doc ///
     
             - there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
     
-           For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
+           These conditions are equivalent to those introduced in Seth Sullivant, Kelli Talaska, and Jan Draisma, 
+	   {\em Trek separation for Gaussian graphical models}, The Annals of Statistics 
+	   38.3 (2010): 1665-1685.
+	   
+	   For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
       
            1. all vertices in U come before vertices in W,
       

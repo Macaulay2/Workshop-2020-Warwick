@@ -5125,10 +5125,15 @@ doc ///
         Text
 	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG). 
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    
 	    Permissible values of S are: "random", "max", "min", "degree".
-	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    
+	    S = "random" randomly sort the vertices of graph which have same precedence at any instance of the algorithm to break the ties.
+	    
 	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    
 	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    
 	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
@@ -5157,20 +5162,24 @@ doc ///
 	topSort(D,S)
     Inputs
         D:Digraph
-	S: String
-	  needs to be a directed acyclice graph DAG  
+	S: String 
     Outputs
          :HashTable 
     Description 
         Text
 	    This method outputs a HashTable with keys digraph, map and newDigraph, where digraph is the original digraph,
 	    map is the relation between old ordering and the new ordering of vertices and newDigraph is the Digraph with 
-	    topologically sorted vertices.
+	    topologically sorted vertices. This method needs the input to be directed adyclic graph (DAG).
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    
 	    Permissible values of S are: "random", "max", "min", "degree".
-	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    
+	    S = "random" randomly sort the vertices of graph which have same precedence at any instance of the algorithm to break the ties.
+	    
 	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    
 	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    
 	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
 
         Example
@@ -5197,7 +5206,8 @@ doc ///
         hashtable used in topSort
     Description 
         Text
-	    This is a new type of hashtable used in the output of topSort.
+	    This is a type of hashtable.The output of @TO topSort@ has class {\tt SortedDigraph}. In the current version of 
+	    Graphs (version 0.3.3) the only use of SortedDigraph is in @TO topSort@.
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
 	   H = topSort G
@@ -5216,7 +5226,7 @@ doc ///
         key used in the output of topSort
     Description 
         Text
-	    This is one of the keys of the hashtable output (SortedDigraph) of topSort.
+	    This is a key of the hashtable output @TO SortedDigraph@  of @TO topSort@. 
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
 	   H = topSort G

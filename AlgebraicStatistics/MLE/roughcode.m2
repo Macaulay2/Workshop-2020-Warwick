@@ -222,3 +222,4 @@ installPackage "Graphs"
 
 viewHelp topologicalSort 
 viewHelp topSort
+viewHelp Graphs

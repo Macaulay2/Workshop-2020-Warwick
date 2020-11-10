@@ -5126,6 +5126,10 @@ doc ///
 	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG). 
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
 	    Permissible values of S are: "random", "max", "min", "degree".
+	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
 	   topologicalSort G
@@ -5133,6 +5137,9 @@ doc ///
 	   topologicalSort(G,"max")
 	   topologicalSort(G,"random")
 	   topologicalSort(G,"degree")
+	  
+    SeeAlso
+        topSort
    ///
 
 --------------------------------------------
@@ -5161,6 +5168,10 @@ doc ///
 	    topologically sorted vertices.
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
 	    Permissible values of S are: "random", "max", "min", "degree".
+	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
 
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
@@ -5171,6 +5182,9 @@ doc ///
 	   topSort(G,"max")
 	   topSort(G,"random")
 	   topSort(G,"degree")
+    
+    SeeAlso
+          topologicalSort
    ///
 
 

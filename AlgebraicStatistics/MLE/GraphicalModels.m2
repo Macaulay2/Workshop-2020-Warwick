@@ -22,7 +22,8 @@ newPackage(
 	   HomePage=>"https://okuznetsova.com"},
        
           {Name=> "Harshit J Motwani", 
-	   Email=> "harshitmotwani2015@gmail.com"},
+	   Email=> "harshitmotwani2015@gmail.com",
+	   HomePage=>"https://sites.google.com/view/harshitjmotwani/home"},
           {Name=> "Sonja Petrovic", 
 	   Email=> "sonja@psu.edu",
 	   HomePage=>"http://www.personal.psu.edu/sxp61"}, 

@@ -5185,7 +5185,51 @@ doc ///
     
     SeeAlso
           topologicalSort
+	  SortedDigraph
+	  newDigraph
    ///
+
+
+doc /// 
+    Key
+        SortedDigraph
+    Headline
+        hashtable used in topSort
+    Description 
+        Text
+	    This is a new type of hashtable used in the output of topSort.
+        Example
+	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
+	   H = topSort G
+	   class H
+    SeeAlso
+          topSort
+	  newDigraph
+	  topologicalSort
+   ///
+
+
+doc /// 
+    Key
+        newDigraph
+    Headline
+        key used in the output of topSort
+    Description 
+        Text
+	    This is one of the keys of the hashtable output (SortedDigraph) of topSort.
+        Example
+	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
+	   H = topSort G
+	   keys H
+    SeeAlso
+          topSort
+	  SortedDigraph
+	  topologicalSort
+   ///
+
+
+
+
 
 
 

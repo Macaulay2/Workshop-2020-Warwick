@@ -1282,6 +1282,11 @@ doc ///
       Luis D. Garcia-Puente, Sarah Spielvogel and Seth Sullivant, {\em Identifying causal effects with computer algebra}, 
       Proceedings of the $26^{th}$ Conference of Uncertainty in Artificial Intelligence.
           
+      Furthermore, this package allows to construct the Gaussian rings of 
+      loopless mixed graphs (LMG) and the corresponding matrices of indeterminates
+      as introduced in Kayvan Sadeghi and Steffen Lauritzen, {\em Markov properties for mixed graphs}, 
+      Bernoulli 20.2 (2014): 676-696.
+      
       Here is a typical use of this package.  We create the ideal in 16 variables whose zero set 
       represents the probability distributions on four binary random variables  satisfying the
       conditional independence statements coming from the "diamond" graph $4 \to 3, 4 \to 2, 3 \to 1, 2 \to 1$.
@@ -1953,7 +1958,7 @@ doc ///
   Key 
     gaussianRing
   Headline
-    ring of Gaussian correlations on n random variables
+    ring of Gaussian correlations on n random variables or a graphical model
   Usage
     gaussianRing n 
     gaussianRing G 
@@ -2045,7 +2050,7 @@ doc ///
   Key 
     (gaussianRing, Graph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a graph
+    ring of Gaussian correlations of a graphical model coming from a graph
   Usage
     gaussianRing G 
   Inputs
@@ -2078,7 +2083,7 @@ doc ///
   Key 
     (gaussianRing, Bigraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a bigraph
+    ring of Gaussian correlations of a graphical model coming from a bigraph
   Usage
     gaussianRing G 
   Inputs
@@ -2088,7 +2093,7 @@ doc ///
       a ring with indeterminates $s_{(i,j)}, p_{(i,j)}$       
   Description
     Text
-      A {\tt gaussianRing} of a bidirected graph is build 
+      A {\tt gaussianRing} of a bidirected graph is built 
       as a {\tt gaussianRing} of a mixed graph with only bidirected edges, see @TO (gaussianRing,MixedGraph)@.
 
     Example
@@ -2107,7 +2112,7 @@ doc ///
   Key 
     (gaussianRing, Digraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a digraph
+    ring of Gaussian correlations of a graphical model coming from a digraph
   Usage
     gaussianRing G 
   Inputs
@@ -2128,7 +2133,7 @@ doc ///
       in the graphical model associatd to a mixed graph with bidirected edges. 
       
       Note that since version 2.0 of the package, 
-      {\tt gaussianRing} of a directed graph is build as a {\tt gaussianRing} of a mixed graph with only directed edges, see @TO (gaussianRing,MixedGraph)@.
+      {\tt gaussianRing} of a directed graph is built as a {\tt gaussianRing} of a mixed graph with only directed edges, see @TO (gaussianRing,MixedGraph)@.
 
     Example
       G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
@@ -2144,7 +2149,7 @@ doc ///
   Key 
     (gaussianRing, MixedGraph)
   Headline
-    ring of Gaussian correlations on n random variables coming from a mixed graph
+    ring of Gaussian correlations of a graphical model coming from a mixed graph
   Usage 
     gaussianRing G 
   Inputs

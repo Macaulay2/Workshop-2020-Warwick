@@ -665,13 +665,32 @@ help [solverMLE, RealPrecision]
 
 restart
 needsPackage "StatGraphs"
+help StatGraphs
+help Bigraph
+help bigraph
+help MixedGraph
+help mixedGraph
+help collateVertices
 help partitionLMG
+help isLoopless
+help undirectedGraph
+help (isSimple,MixedGraph)
+help (isCyclic,MixedGraph)
+
 
 restart
 needsPackage "GraphicalModels"
 help gaussianRing
+help gaussianMatrices
+help conditionalIndependenceIdeal
+help gaussianParametrization
+help gaussianVanishingIdeal
 help OldVersion
 help [gaussianVanishingIdeal, OldVersion]
+help trekIdeal
+help trekSeparation
+help identifyParameters
+help [markovRing, Coefficients]
 ----------------------------------------------
 ---documentation of scoreEquations: examples
 ---------------------------------------------

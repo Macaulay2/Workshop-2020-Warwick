@@ -374,6 +374,11 @@ doc ///
     	    @TO (forefathers, MixedGraph, Thing)@,
     	    @TO (neighbors, MixedGraph, Thing)@,
 	    @TO (nonneighbors, MixedGraph, Thing)@.
+	    
+	    This package allows to construct loopless mixed graphs (LMG) as introduced in 
+	    Kayvan Sadeghi and Steffen Lauritzen, {\em Markov properties for mixed graphs}, 
+	    Bernoulli 20.2 (2014): 676-696 and to check whether a mixedGraph is an LMG using
+	    @TO partitionLMG@.
 	    	    	       	
     Caveat
        StatGraphs requires  @TO Graphs@ version 0.3.3 or later.
@@ -1376,7 +1381,7 @@ doc ///
      (vertexSet, MixedGraph)
     
   Headline
-     create a union of all vertices of a mixed graph.
+     create a union of all vertices of a mixed graph
   Usage
      V=vertices G
      V=vertexSet G

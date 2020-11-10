@@ -1736,7 +1736,7 @@ doc ///
     n:ZZ
       number of random variables
     G:Graph
-      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
+      @ofClass Graph@, or @ofClass Digraph@, 
       or @ofClass MixedGraph@ with directed and bidirected edges
   Outputs
     :Ring       
@@ -1951,11 +1951,6 @@ doc ///
 doc ///
   Key 
     gaussianRing
-    (gaussianRing,ZZ)
-    (gaussianRing, Graph)
-    (gaussianRing, Bigraph)
-    (gaussianRing, Digraph)
-    (gaussianRing, MixedGraph)
   Headline
     ring of Gaussian correlations on n random variables
   Usage
@@ -1965,55 +1960,212 @@ doc ///
     n:ZZ
       the number of random variables
     G:Graph
-      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
-      or @ofClass MixedGraph@ with directed and bidirected edges
+      or @ofClass Digraph@, or @ofClass Bigraph@, or @ofClass MixedGraph@ 
   Outputs
     :Ring
-      a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$, and
-      additionally $l_{(i,j)}, p_{(i,j)}$ for mixed graphs or $k_{(i,j)}$ for graphs
-      with $1 \leq i \leq j \leq n$ where $n$ is the number of vertices in $G$.      
+      a polynomial ring with indeterminates associated to the graphical model      
   Description
     Text
       This function creates a ring whose indeterminates are the covariances of an 
       n dimensional Gaussian random vector.  Using a graph, digraph, or mixed graph $G$
       as input gives a {\tt gaussianRing} with extra indeterminates related to the parametrization
-      of the graphical model associated to that graph. If a graph is used, 
-      the indeterminates in the {\tt gaussianRing} are indexed by the vertices in the graph $G$.  
+      of the graphical model associated to that graph. 
+      Check the details of the {\tt gaussianRing} for each type of input:
+     
+      * @TO (gaussianRing,ZZ)@
       
-      The $s_(i,j)$ indeterminates in the {\tt gaussianRing} are the entries in the
-      covariance matrix of the jointly normal random variables.  The $k_{(i,j)}$
-      indeterminates  in the {\tt gaussianRing} are the nonzero entries in the concentration
-      matrix in the graphical model associatd to an undirected graph.
-      The $l_{(i,j)}$
-      indeterminates consist of regression coefficients associated to the directed
-      edges in the graph.
-      The $p_{(i,j)}$
-      indeterminates  in the {\tt gaussianRing} are the nonzero entries in the covariance matrix of the error terms
-      in the graphical model associatd to a mixed graph with bidirected edges. 
-      Those entries can be placed into an appropriate matrix format using the
+      * @TO (gaussianRing,Graph)@
+      
+      * @TO (gaussianRing,Digraph)@
+      
+      * @TO (gaussianRing,Bigraph)@
+      
+      * @TO (gaussianRing,MixedGraph)@
+      
+      The indeterminates of the ring - $s_{(i,j)},k_{(i,j)},l_{(i,j)},p_{(i,j)}$ - can be placed into an appropriate matrix format using the
       functions @TO covarianceMatrix@, 
       @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, and  
       @TO bidirectedEdgesMatrix@ respectively.
+      
+      The variable names that appear can be changed using the options sVariableName, lVariableName,
+      pVariableName, and kVariableName
+
+    Example
+      G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+      R = gaussianRing (G,pVariableName => psi)
+      gens R      
+            
+    Text
+      The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
+      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
+      @TO gaussianVanishingIdeal@ and @TO gaussianParametrization@ require that the 
+      ring be created by this function. 
+
+  SeeAlso
+    bidirectedEdgesMatrix
+    conditionalIndependenceIdeal
+    covarianceMatrix
+    directedEdgesMatrix
+    gaussianVanishingIdeal
+    trekIdeal
+    undirectedEdgesMatrix
+///
+
+doc ///
+  Key 
+    (gaussianRing,ZZ)
+  Headline
+    ring of Gaussian correlations on n random variables
+  Usage
+    gaussianRing n  
+  Inputs
+    n:ZZ
+      the number of random variables
+  Outputs
+    :Ring
+      a ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$      
+  Description
+    Text
+     This function creates a polynomial ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$.
+     The $s_{(i,j)}$ indeterminates in the {\tt gaussianRing} are the entries in the
+     covariance matrix of the jointly normal random variables.  
       
     Example
       R = gaussianRing 5;
       gens R
       compactMatrixForm =false;
       covarianceMatrix R
-      
-    Text
-      The function works with an undirected graph as follows.
 
+  SeeAlso
+    gaussianRing   
+///
+
+doc ///
+  Key 
+    (gaussianRing, Graph)
+  Headline
+    ring of Gaussian correlations on n random variables coming from a graph
+  Usage
+    gaussianRing G 
+  Inputs
+    G:Graph
+  Outputs
+    :Ring
+      a polynomial ring with indeterminates $s_{(i,j)}$ and $k_{(i,j)}$      
+  Description
+    Text
+     This function creates a polynomial ring with indeterminates $s_{(i,j)}$ for $1 \leq i \leq j \leq n$,
+     where $n$ is the number of vertices in $G$, and  $k_{(i,j)}$.
+     
+     The $s_{(i,j)}$ indeterminates in the {\tt gaussianRing} are the entries in the
+     covariance matrix of the jointly normal random variables.  
+       
+     The $k_{(i,j)}$ indeterminates in the {\tt gaussianRing} are the nonzero entries in the concentration
+     matrix in the graphical model associated to the undirected graph.
+    
     Example
       G = graph({{a,b},{b,c},{c,d},{a,d}})
       R = gaussianRing G
       gens R
       covarianceMatrix R
       undirectedEdgesMatrix R
+  SeeAlso
+     gaussianRing 
+///
 
+doc ///
+  Key 
+    (gaussianRing, Bigraph)
+  Headline
+    ring of Gaussian correlations on n random variables coming from a bigraph
+  Usage
+    gaussianRing G 
+  Inputs
+    G:Bigraph
+  Outputs
+    :Ring
+      a ring with indeterminates $s_{(i,j)}, p_{(i,j)}$       
+  Description
     Text
-      This function also accepts as input a mixed graph. In this case, the ring contains the usual indeterminates associated to the 
-      covariance matrix of the model. But it is also generated by two or three new lists of indeterminates depending on the type of edges of the graph.
+      A {\tt gaussianRing} of a bidirected graph is build 
+      as a {\tt gaussianRing} of a mixed graph with only bidirected edges, see @TO (gaussianRing,MixedGraph)@.
+
+    Example
+      G = bigraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
+      R = gaussianRing G;
+      gens R
+      covarianceMatrix R
+      directedEdgesMatrix R
+      bidirectedEdgesMatrix R
+  
+  SeeAlso
+     gaussianRing   
+///
+
+doc ///
+  Key 
+    (gaussianRing, Digraph)
+  Headline
+    ring of Gaussian correlations on n random variables coming from a digraph
+  Usage
+    gaussianRing G 
+  Inputs
+    G:Digraph
+  Outputs
+    :Ring
+      a polynomial ring with indeterminates $s_{(i,j)},l_{(i,j)}, p_{(i,j)}$ .      
+  
+  Description
+    Text
+      This function creates a polynomial ring in the indeterminates $s_{(i,j)}$ associated to the 
+      covariance matrix of the model plus two new lists of indeterminates:
+      
+      - The $l_{(i,j)}$ indeterminates consist of regression coefficients associated to the directed
+      edges in the graph.
+      
+      - The $p_{(i,j)}$ indeterminates  in the {\tt gaussianRing} are the nonzero entries in the covariance matrix of the error terms
+      in the graphical model associatd to a mixed graph with bidirected edges. 
+      
+      Note that since version 2.0 of the package, 
+      {\tt gaussianRing} of a directed graph is build as a {\tt gaussianRing} of a mixed graph with only directed edges, see @TO (gaussianRing,MixedGraph)@.
+
+    Example
+      G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
+      R = gaussianRing G;
+      gens R
+      covarianceMatrix R
+      directedEdgesMatrix R
+      bidirectedEdgesMatrix R
+
+///
+
+doc ///
+  Key 
+    (gaussianRing, MixedGraph)
+  Headline
+    ring of Gaussian correlations on n random variables coming from a mixed graph
+  Usage 
+    gaussianRing G 
+  Inputs
+    G:MixedGraph
+  Outputs
+    :Ring
+      a polynomial ring with indeterminates $s_{(i,j)},k_{(i,j)},l_{(i,j)},p_{(i,j)}$ 
+  Description
+    Text
+      This function accepts a mixed graph as input. The outputed ring contains the indeterminates $s_{(i,j)}$ associated to the 
+      covariance matrix of the model plus two or three new lists of indeterminates depending on the type of edges of the graph:
+      
+      - The $k_{(i,j)}$ indeterminates in the {\tt gaussianRing} are the nonzero entries in the concentration
+      matrix in the graphical model associated to the undirected graph.
+    
+      - The $l_{(i,j)}$ indeterminates consist of regression coefficients associated to the directed
+      edges in the graph.
+      
+      - The $p_{(i,j)}$ indeterminates  in the {\tt gaussianRing} are the nonzero entries in the covariance matrix of the error terms
+      in the graphical model associatd to a mixed graph with bidirected edges. 
+      
+      Mixed graphs in this package can be of two different types depending on their edges:
       
       {\bf Directed and bidirected edges}: two new lists of indeterminates. For each  directed edge $i \to j$ 
       in the mixed graph there is an indeterminate, denoted by default $l_{(i,j)}$, corresponding to the associated direct causal effect parameter in the model. 
@@ -2030,7 +2182,7 @@ doc ///
     
     Text
       {\bf Undirected, directed and bidirected edges}: three new lists of indeterminates. Besides the two already described above, 
-      undirected edges are dealt with in the same way as in {\tt gaussianRing} applied to a graph @ofClass Graph@, 
+      undirected edges are dealt with in the same way as in {\tt gaussianRing} applied to @ofClass Graph@, 
       with the corresponding indeterminates being $k_{(i,j)}$ by default.
       
       Only loopless mixed graphs are accepted and they must have a vertex ordering compatible with @TO partitionLMG@.
@@ -2048,61 +2200,12 @@ doc ///
       undirectedEdgesMatrix R
       directedEdgesMatrix R
       bidirectedEdgesMatrix R
-    
-    Text
-      The function works with a directed graph as follows. Note that since this version of the packages, 
-      {\tt gaussianRing} of a directed graph is build 
-      as a {\tt gaussianRing} of a mixed graph with only directed edges.
-
-    Example
-      G = digraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
-      R = gaussianRing G;
-      gens R
-      covarianceMatrix R
-      directedEdgesMatrix R
-      bidirectedEdgesMatrix R
-
-
-    Text
-      Finally, {\tt gaussianRing} of a bidirected graph is build 
-      as a {\tt gaussianRing} of a mixed graph with only bidirected edges.
-
-    Example
-      G = bigraph {{a,{b,c}}, {b,{c,d}}, {c,{}}, {d,{}}};
-      R = gaussianRing G;
-      gens R
-      covarianceMatrix R
-      directedEdgesMatrix R
-      bidirectedEdgesMatrix R
-
-    
-    Text
-      The variable names that appear can be changed using the options sVariableName, lVariableName,
-      pVariableName, and kVariableName
-
-    Example
-      G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
-      R = gaussianRing (G,pVariableName => psi)
-      gens R      
-            
-    Text        
-      The routines  @TO conditionalIndependenceIdeal@, @TO trekIdeal@, @TO covarianceMatrix@, 
-      @TO undirectedEdgesMatrix@, @TO directedEdgesMatrix@, @TO bidirectedEdgesMatrix@, 
-      @TO gaussianVanishingIdeal@ and @TO gaussianParametrization@ require that the 
-      ring be created by this function. 
 
   SeeAlso
-    bidirectedEdgesMatrix
-    conditionalIndependenceIdeal
-    covarianceMatrix
-    directedEdgesMatrix
-    gaussianVanishingIdeal
-    trekIdeal
-    undirectedEdgesMatrix
+     gaussianRing 
+
+  
 ///
-
-
-
 ---------------------------------------
 -- Documentation gaussianMatrices    --
 ---------------------------------------
@@ -2207,7 +2310,7 @@ doc///
      bidirectedEdgesMatrix R
    Inputs
      R:Ring
-       which should be a gaussianRing created with a graph @ofClass Bigraph@ or @ofClass MixedGraph@
+       which should be a gaussianRing created with @ofClass Bigraph@ or @ofClass MixedGraph@
    Outputs
      :Matrix
        the $n \times{} n$ covariance matrix of the noise variables in the Gaussian graphical model of a mixed graph.
@@ -2263,7 +2366,7 @@ doc///
      directedEdgesMatrix R
    Inputs
      R:Ring
-       which should be a gaussianRing created with a graph @ofClass Digraph@ or @ofClass MixedGraph@
+       which should be a gaussianRing created with @ofClass Digraph@ or @ofClass MixedGraph@
    Outputs
      :Matrix
        the $n \times{} n$ matrix of direct causal effect indeterminates. 
@@ -2467,7 +2570,7 @@ doc///
      R:Ring
        which should be a gaussianRing
      G:Graph
-      @ofClass Graph@, or a directed acyclic graph @ofClass Digraph@, 
+      @ofClass Graph@, or @ofClass Digraph@ with no cycles, 
       or @ofClass MixedGraph@ with directed and bidirected edges
    Outputs
      I:Ideal
@@ -3036,7 +3139,7 @@ doc ///
      class of graph used to generate a gaussian ring   	 	 
   Description
     Text 
-     For a {\tt gaussianRing} R generated with a graph @ofClass Digraph@ and @ofClass Bigraph@
+     For a {\tt gaussianRing} R generated with @ofClass Digraph@ and @ofClass Bigraph@
      the class we retrieve when typing R.graph is MixedGraph. This is consistent with the treatment
      of such objects. Therefore, this variable is essentially used to differentiate graphs
      from @ofClass Graph@ and @ofClass MixedGraph@.  
@@ -3179,7 +3282,7 @@ doc///
      undirectedEdgesMatrix(R)
    Inputs
      R:Ring
-       which should be created with @TO gaussianRing@ created with a graph @ofClass Graph@ or
+       which should be created with @TO gaussianRing@ created with @ofClass Graph@ or
        @ofClass MixedGraph@
    Outputs
      :Matrix

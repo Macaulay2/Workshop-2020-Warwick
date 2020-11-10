@@ -1168,7 +1168,7 @@ doc ///
      (descendants,MixedGraph,Thing)
     
   Headline
-    returns the descendents of a vertex of a mixed graph
+    returns the descendants of a vertex of a mixed graph
   Usage
     descendents (G,v)
     descendants (G,v)
@@ -1189,7 +1189,7 @@ doc ///
 	the children of each of the children, and continue the process until the list stops growing, this 
 	will form all the descendants of v.
 	
-	The output also includes the vertex v from the input in the set of the descendents.
+	The output also includes the vertex v from the input in the set of the descendants.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	descendants (G,1)

@@ -22,7 +22,8 @@ newPackage(
 	   HomePage=>"https://okuznetsova.com"},
        
           {Name=> "Harshit J Motwani", 
-	   Email=> "harshitmotwani2015@gmail.com"},
+	   Email=> "harshitmotwani2015@gmail.com",
+	   HomePage=>"https://sites.google.com/view/harshitjmotwani/home"},
           {Name=> "Sonja Petrovic", 
 	   Email=> "sonja@psu.edu",
 	   HomePage=>"http://www.personal.psu.edu/sxp61"}, 
@@ -1135,7 +1136,7 @@ trekIdeal (Ring,MixedGraph) := Ideal => (R,g) -> (
      vv := sort vertices g;
      SM := covarianceMatrix R ;	
      if Stmts == {} then (
-         ideal 0 )
+         ideal(0_R))
      else 
         sum apply(Stmts,s->minors(#s#2+#s#3+1, submatrix(SM,apply(s#0,x->pos(vv,x)),apply(s#1,x->pos(vv,x)))))
      )
@@ -1340,7 +1341,7 @@ doc ///
       David Murrugarra<@HREF"http://people.math.gatech.edu/~davidmur/Home.html"@>.
       
   Caveat
-     GraphicalModels requires Graphs.m2 and StatGraphs.m2. This packages allow the user to 
+     GraphicalModels requires Graphs.m2 and StatGraphs.m2. These packages allow the user to 
      create graphs whose vertices are labeled arbitrarily. 
      However, several functions in GraphicalModels sort the vertices of the graph. 
      Hence, graphs used as input to methods 

@@ -19,7 +19,8 @@ newPackage(
 	   HomePage=>"https://okuznetsova.com"},
        
           {Name=> "Harshit J Motwani", 
-	   Email=> "harshitmotwani2015@gmail.com"}},
+	   Email=> "harshitmotwani2015@gmail.com",
+	   HomePage=> "https://sites.google.com/view/harshitjmotwani/home"}},
         Headline => "Graphs specific for algebraic statistics",
         DebuggingMode => true,
 	PackageExports => {"Graphs"}
@@ -38,7 +39,7 @@ export {
     "undirectedGraph"
     }
 
-if Graphs.Options.Version < "0.3.2" then error "StatGraphs requires Graphs version 0.3.2 or later"
+if Graphs.Options.Version < "0.3.3" then error "StatGraphs requires Graphs version 0.3.3 or later"
 
 Bigraph = new Type of Graph
 
@@ -375,7 +376,7 @@ doc ///
 	    @TO (nonneighbors, MixedGraph, Thing)@.
 	    	    	       	
     Caveat
-       StatGraphs requires  @TO Graphs@ version 0.3.2 or later.
+       StatGraphs requires  @TO Graphs@ version 0.3.3 or later.
        
     SeeAlso
        Graphs
@@ -514,8 +515,8 @@ doc ///
   Description
      Text  
          MixedGraph is a graph that has undirected, directed and bidirected edges.
-	 To create a mixed graph, use @TO mixedGraph@. Each subgraph (undirected,
-	 directed and bidirected) is a simple graph. Each type of subgraphs can
+	 To create a mixed graph, use @TO mixedGraph@. Each type of subgraph (undirected,
+	 directed and bidirected) does not have multiple edges and can
      	 appear at most once.
 	
   SeeAlso

@@ -449,6 +449,7 @@ globalMarkov Graph := List => (G) ->(
     ) 
  
 globalMarkov Digraph := List => (G) -> (
+     if isCyclic G then error("digraph must be acyclic");
      V := vertices G;  -- removed sort
      result := {};
      AX := subsets V;
@@ -1402,7 +1403,7 @@ doc ///
       pairMarkov G
       
     Text
-      Given a directed graph $G$, pairwise Markov statements are statements of the form \{$v$, $w$, nondescendents($G,v$)-$w$\}\ 
+      Given a directed acyclic graph $G$, pairwise Markov statements are statements of the form \{$v$, $w$, nondescendents($G,v$)-$w$\}\ 
       for each vertex $v$ of $G$ and each non-descendent vertex $w$ of $v$. In other words, for every vertex $v$ of $G$ and each nondescendent $w$ of $v$, 
       this method returns the statement: $v$ is independent of $w$ given all other nondescendents. 
       
@@ -1463,7 +1464,7 @@ doc ///
       localMarkov G
       
     Text
-      Given a directed graph $G$, local Markov statements are of the form
+      Given a directed acyclic graph $G$, local Markov statements are of the form
       \{$v$, nondescendents($v$) - parents($v$), parents($v$)\} .
       In other words, 
       every vertex $v$ of $G$ is independent of its nondescendents (excluding parents) given its parents. 
@@ -1522,7 +1523,7 @@ doc ///
       globalMarkov G
       
     Text
-      Given a directed graph $G$, global Markov states that      
+      Given a directed acyclic graph $G$, global Markov states that      
       $A$ is independent of $B$ given $C$ for every triple of sets of vertices $A$, $B$, and $C$, 
       such that $A$ and $B$ are $d$-separated by $C$ (in the graph $G$).\break
        

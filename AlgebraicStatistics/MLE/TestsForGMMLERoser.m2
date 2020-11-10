@@ -630,6 +630,20 @@ jacobianMatrixOfRationalFunction(G)
 ----------------------------------------------
 ---documentation ----------------------------
 ---------------------------------------------
+uninstallPackage "Graphs"
+uninstallPackage "StatGraphs"
+uninstallPackage "GraphicalModels"
+uninstallPackage "EigenSolver"
+uninstallPackage "GraphicalModelsMLE"
+
+installPackage "Graphs"
+installPackage "StatGraphs"
+installPackage "GraphicalModels"
+installPackage "EigenSolver"
+installPackage "GraphicalModelsMLE"
+
+check GraphicalModels
+check GraphicalModelsMLE
 
 restart
 needsPackage "GraphicalModelsMLE"
@@ -681,6 +695,11 @@ help (isCyclic,MixedGraph)
 restart
 needsPackage "GraphicalModels"
 help gaussianRing
+help (gaussianRing,ZZ)
+help (gaussianRing,Graph)
+help (gaussianRing,Digraph)
+help (gaussianRing,Bigraph)
+help (gaussianRing,MixedGraph)
 help gaussianMatrices
 help conditionalIndependenceIdeal
 help gaussianParametrization
@@ -736,3 +755,49 @@ V=matrix{{115.2534,-13,-29.445,47},{-13,5,7,-11},{-29.445,7,27,-21},{47,-11,-21,
 scoreEquations(gaussianRing G,V,RealPrecision=>2)
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true, RealPrecision=>4)
+
+
+---------------------------------------------------------
+-------acyclic checks in GraphicalModels-----------------
+---------------------------------------------------------
+restart
+needsPackage "GraphicalModels"
+G=digraph{{1,2},{2,3},{3,4},{4,1}}
+localMarkov G
+globalMarkov G
+pairMarkov G
+
+Stmts = {{{1,2},{3},{4}}, {{1},{3},{}}}
+conditionalIndependenceIdeal(gaussianRing G, globalMarkov G)
+conditionalIndependenceIdeal(gaussianRing G, Stmts)
+gaussianMatrices(gaussianRing G,Stmts)
+
+R=gaussianRing G
+gaussianParametrization R
+L=directedEdgesMatrix R
+det L
+inverse L
+det(1-L)
+1-L
+inverse(1-L)
+identifyParameters gaussianRing G
+
+G2=digraph{{1,2},{1,3},{1,4}}
+R2=gaussianRing G2
+gaussianParametrization R2
+
+restart
+needsPackage "GraphicalModels"
+G = mixedGraph(digraph {{b,{c,d}},{c,{d}}},bigraph {{a,d}})
+       R = gaussianRing G
+       compactMatrixForm =false;
+       S = covarianceMatrix(R)
+       L = directedEdgesMatrix(R)
+inverse(1-L)
+inverse (id_(R^4)-L)
+
+       W = bidirectedEdgesMatrix(R)       
+       M = gaussianParametrization(R)
+       J = delete(0_R, flatten entries (L|W))
+       eliminate(J, ideal(S-M))
+       gaussianVanishingIdeal(R)

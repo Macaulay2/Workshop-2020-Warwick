@@ -1,3 +1,20 @@
+-*
+Copyright 2013 Luis David Garcia Puente, Sonja Petrovic,
+Mike Stillman, Seth Sullivant.
+
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2 of
+the License, or any later version.
+
+
+Copyright 2020 Carlos Amendola, Luis David Garcia Puente, Roser Homs Pons, 
+Olga Kuznetsova, Harshit J Motwani.
+
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2 of
+the License, or any later version.
+*-
+
 -- -*- coding: utf-8-unix -*-
 
 newPackage(
@@ -52,8 +69,8 @@ newPackage(
 	  "version at publication" => "1.0",
 	  "volume number" => "5",
 	  "volume URI" => "http://j-sag.org/Volume5/"
-	  }
-     --DebuggingMode => true
+	  },
+     DebuggingMode => false
      )
 export {"bidirectedEdgesMatrix",
        "Coefficients",

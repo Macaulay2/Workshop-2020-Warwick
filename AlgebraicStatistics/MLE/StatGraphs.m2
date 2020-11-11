@@ -1,3 +1,12 @@
+-*
+Copyright 2020 Carlos Amendola, Luis David Garcia Puente, Roser Homs Pons, 
+Olga Kuznetsova, Harshit J Motwani.
+
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2 of
+the License, or any later version.
+*-
+
 newPackage(
         "StatGraphs",
         Version => "0.1", 
@@ -22,7 +31,7 @@ newPackage(
 	   Email=> "harshitmotwani2015@gmail.com",
 	   HomePage=> "https://sites.google.com/view/harshitjmotwani/home"}},
         Headline => "Graphs specific for algebraic statistics",
-        DebuggingMode => true,
+        DebuggingMode => false,
 	PackageExports => {"Graphs"}
         )
 

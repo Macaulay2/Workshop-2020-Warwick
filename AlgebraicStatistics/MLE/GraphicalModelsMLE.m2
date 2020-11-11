@@ -1,5 +1,13 @@
 -- -*- coding: utf-8-unix -*-
 
+-*
+Copyright 2020 Carlos Amendola, Luis David Garcia Puente, Roser Homs Pons, 
+Olga Kuznetsova, Harshit J Motwani, Elina Robeva and David Swinarski.
+
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2 of
+the License, or any later version.
+*-
 newPackage(
      "GraphicalModelsMLE",
      Version => "0.3",
@@ -27,14 +35,14 @@ newPackage(
        
           {Name=> "Elina Robeva", 
 	   Email=> "erobeva@gmail.com",
-	   HomePage=>"http://math.berkeley.edu/~erobeva"},
+	   HomePage=>"https://www.math.ubc.ca/~erobeva/"},
        
           {Name=> "David Swinarski", 
 	   Email=> "dswinarski@fordham.edu",
 	   HomePage=>"http://faculty.fordham.edu/dswinarski"}
 	  },
      Headline => "maximum likelihood estimates for graphical statistical models",
-     DebuggingMode => true,
+     DebuggingMode => false,
      PackageExports => {"GraphicalModels","Graphs","EigenSolver","NumericalAlgebraicGeometry","StatGraphs"}
      )
 export {

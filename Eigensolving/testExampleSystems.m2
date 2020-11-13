@@ -3,7 +3,6 @@ debugLevel = 1
 Precision => 1000
 needsPackage "EigenSolver"
 needsPackage "ExampleSystems"
-load "barebonesSolve.m2"
 
 
 projOnto = method()

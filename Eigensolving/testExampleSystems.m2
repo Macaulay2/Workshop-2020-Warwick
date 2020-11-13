@@ -3,8 +3,6 @@ debugLevel = 1
 Precision => 1000
 needsPackage "EigenSolver"
 needsPackage "ExampleSystems"
---needsPackage "NumericalCertification"
-load("../../Desktop/NumCerTest.m2")
 load "barebonesSolve.m2"
 
 
@@ -155,19 +153,15 @@ assert all(flatten apply(numcols T, i -> apply(i, j -> T_(i,j) == 0)), identity)
 -- There were 8 solutions found in 10.1037 seconds (with a Bezout bound of 1024).
 load "testExampleSystems.m2"
 J = ideal boon(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of I : 4
 elapsedTime sols = zeroDimSolve J -- 0.0177399 seconds
 #sols
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.06555
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
     
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 2.89916
 sols = apply(oo, i -> point {i}); -- 8 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.05665
 
 
 
@@ -179,20 +173,15 @@ elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 
 -- cyclic 3
 load "testExampleSystems.m2"
 J = ideal cyclic(3,QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 3
 elapsedTime sols = zeroDimSolve J; -- 0.00886598 seconds
 #sols -- 6
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.03941
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.0683171
 sols = apply(oo, i -> point {i}); -- 6 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0402972
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 
 
@@ -203,21 +192,15 @@ elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 -- katsura 5
 load "testExampleSystems.m2"
 J = ideal katsura(5,QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 2
 elapsedTime sols = zeroDimSolve J; -- 0.0226005
 #sols -- 16
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.03941
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 20.2684
 sols = apply(oo, i -> point {i});
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.107208
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- all certified.
 
 
 
@@ -226,21 +209,15 @@ elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 -- There were 4 solutions found in 2.266 seconds (with a Bezout bound of 1024).
 load "testExampleSystems.m2"
 J = ideal ku10(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 2
 elapsedTime sols = zeroDimSolve J; -- 0.0318752
 #sols -- 2 not 4
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0287836
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.72186
 sols = apply(oo, i -> point {i}); -- 2 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0282631
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- all certified.
 
 
 
@@ -248,26 +225,15 @@ elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 -- There were 12 solutions found in 0.0562 seconds (with a Bezout bound of 16).
 load "testExampleSystems.m2"
 J = ideal lorentz(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 2
 elapsedTime sols = zeroDimSolve J; -- 0.0119325
 #sols -- 11 not 12
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0776831
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.498564
 sols = apply(oo, i -> point {i}); -- 11 solutions
--- 0.953831 seconds == RMK : using lowerDegGens makes solving faster ==
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0776831
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- all solutions are certified.
-
-theirs = solveSystem polySystem J;
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), theirs)
-
 
 
 
@@ -279,23 +245,16 @@ alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), theirs)
 -- There were 46 solutions found in 0.111 seconds (with a Bezout bound of 49).
 load "testExampleSystems.m2"
 J = ideal sendra(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 7
 elapsedTime sols = zeroDimSolve J; -- 0.0200045
 #sols -- 46
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.228829
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols = apply(oo, i -> point {i}); -- 46 solutions
 -- 11.8806 seconds 
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.236832
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- random number of solutions are certified. 
--- all solutions can be certified if we refine using newton method.
 
 
 
@@ -304,22 +263,15 @@ alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 -- There were 10 solutions found in 0.203 seconds (with a Bezout bound of 24).
 load "testExampleSystems.m2"
 J = ideal trinks(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 3
 elapsedTime sols = zeroDimSolve J; -- 0.0154688
 #sols -- 10
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0776831
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-#((values oo)#2) -- number of certified solutions : 10
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols = apply(oo, i -> point {i}); -- 10 solutions
 -- 3.25115 seconds 
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0776831
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-#((values oo)#2) -- number of certified solutions : 10
 
 
 
@@ -331,23 +283,32 @@ alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 -- There were 32 solutions found in 0.0944 seconds (with a Bezout bound of 32).
 load "testExampleSystems.m2"
 J = ideal wright(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 2
 elapsedTime sols = zeroDimSolve J; -- 0.0204144
 #sols -- 32
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.166867
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-#((values oo)#2) -- number of certified solutions : 32
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 23.7229 seconds
 sols = apply(oo, i -> point {i}); -- 10 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0776831 
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- number of certified solutions : 32
 
+
+
+-- geneig
+-- There were 10 solutions found in 1.447 seconds (with a Bezout bound of 243).
+load "testExampleSystems.m2"
+J = ideal geneig(QQ)
+maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 3
+elapsedTime sols = zeroDimSolve J; -- 0.0299402 seconds
+#sols -- 10
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
+
+(quotientBasis, S, signature, outputVariables) = ingredients J;
+elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
+-- 15.9242
+sols = apply(oo, i -> point {i}); -- 10 solutions
 
 
 
@@ -359,20 +320,15 @@ J = ideal(1 + y1 + y2 + y3 + y4,
  y1*y2 + y1*y2*y3 + y2*y3*y4 + y3*y4 + y4*y1,
  y1*y2*y3 + y1*y2*y3*y4 + y2*y3*y4 + y3*y4*y1 + y4*y1*y2,
  z0**5*y1*y2*y3*y4  - 1)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 5
 elapsedTime sols = zeroDimSolve J; -- 0.0277107
 #sols -- 14
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.166867
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols2 = apply(oo, i -> point {i}); -- 14 solutions
 -- 91.9528 seconds
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols2) -- 0.0776831 
--- number of certified solutions : 12
--- all solutions are certified after refinement using Newton method.
 
 
 
@@ -401,8 +357,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.0394186 seconds
 #sols -- 70
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.336583
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 I = ideal gens gb J;
 R = ring I;
@@ -425,8 +379,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.503384 seconds
 #sols -- 64
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.474047
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 I = ideal gens gb J;
 R = ring I;
@@ -444,26 +396,6 @@ barebonesSolve(I,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>q
 
 
 
-
--- geneig
--- There were 10 solutions found in 1.447 seconds (with a Bezout bound of 243).
-load "testExampleSystems.m2"
-J = ideal geneig(QQ)
-maxIdeg = max (J_*/degree/sum) -- max degree of gens of J : 3
-elapsedTime sols = zeroDimSolve J; -- 0.0299402 seconds
-#sols -- 10
-sort apply(sols, p -> norm evaluate(gens J, p))
-apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0880489
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-
-(quotientBasis, S, signature, outputVariables) = ingredients J;
-elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
--- 15.9242
-sols = apply(oo, i -> point {i}); -- 10 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0880489
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- all solutions are certified. 
 
 
 
@@ -483,8 +415,6 @@ elapsedTime sols = zeroDimSolve J; -- 3.37624
 #sols -- 128
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.0880489
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 (quotientBasis, S, signature, outputVariables) = ingredients J;
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
@@ -499,8 +429,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.433235
 #sols -- 16 not 58
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.134484
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 I = ideal gens gb J;
 R = ring I;
@@ -528,13 +456,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.754872
 #sols -- 125
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 1.14966
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols) -- random number of solutions are certified
-
-elapsedTime theirs = solveSystem polySystem J; -- 125, 0.182215 seconds.
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), theirs) -- 1.124
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), theirs) -- all certified
-
 
 I = ideal gens gb J;
 R = ring I;
@@ -564,8 +485,6 @@ elapsedTime sols = zeroDimSolve J; -- 1.5318
 #sols -- 144
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.783844
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 
 I = ideal gens gb J;
@@ -589,9 +508,6 @@ elapsedTime sols = zeroDimSolve J; -- 7.41958
 #sols -- 256
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 1.95857
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-#((values oo)#2) -- random number of solutions certified 
 
 I = ideal gens gb J;
 R = ring I;
@@ -616,8 +532,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.0676541
 #sols -- 136
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.687595
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols) -- 128 solutions are certified
 
 
 I = ideal gens gb J;
@@ -643,8 +557,6 @@ elapsedTime sols = zeroDimSolve J -- 0.0377411 seconds
 #sols
 sort apply(sols, p -> norm evaluate(gens J, p))
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.3385
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
 
 
 
@@ -658,7 +570,6 @@ lowerDegGens = select(flatten entries gens I, g -> sum degree g < maxIdeg);
 outputVariables = gens R;
 signature = flatten apply(degDmonoms,m->(apply(J_*|lowerDegGens,f->(m,f))));
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
-elapsedTime barebonesSolve(J,S,x,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- took too long time on lin alg.
 
 
@@ -689,9 +600,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.0310881 seconds
 #sols -- 56 not 64.
 sort apply(sols, p -> norm evaluate(gens J, p)) -- 8 of them are incorrect solutions
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.277
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
-#((values oo)#2) -- number of certified solutions : 24
 
 
 I = ideal gens gb J;
@@ -707,8 +615,6 @@ signature = flatten apply(degDmonoms,m->(apply(J_*|lowerDegGens,f->(m,f))));
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 93.5149
 sols = apply(oo, i -> point {i}); -- 56 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.24913
--- nothing certified
 
 
 -- cassou
@@ -720,16 +626,6 @@ elapsedTime sols = zeroDimSolve J; -- 0.0164434 seconds
 #sols -- 16 not 2.
 sort apply(sols, p -> norm evaluate(gens J, p)) 
 apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.1129
--- nothing certified
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols) -- all of them are not approximate solutions.
-
-
-theirs = solveSystem polySystem J
-alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), theirs) -- not certified. 
--- Why?
-computeConstants(polySystem sub(J, CC[gens ring J]), first theirs) -- small beta, large gamma.
-clean_1e-5 evaluate(jacobian J, first theirs) -- Jacobian with large entries.
 
 
 I = ideal gens gb J;
@@ -746,8 +642,4 @@ elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVa
 -- returns large residual solutions
 -- 159.448 seconds
 sols = apply(oo, i -> point {i}); -- 16 solutions
-elapsedTime certifyRegularSolution(polySystem sub(J, CC[gens ring J]), sols) -- 0.09471
--- nothing certified
-elapsedTime alphaTheoryCertification(polySystem sub(J, CC[gens ring J]), sols)
--- nothing certified.
 

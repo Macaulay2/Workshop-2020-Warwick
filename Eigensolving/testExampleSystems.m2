@@ -162,6 +162,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 2.89916
 sols = apply(oo, i -> point {i}); -- 8 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -182,6 +184,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.0683171
 sols = apply(oo, i -> point {i}); -- 6 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -201,6 +205,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 20.2684
 sols = apply(oo, i -> point {i});
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -218,6 +224,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.72186
 sols = apply(oo, i -> point {i}); -- 2 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -234,6 +242,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 0.498564
 sols = apply(oo, i -> point {i}); -- 11 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -255,6 +265,13 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols = apply(oo, i -> point {i}); -- 46 solutions
 -- 11.8806 seconds 
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
+
+-- refine 'sols' using Newton's method.
+sols = apply(sols, i -> newton(polySystem J, i))
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -272,6 +289,16 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols = apply(oo, i -> point {i}); -- 10 solutions
 -- 3.25115 seconds 
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
+
+-- refine 'sols' using Newton's method.
+sols = apply(sols, i -> newton(polySystem J, i))
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
+
+
+
 
 
 
@@ -292,6 +319,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 23.7229 seconds
 sols = apply(oo, i -> point {i}); -- 10 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -309,6 +338,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 -- 15.9242
 sols = apply(oo, i -> point {i}); -- 10 solutions
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 
@@ -329,6 +360,8 @@ apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 elapsedTime sols = barebonesSolveRevised(J,S,signature,OutputVariables=>outputVariables,QuotientBasis=>quotientBasis) 
 sols2 = apply(oo, i -> point {i}); -- 14 solutions
 -- 91.9528 seconds
+sort apply(sols, p -> norm evaluate(gens J, p))
+apply(sols, p -> areEqual(0,norm evaluate(gens J, p)))
 
 
 

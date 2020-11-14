@@ -1173,7 +1173,7 @@ topologicalSort (Digraph, String) := List => (D,s) -> (
     v := null;
     while S != {} do (
         v = S_0;
-        L = append(L, v);
+        L = L|{v};
         S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
         );
     L

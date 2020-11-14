@@ -223,3 +223,12 @@ installPackage "Graphs"
 viewHelp topologicalSort 
 viewHelp topSort
 viewHelp Graphs
+
+restart
+L = {1,2}
+
+L = L|{3}
+
+L = append(L,4)
+
+

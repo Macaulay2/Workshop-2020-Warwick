@@ -219,6 +219,8 @@ export {
     "spanningForest",
     "vertexMultiplication",
     
+      -- "LabeledGraph",
+    --"labeledGraph",
      "topologicalSort",
     "topSort",
     "SortedDigraph",
@@ -1657,6 +1659,64 @@ vertexMultiplication (Graph, Thing, Thing) := Graph => (G,v,u) -> (
     if member(v, vertexSet G) == false then error "2nd argument must be in the input graph's vertex set";
     graph(append(vertexSet G, u), edges G | apply(toList neighbors (G,v), i -> {i,u}), EntryMode => "edges")
     )
+
+
+
+
+-* 
+
+--This code is written for an older version of Graphs and is not functional with current version of the packages.
+
+graphData = "graphData"
+labels = "labels"
+
+LabeledGraph = new Type of HashTable
+
+labeledGraph = method(TypicalValue =>LabeledGraph)
+labeledGraph (Digraph,List) := (g,L) -> (
+    C := new MutableHashTable;
+    C#cache = new CacheTable from {};
+    lg := new MutableHashTable;
+    lg#graphData = g;
+    label := new MutableHashTable;
+    if instance(g,Graph) then (
+        sg := simpleGraph g;
+        scan(L, i -> 
+            if (sg#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else if (sg#graph#(i#0#1))#?(i#0#0) then label#({i#0#1,i#0#0}) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        )
+    else (
+        scan(L, i -> 
+            if (g#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        );
+    lg#labels = new HashTable from label;
+    C#graph = lg;
+    new LabeledGraph from C
+    )
+
+net LabeledGraph := g -> horizontalJoin flatten (
+     net class g,
+    "{",
+    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
+    "}"
+    )
+
+toString LabeledGraph := g -> concatenate(
+    "new ", toString class g#graph,
+    if parent g#graph =!= Nothing then (" of ", toString parent g),
+    " from {",
+    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
+    "}"
+    )
+
+graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph into a hashtable
+
+*- 
+
 
 
 

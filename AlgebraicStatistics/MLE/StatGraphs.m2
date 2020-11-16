@@ -1,3 +1,12 @@
+-*
+Copyright 2020 Carlos Amendola, Luis David Garcia Puente, Roser Homs Pons, 
+Olga Kuznetsova, Harshit J Motwani.
+
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2 of
+the License, or any later version.
+*-
+
 newPackage(
         "StatGraphs",
         Version => "0.1", 
@@ -22,15 +31,13 @@ newPackage(
 	   Email=> "harshitmotwani2015@gmail.com",
 	   HomePage=> "https://sites.google.com/view/harshitjmotwani/home"}},
         Headline => "Graphs specific for algebraic statistics",
-        DebuggingMode => true,
+        DebuggingMode => false,
 	PackageExports => {"Graphs"}
         )
 
 export {
     "Bigraph",
     "bigraph",
-   -- "LabeledGraph",
-    --"labeledGraph",
     "MixedGraph",
     "mixedGraph",
     "collateVertices",
@@ -49,60 +56,6 @@ bigraph List := opts -> L -> new Bigraph from graph(L, opts)
 bigraph (List, List):= opts -> (V,L) -> new Bigraph from graph(V,L, opts)
 bigraph (List, Matrix) :=  opts -> (V,A) -> new Bigraph from graph(V,A, opts)
 bigraph Matrix := opts -> A -> new Bigraph from graph(A, opts)
-
--* 
-
---This code is written for an older version of Graphs and is not functional with current version of the packages.
-
-graphData = "graphData"
-labels = "labels"
-
-LabeledGraph = new Type of HashTable
-
-labeledGraph = method(TypicalValue =>LabeledGraph)
-labeledGraph (Digraph,List) := (g,L) -> (
-    C := new MutableHashTable;
-    C#cache = new CacheTable from {};
-    lg := new MutableHashTable;
-    lg#graphData = g;
-    label := new MutableHashTable;
-    if instance(g,Graph) then (
-        sg := simpleGraph g;
-        scan(L, i -> 
-            if (sg#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
-            else if (sg#graph#(i#0#1))#?(i#0#0) then label#({i#0#1,i#0#0}) = i#1
-            else error (toString(i#0)|" is not an edge of the graph");
-            );
-        )
-    else (
-        scan(L, i -> 
-            if (g#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
-            else error (toString(i#0)|" is not an edge of the graph");
-            );
-        );
-    lg#labels = new HashTable from label;
-    C#graph = lg;
-    new LabeledGraph from C
-    )
-
-net LabeledGraph := g -> horizontalJoin flatten (
-     net class g,
-    "{",
-    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
-    "}"
-    )
-
-toString LabeledGraph := g -> concatenate(
-    "new ", toString class g#graph,
-    if parent g#graph =!= Nothing then (" of ", toString parent g),
-    " from {",
-    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
-    "}"
-    )
-
-graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph into a hashtable
-
-*- 
 
 
 MixedGraph = new Type of HashTable
@@ -329,7 +282,7 @@ doc ///
     Key
         StatGraphs
     Headline
-        a package for graphs that are used in statistical models.
+        a package for graphs used in statistical models
     Description        
         Text
             This package contains the types of graphs that are used in algebraic 
@@ -374,6 +327,11 @@ doc ///
     	    @TO (forefathers, MixedGraph, Thing)@,
     	    @TO (neighbors, MixedGraph, Thing)@,
 	    @TO (nonneighbors, MixedGraph, Thing)@.
+	    
+	    This package allows to construct loopless mixed graphs (LMG) as introduced in 
+	    Kayvan Sadeghi and Steffen Lauritzen, {\em Markov properties for mixed graphs}, 
+	    Bernoulli 20.2 (2014): 676-696 and to check whether a mixedGraph is an LMG using
+	    @TO partitionLMG@.
 	    	    	       	
     Caveat
        StatGraphs requires  @TO Graphs@ version 0.3.3 or later.
@@ -396,7 +354,7 @@ doc ///
      Bigraph
 
   Headline
-     a simple graph with  bidirected edges. 
+     a graph with bidirected edges and no multiple edges
   Description
      Text  
          Bigraph is a simple graph that has  bidirected edges.
@@ -422,7 +380,7 @@ doc ///
 
     
   Headline
-     this function creates a bigraph 
+     create a bigraph 
   Usage
      G= bigraph(H) 
      G= bigraph(L) 
@@ -463,7 +421,7 @@ doc ///
     [bigraph,EntryMode]
 
   Headline
-     choose among 'auto', 'edges', or 'neighbors' 
+     optional input, accepts 'auto', 'edges', or 'neighbors' 
   Description
       Text
           The options for EntryMode are 'auto'(the default), 'neighbors' and  'edges'.
@@ -491,7 +449,7 @@ doc ///
     [bigraph,Singletons]
 
   Headline
-     list of isolated vertices in a bigraph  
+     optional input, accepts the list of isolated vertices in a bigraph  
   Description
      Example
           bigraph({{1,2},{2,3},{3,4}}, Singletons => {5,6,7})
@@ -511,7 +469,7 @@ doc ///
      MixedGraph
 
   Headline
-     a graph that has undirected, directed and bidirected edges. 
+     a graph that has undirected, directed and bidirected edges 
   Description
      Text  
          MixedGraph is a graph that has undirected, directed and bidirected edges.
@@ -549,7 +507,7 @@ doc ///
      (mixedGraph, Bigraph)
     
   Headline
-     this function creates a mixed graph from a combination of undirected graph, digraph and bigraph 
+     create a mixed graph from a combination of undirected graph, digraph and bigraph 
   Usage
      G= mixedGraph(U, D, B) 
      G= mixedGraph G 
@@ -599,7 +557,7 @@ doc ///
   Key
      (bigraph, MixedGraph)
   Headline
-     Extract the bigraph component of a mixed graph
+     extract the bigraph component of a mixed graph
   Usage
      B=bigraph G
  
@@ -633,7 +591,7 @@ doc ///
   Key
      (digraph, MixedGraph)
   Headline
-     Extract the digraph component of a mixed graph
+     extract the digraph component of a mixed graph
   Usage
      D=digraph G
  
@@ -702,7 +660,7 @@ doc ///
   Key
      (graph, MixedGraph)
   Headline
-     convert mixed graph to a hash table.
+     convert mixed graph to a hash table
   Usage
      U=graph G
  
@@ -741,7 +699,7 @@ doc ///
         (collateVertices, MixedGraph) 
 	
     Headline
-        converts into a new mixed graph where each component subgraph has the same set of vertices.
+        convert a mixed graph into a new mixed graph where each component subgraph has the same set of vertices
     Usage
         collateVertices(G)
     Inputs
@@ -772,7 +730,7 @@ doc ///
     Key 
         (isSimple, MixedGraph) 
     Headline
-        checks whether a mixed graph is simple
+        check whether a mixed graph is simple
     Usage
         isSimple(G)
     Inputs
@@ -823,7 +781,7 @@ doc ///
   Key
      (indexLabelGraph, MixedGraph)
   Headline
-     Relabels the vertices of a mixed graph according to their indices, indexed from 0.
+     relabel the vertices of a mixed graph according to their indices, indexed from 0
   Usage
      G=indexLabelGraph G
  
@@ -861,7 +819,7 @@ doc ///
 	(isLoopless, Bigraph) 
 	(isLoopless, Digraph) 
     Headline
-        checks whether a graph contains a loop
+        check whether a graph contains a loop
     Usage
         isLoopless(G)
     Inputs
@@ -902,7 +860,7 @@ doc ///
         (isCyclic, MixedGraph) 
 	
     Headline
-        checks whether a mixed graph contains a directed cycle
+        check whether a mixed graph contains a directed cycle
     Usage
         isCyclic(G)
     Inputs
@@ -959,7 +917,7 @@ doc ///
         (partitionLMG, MixedGraph) 
 	
     Headline
-        partitions the vertices of a loopless mixed graph into adjacent to undirected edges and adjacent to bidirected edges
+        partition the vertices of a loopless mixed graph into adjacent to undirected edges and adjacent to bidirected edges
     Usage
         partitionLMG(G)
     Inputs
@@ -977,7 +935,11 @@ doc ///
     
             - there is no directed edge $i\to j$ in $G$ such that $i\in W$ and $j\in U$.
     
-           For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
+           These conditions are equivalent to those introduced in Seth Sullivant, Kelli Talaska, and Jan Draisma, 
+	   {\em Trek separation for Gaussian graphical models}, The Annals of Statistics 
+	   38.3 (2010): 1665-1685.
+	   
+	   For technical purposes we assume, without loss of generality, that vertices in the LMG are ordered such that:
       
            1. all vertices in U come before vertices in W,
       
@@ -1023,7 +985,7 @@ doc ///
     (net,MixedGraph)
     
   Headline
-    prints a mixed graph as a  net 
+    print a mixed graph as a  net 
   Usage
     net G
  
@@ -1055,7 +1017,7 @@ doc ///
     (toString, MixedGraph)
     
   Headline
-    prints a mixed graph as a string 
+    print a mixed graph as a string 
   Usage
     toString G
  
@@ -1090,7 +1052,7 @@ doc ///
      (children,MixedGraph,Thing)
     
   Headline
-    returns the children of a vertex of a mixed graph
+    return the children of a vertex of a mixed graph
   Usage
     children (G,v)
  
@@ -1129,7 +1091,7 @@ doc ///
      (parents,MixedGraph,Thing)
     
   Headline
-    returns the parents of a vertex of a mixed graph
+    return the parents of a vertex of a mixed graph
   Usage
     parents (G,v)
  
@@ -1168,7 +1130,7 @@ doc ///
      (descendants,MixedGraph,Thing)
     
   Headline
-    returns the descendents of a vertex of a mixed graph
+    return the descendants of a vertex of a mixed graph
   Usage
     descendents (G,v)
     descendants (G,v)
@@ -1189,7 +1151,7 @@ doc ///
 	the children of each of the children, and continue the process until the list stops growing, this 
 	will form all the descendants of v.
 	
-	The output also includes the vertex v from the input in the set of the descendents.
+	The output also includes the vertex v from the input in the set of the descendants.
     Example
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	descendants (G,1)
@@ -1214,7 +1176,7 @@ doc ///
      (nondescendants,MixedGraph,Thing)
     
   Headline
-    returns the nondescendents of a vertex of a mixed graph
+    return the nondescendents of a vertex of a mixed graph
   Usage
     nondescendents (G,v)
     nondescendants (G,v)
@@ -1254,7 +1216,7 @@ doc ///
      (foreFathers,MixedGraph,Thing)
     
   Headline
-    returns the forefathers of a vertex of a mixed graph 
+    return the forefathers of a vertex of a mixed graph 
   Usage
     foreFathers (G,v)
     foreFathers (G,v)
@@ -1295,7 +1257,7 @@ doc ///
      (neighbors,MixedGraph,Thing)
     
   Headline
-    returns the neighbors of a vertex of a mixed graph
+    return the neighbors of a vertex of a mixed graph
   Usage
     neighbors (G,v)
     neighbors (G,v)
@@ -1334,7 +1296,7 @@ doc ///
      (nonneighbors,MixedGraph,Thing)
     
   Headline
-    returns the neighbors of a vertex of a mixed graph
+    return the neighbors of a vertex of a mixed graph
   Usage
     nonneighbors (G,v)
     nonneighbors (G,v)
@@ -1376,7 +1338,7 @@ doc ///
      (vertexSet, MixedGraph)
     
   Headline
-     creates a union of all vertices of a mixed graph.
+     create a union of all vertices of a mixed graph
   Usage
      V=vertices G
      V=vertexSet G

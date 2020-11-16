@@ -3,13 +3,13 @@ Copyright 2010 Amelia Taylor and Augustine O'Keefe.
 You may redistribute this file under the terms of the GNU General Public
 License as published by the Free Software Foundation, either version 2 of
 the License, or any later version.
+
+
+Copyright 2014: Jack Burkart, David Cook II, Caroline Jansen
+You may redistribute this file under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 2
+of the License, or any later version.
 *-
-
--- Copyright 2014: Jack Burkart, David Cook II, Caroline Jansen
--- You may redistribute this file under the terms of the GNU General Public
--- License as published by the Free Software Foundation, either version 2
--- of the License, or any later version.
-
 ------------------------------------------
 ------------------------------------------
 -- To Do List
@@ -219,6 +219,8 @@ export {
     "spanningForest",
     "vertexMultiplication",
     
+      -- "LabeledGraph",
+    --"labeledGraph",
      "topologicalSort",
     "topSort",
     "SortedDigraph",
@@ -1134,29 +1136,6 @@ spectrum = method()
 spectrum Graph := List => G -> sort toList eigenvalues (adjacencyMatrix G, Hermitian => true)
 
 
--*
-topologicalSort = method()
-topologicalSort Digraph := List => D -> topologicalSort(D, "")
-topologicalSort (Digraph, String) := List => (D,s) -> (
-    if instance(D, Graph) or isCyclic D then error "Topological sorting is only defined for acyclic directed graphs.";
-    s = toLower s;
-    processor := if s == "random" then random
-        else if s == "min" then sort
-        else if s == "max" then rsort
-        else if s == "degree" then L -> last \ sort transpose {apply(L, v -> degree(D, v)), L}
-        else identity;
-    S := processor sources D;
-    L := {};
-    v := null;
-    while S != {} do (
-        v = S_0;
-        L = append(L, v);
-        S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
-        );
-    L
-    )
-*-
-
 
 topologicalSort = method(TypicalValue =>List)
 topologicalSort Digraph := List => D -> topologicalSort(D, "")
@@ -1173,7 +1152,7 @@ topologicalSort (Digraph, String) := List => (D,s) -> (
     v := null;
     while S != {} do (
         v = S_0;
-        L = append(L, v);
+        L = L|{v};
         S = processor join(drop(S, 1), select(toList children (D, v), c -> isSubset(parents(D, c), L)));
         );
     L
@@ -1680,6 +1659,64 @@ vertexMultiplication (Graph, Thing, Thing) := Graph => (G,v,u) -> (
     if member(v, vertexSet G) == false then error "2nd argument must be in the input graph's vertex set";
     graph(append(vertexSet G, u), edges G | apply(toList neighbors (G,v), i -> {i,u}), EntryMode => "edges")
     )
+
+
+
+
+-* 
+
+--This code is written for an older version of Graphs and is not functional with current version of the packages.
+
+graphData = "graphData"
+labels = "labels"
+
+LabeledGraph = new Type of HashTable
+
+labeledGraph = method(TypicalValue =>LabeledGraph)
+labeledGraph (Digraph,List) := (g,L) -> (
+    C := new MutableHashTable;
+    C#cache = new CacheTable from {};
+    lg := new MutableHashTable;
+    lg#graphData = g;
+    label := new MutableHashTable;
+    if instance(g,Graph) then (
+        sg := simpleGraph g;
+        scan(L, i -> 
+            if (sg#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else if (sg#graph#(i#0#1))#?(i#0#0) then label#({i#0#1,i#0#0}) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        )
+    else (
+        scan(L, i -> 
+            if (g#graph#(i#0#0))#?(i#0#1) then label#(i#0) = i#1
+            else error (toString(i#0)|" is not an edge of the graph");
+            );
+        );
+    lg#labels = new HashTable from label;
+    C#graph = lg;
+    new LabeledGraph from C
+    )
+
+net LabeledGraph := g -> horizontalJoin flatten (
+     net class g,
+    "{",
+    stack (horizontalJoin \ sort apply(pairs (g#graph),(k,v) -> (net k, " => ", net v))),
+    "}"
+    )
+
+toString LabeledGraph := g -> concatenate(
+    "new ", toString class g#graph,
+    if parent g#graph =!= Nothing then (" of ", toString parent g),
+    " from {",
+    if #g#graph > 0 then demark(", ", apply(pairs g#graph, (k,v) -> toString k | " => " | toString v)) else "",
+    "}"
+    )
+
+graph LabeledGraph := opts -> g -> g#graph  --used to transform the LabeledGraph into a hashtable
+
+*- 
+
 
 
 
@@ -5125,10 +5162,15 @@ doc ///
         Text
 	    This function outputs a list of vertices in a topologically sorted order of a directed acyclic graph (DAG). 
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    
 	    Permissible values of S are: "random", "max", "min", "degree".
-	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    
+	    S = "random" randomly sort the vertices of graph which have same precedence at any instance of the algorithm to break the ties.
+	    
 	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    
 	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    
 	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
@@ -5157,20 +5199,24 @@ doc ///
 	topSort(D,S)
     Inputs
         D:Digraph
-	S: String
-	  needs to be a directed acyclice graph DAG  
+	S: String 
     Outputs
          :HashTable 
     Description 
         Text
 	    This method outputs a HashTable with keys digraph, map and newDigraph, where digraph is the original digraph,
 	    map is the relation between old ordering and the new ordering of vertices and newDigraph is the Digraph with 
-	    topologically sorted vertices.
+	    topologically sorted vertices. This method needs the input to be directed adyclic graph (DAG).
 	    S provides the preference given to the vertices in order to break ties and provide unique topological sorting to the DAG.
+	    
 	    Permissible values of S are: "random", "max", "min", "degree".
-	    S = "random" randomly sort the vertices of graph which have same precednce at any instance of the algorithm to break the ties.
+	    
+	    S = "random" randomly sort the vertices of graph which have same precedence at any instance of the algorithm to break the ties.
+	    
 	    S = "min" sort the vertices according to their indices (from low to high) to break the ties.
+	    
 	    S = "max" sort the vertices according to their indices (from high to low) to break the ties.
+	    
 	    S = "degree" sort the vertices according to their degree (from low to high) to break the ties.
 
         Example
@@ -5197,7 +5243,8 @@ doc ///
         hashtable used in topSort
     Description 
         Text
-	    This is a new type of hashtable used in the output of topSort.
+	    This is a type of hashtable.The output of @TO topSort@ has class {\tt SortedDigraph}. In the current version of 
+	    Graphs (version 0.3.3) the only use of SortedDigraph is in @TO topSort@.
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
 	   H = topSort G
@@ -5216,7 +5263,7 @@ doc ///
         key used in the output of topSort
     Description 
         Text
-	    This is one of the keys of the hashtable output (SortedDigraph) of topSort.
+	    This is a key of the hashtable output @TO SortedDigraph@  of @TO topSort@. 
         Example
 	   G = digraph{{5,2},{5,0},{4,0},{4,1},{2,3},{3,1}}
 	   H = topSort G

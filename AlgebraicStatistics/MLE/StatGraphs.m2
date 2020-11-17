@@ -259,7 +259,6 @@ isCyclic MixedGraph := Boolean => g -> (
     vertOnlyDir:=vertices D - set vertices U - set vertices B;
     allComp:=flatten  {connectedComponents U,connectedComponents B, pack(vertOnlyDir,1)};
     n:=# compU + # compB + #vertOnlyDir;
-    --if n==1 then not edges D=={} else(
     adjMG:=mutableMatrix(ZZ,n,n);
     -- form the adjacency matrix of the graph of chain components 
     for i from 0 to  n - 1 do
@@ -270,7 +269,6 @@ isCyclic MixedGraph := Boolean => g -> (
 
     adjMG=matrix adjMG;
     isCyclic (digraph adjMG))  
-    --);
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    -- 

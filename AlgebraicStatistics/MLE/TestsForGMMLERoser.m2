@@ -801,3 +801,209 @@ inverse (id_(R^4)-L)
        J = delete(0_R, flatten entries (L|W))
        eliminate(J, ideal(S-M))
        gaussianVanishingIdeal(R)
+
+---append in partitionLMG
+restart
+needsPackage "StatGraphs"
+G2=digraph{{1,2},{1,3},{1,4}}
+L=new MutableList from vertices(G2)
+max L
+
+---Examples for the paper
+restart
+loadPackage "StatGraphs";
+G=mixedGraph(graph{{1,2},{2,3},{1,3}},digraph{{1,4},{3,7}},bigraph{{4,5},{5,6},{7,8}});
+partitionLMG G
+loadPackage "GraphicalModels";
+R=gaussianRing G;
+gens R
+undirectedEdgesMatrix R	   
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+covarianceMatrix R
+
+	Text
+	  The vertices that are adjacent only to directed edges are sorted depending on their order.
+	  If  v  is such a vertex and v < max U, then v is added to U. Otherwise, it is added to W. 
+	Example       	   
+	   U = graph{{2,3},{3,4},{4,2}}
+	   D = digraph{{1,2},{2,5},{4,9}}
+	   B = bigraph{{5,6},{6,7},{8,9}}
+	   G = mixedGraph(U,D,B)
+	   partitionLMG G
+	   	   
+	Example       	   
+	   U = graph{{1,2},{2,3},{1,3}}
+	   D = digraph{{1,4},{3,7},{8,9}}
+	   B = bigraph{{4,5},{5,6},{7,9}}
+	   G = mixedGraph(U,D,B)
+	   partitionLMG G
+	   
+restart
+loadPackage "StatGraphs";	   
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}});
+partitionLMG G
+loadPackage "GraphicalModels";
+R=gaussianRing G;
+gens R
+undirectedEdgesMatrix R	   
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+covarianceMatrix R
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{2,4},{3,4}},bigraph {{3,4}});
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+solverMLE(G,S,SampleData=>false)
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{2,4},{3,4}},bigraph {{3,4}},graph{{1,2}});
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+solverMLE(G,S,SampleData=>false)
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{1,2},{2,4},{3,4}},bigraph {{3,4}},graph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J  --1
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph{{1,2}},graph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+K=undirectedEdgesMatrix R
+L=matrix{{1,0},{0,1}}-directedEdgesMatrix R
+inverse L
+inverse K
+bidirectedEdgesMatrix R
+Sigma=transpose(inverse L)*inverse K*inverse L
+--S =  matrix {{7/20, 13/50}, {13/50, 73/100}};
+X=random(QQ^2,QQ^2)
+S=X*transpose(X)
+J=scoreEquations(R,S,SampleData=>false)
+dim J  --1
+degree J
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph{{1,2}},bigraph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+
+X=random(QQ^2,QQ^2)
+S=X*transpose(X)
+J=scoreEquations(R,S,SampleData=>false)
+dim J  --1
+degree J --2
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph{{1,2}},bigraph{{1,2}},graph{{1,2}});
+isLoopless G
+isCyclic G --true but this is not the problem, edges of 3 types shouldn't be allowed
+--partitionLMG checks that Vertices cannot be adjacent to bidirected and undirected edges simultaneously.
+partitionLMG G
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(bigraph{{1,2}},graph{{1,2}});
+isLoopless G
+isCyclic G 
+partitionLMG G
+--Error: Vertices cannot be adjacent to bidirected and undirected edges simultaneously.
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50}, {13/50, 73/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J  --0
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph{{1,2}},graph{{1,2}},bigraph{{3,4}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J  --1
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{1,2},{2,4},{3,4}},graph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J --1
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{2,4},{3,4}},graph{{1,2}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J --0
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false
+
+restart
+loadPackage "GraphicalModelsMLE";
+G = mixedGraph(digraph {{1,3},{1,2},{2,4},{3,4}});
+partitionLMG G
+R = gaussianRing G
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+S =  matrix {{7/20, 13/50, -3/50, -19/100}, {13/50, 73/100, -7/100, -9/100},{-3/50, -7/100, 2/5, 3/50}, {-19/100, -9/100, 3/50, 59/100}};
+J=scoreEquations(R,S,SampleData=>false)
+dim J --0
+solverMLE(G,S,SampleData=>false)
+isCyclic G --false

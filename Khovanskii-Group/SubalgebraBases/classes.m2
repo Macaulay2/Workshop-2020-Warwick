@@ -268,7 +268,6 @@ leadTerm (MonomialValuation, RingElement) := (v, f) -> (
     leadTerm f
     )
 
-
 -- set a weight on the ambient ring that induces a weight on the presentation ring
 setWeight = method()
 setWeight (Subring, List) := (A, W) -> (

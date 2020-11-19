@@ -9,8 +9,7 @@ newPackage(
 		  HomePage => "http://www.math.cornell.edu/~mike/"}},
     	Headline => "Canonical subalgebra bases (aka SAGBI/Khovanskii bases)",
 	AuxiliaryFiles => true, -- set to true if package comes with auxiliary files
---  	DebuggingMode => false,
-  	DebuggingMode => true		 -- set to true only during development
+  	DebuggingMode => true -- set to true only during development
     	)
 
 export {"evaluate"}
@@ -23,6 +22,7 @@ exportMutable {}
 --load "SubalgebraBases/sagbieng.m2"
 --load "SubalgebraBases/sagbi-tests.m2"
 *-
+
 needs "./SubalgebraBases/classes.m2"
 needs "./SubalgebraBases/service-functions.m2"
 needs "./SubalgebraBases/main.m2"
@@ -30,6 +30,7 @@ needs "./SubalgebraBases/toric_syz.m2"
 needs "./SubalgebraBases/subring_modules.m2"
 needs "./SubalgebraBases/tests.m2"
 needs "./SubalgebraBases/print_util.m2"
+needsPackage "Serialization"
 
 beginDocumentation()
 needs "./SubalgebraBases/documentation.m2"

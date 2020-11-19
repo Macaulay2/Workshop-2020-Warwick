@@ -61,12 +61,12 @@ submatByDegree = (inputMatrix, currDegree) -> (
 -- Reduces the lowest degree in subalgComp#"Pending", updating subalgComp#"Pending" and subalgComp#"sagbiGB".
 -- The various maps, tensor ring, and syzygy ideal are updated to reflect this change.
 -- !!!Assumes that the pending list has been subducted!!! 
-   -- R is the subalgebra.
+   -- subR is the subalgebra.
    -- maxDegree is the degree limit.
-processPending = (R, maxDegree) -> (
+processPending = (subR, maxDegree) -> (
 
-    subalgComp := R.cache.SubalgComputations;
-    currentLowest := lowestDegree(R, maxDegree);
+    subalgComp := subR.cache.SubalgComputations;
+    currentLowest := lowestDegree(subR, maxDegree);
     if currentLowest <= maxDegree then (
        
        	-- remove redundant elements of the lowest degree in subalgComp#"Pending".
@@ -78,11 +78,11 @@ processPending = (R, maxDegree) -> (
 	    );
 	
 	(subalgComp#"Pending")#currentLowest = {};
-    	insertPending(R, reducedGenerators, maxDegree);
-    	currentLowest = lowestDegree(R, maxDegree);
+    	insertPending(subR, reducedGenerators, maxDegree);
+    	currentLowest = lowestDegree(subR, maxDegree);
 	
     	if currentLowest <= maxDegree then (	    
-            appendToBasis(R, matrix{(subalgComp#"Pending")#currentLowest});
+            appendToBasis(subR, matrix{(subalgComp#"Pending")#currentLowest});
             (subalgComp#"Pending")#currentLowest = {};
 	    );
     	);

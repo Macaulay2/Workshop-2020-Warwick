@@ -124,8 +124,6 @@ sagbi(List) := o -> L -> (
 -- PrintLevel > 0: Print some information each loop, but don't print any polynomials.
 -- PrintLevel > 1: Print new Sagbi gens.
 sagbi(Subring) := o -> R -> (
-    
-    
     if o.Autosubduce then(
 	if o.PrintLevel > 0 then (
 	    print("Performing initial autosubduction...");
@@ -143,7 +141,6 @@ sagbi(Subring) := o -> R -> (
     nLoops := null;
     R.cache.SagbiDone = false;
     syzygyPairs := null;
-    newElems := null;
     
     subalgComp#"Pending" = new MutableList from toList(o.Limit+1:{});
     R.cache.SagbiGens = matrix(ambient R,{{}});
@@ -159,16 +156,18 @@ sagbi(Subring) := o -> R -> (
     isPartial := false;
      
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
-	if (o.PrintLevel > 0) then (
+	if o.PrintLevel > 0 then (
 	    print("---------------------------------------");
 	    print("-- Current degree:"|toString(currDegree));
 	    print("---------------------------------------");
 	    );	
 	partialSagbi := subalgComp#"PartialSagbi";
 	pres := partialSagbi#"PresRing";
-
+    	if o.PrintLevel > 0 then (
+    	    print("-- Computing the kernel of the substitution homomorphism to the initial algebra...");
+	    );
 	partialSagbi.cache#"SyzygyIdealGB" = gb(pres#"SyzygyIdeal", DegreeLimit => currDegree);
-	sagbiGB := partialSagbi.cache#"SyzygyIdealGB";
+	sagbiGB := partialSagbi.cache#"SyzygyIdealGB"; 
 	zeroGens := submatByDegree(mingens ideal selectInSubring(1, gens sagbiGB), currDegree);
 	syzygyPairs = pres#"Substitution"(zeroGens);
 	
@@ -179,16 +178,21 @@ sagbi(Subring) := o -> R -> (
             );
 	
 	if o.PrintLevel > 0 then(
-	    print("-- Number of S-pairs:"|toString(numcols syzygyPairs));
-	    );	
+    	    print("-- Performing subduction on S-polys... ");
+	    print("-- Num. S-polys before subduction:"|toString(numcols syzygyPairs));
+	    );
 	
        	subd := subduction(partialSagbi, syzygyPairs);
-
+	
+	local newElems;
        	if entries subd != {{}} then (
-	    subducted := (pres#"ProjectionBase")(subd);
-	    newElems = compress subducted;
+	    newElems = compress ((pres#"ProjectionBase")(subd));
             ) else (
 	    newElems = subd;
+	    );
+	
+	if o.PrintLevel > 0 then(
+	    print("-- Num. S-polys after subduction:"|toString(numcols newElems));
 	    );	
 	
 	if o.PrintLevel > 1 then(
@@ -200,7 +204,7 @@ sagbi(Subring) := o -> R -> (
 		debugPrintMat(newElems);
 		);
 	    );
-	
+
 	if numcols newElems > 0 then (	    
 	    insertPending(R, newElems, o.Limit);
     	    processPending(R, o.Limit);
@@ -212,6 +216,7 @@ sagbi(Subring) := o -> R -> (
 	    C2 := currDegree > maxGensDeg; 
 	    
 	    if o.PrintLevel > 0 then(
+		print("-- No new generators found. ");
 		print("-- Stopping conditions:");
 		print("--    No higher degree candidates: "|toString(C0));
 		print("--    S-poly ideal GB completed:   "|toString(C1));

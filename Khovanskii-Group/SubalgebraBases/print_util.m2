@@ -3,7 +3,7 @@ export{
     "debugPrintAllMaps",
     "debugPrintGens",
     "debugPrintMat",
-    "StrWidth"    
+    "StrWidth"
     }
 
 debugPrintMap = method()
@@ -77,7 +77,6 @@ debugPrintGens(Subring) := o -> subR -> (
 	print(final);
 	);
     );
-
 
 -- Given a one row matrix of polynomials, nicely prints the entries
 debugPrintMat = method(Options => {StrWidth => 125})

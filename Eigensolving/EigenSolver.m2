@@ -2,10 +2,22 @@ newPackage(
     "EigenSolver",
     Version => "0.1", 
     Date => "June 2020",
-    Authors => {{Name => "", 
-	    Email => "", 
-	    HomePage => ""}},
-    Headline => "polynomial system solver relying on eigen-computations",
+    Authors => {
+        {Name => "Laurent Busé", 
+        Email => "Laurent.Buse@inria.fr"},
+        {Name => "Justin Chen", 
+        Email => "justin.chen@math.gatech.edu"},
+        {Name => "Kisun Lee", 
+        Email => "kil004@ucsd.edu"},
+        {Name => "Anton Leykin", 
+        Email => "anton.leykin@gmail.com"},
+        {Name => "Tomas Pajdla", 
+        Email => "pajdla@cvut.cz"},
+        {Name => "Erika Pirnes", 
+        Email => "pirnes@wisc.edu"}
+    },
+    Headline => "polynomial system solver via eigen-computations",
+    Keywords => {"Numerical Algebraic Geometry"},
     PackageExports => {"NumericalAlgebraicGeometry"},
     AuxiliaryFiles => false,
     DebuggingMode => false
@@ -109,7 +121,6 @@ eigSolveP2 Ideal := List => opts -> J -> ( -- currently assumes dim R = 2 et 2 (
     EVect := D0*EVec; 
     << "numerical rank of D0=" << numericalRank D0 << endl;
     apply(#EVal, i -> point{{EVal_i,EVect_(2,i)/EVect_(0,i)}}) -- BE CAREFULL: we are assuming that the three rows are indexed by 1,x1,x2.
-           
 )
 
 -- needs "laurent-eigensolving.m2"
@@ -176,6 +187,90 @@ I=ideal{jacobian ideal{determinant(K2)}-determinant(K2)*jacobian(ideal{trace(K2*
 J=saturate(I,ideal{determinant(K2)})
 sols = zeroDimSolve J
 assert(#sols == 5)
+///
+
+beginDocumentation()
+
+doc ///
+    Key
+        EigenSolver
+    Headline
+        polynomial system solver via eigen-computations
+    Description
+        Text
+	    This package implements a solver for zero-dimensional polynomial systems
+            based on eigenvalue/eigenvector computations. The theoretical basis for this is
+            Stickelberger's Theorem (cf. [1, Theorem 2.6], also [2]), which states that if 
+            I is a zero-dimensional ideal in a polynomial ring $R$ over an algebraically closed 
+            field $k$, then the points of V(I) can be obtained as eigenvalues of multiplication 
+            matrices corresponding to variables, on the finite-dimensional $k$-vector space $R/I$.
+            
+            Since the main solving is done via linear algebra, this solver can be significantly quicker
+            than other solvers performing nonlinear computations. However, a Grobner basis of the
+            ideal I is still needed, e.g. in order to obtain the sizes of the multiplication matrices.
+	    
+        Example
+            needsPackage "ExampleSystems"
+            I = ideal cyclic(6, QQ)
+            elapsedTime sols = zeroDimSolve I;
+            #sols -- 156 solutions
+        Text
+            The authors would like to acknowledge the June 2020 Macaulay2 workshop held 
+            virtually at Warwick, where this package was first developed.
+    	Text
+            {\bf References}:
+        Code
+            UL {
+                "[1] Sturmfels, Bernd. Solving systems of polynomial equations. No. 97. American Mathematical Soc., 2002",
+		"[2] Cox, David A. Stickelberger and the Eigenvalue Theorem. https://arxiv.org/abs/2007.12573"
+            }
+///
+
+doc ///
+    Key
+        zeroDimSolve
+        (zeroDimSolve, Ideal)
+        Basis
+        Multiplier
+    Headline
+        zero-dimensional polynomial system solver
+    Usage
+        zeroDimSolve(I)
+    Inputs
+        I:Ideal
+            a zero-dimensional ideal
+    Outputs
+        :List
+            of points on V(I)
+    Description
+        Text
+	    This function is a general-purpose solver for zero-dimensional 
+            polynomial systems. The default {\tt Strategy} is {\tt "Stickelberger"}, 
+            which leverages Stickelberger's theorem to compute the coordinates
+            of solution points as (joint) eigenvalues of multiplication matrices
+            corresponding to the variables of the ring.
+            
+            The option {\tt Multiplier} allows the user to specify the linear form
+            used to construct the multiplication matrix. For example, if the ambient
+            polynomial ring is $QQ[x,y,z]$ and only the $y$-coordinates of solutions
+            are needed, then one can specify {\tt Multiplier => y} (and ignore the
+            coordinates of other solution points). By default, a random linear form is 
+            used: due to this, it may be helpful to run this function a couple of times
+            to minimize the likelihood of a "bad" linear form being chosen.
+            
+            The option {\tt Basis} allows the user to specify a basis of the quotient
+            $R/I$, if one is known. The default value is null, in which case a basis
+            for $R/I$ will be computed via a Grobner basis computation.
+            
+            In general, {\tt Strategy => "Stickelberger"} does not require the
+            input ideal I to be radical, so solutions may appear with multiplicity:
+        Example
+            R = QQ[x,y]
+            I = ideal"x2,xy,y3"
+            sols = zeroDimSolve I
+            #sols == 4 and all(sols, p -> clean(1e-16, matrix p) == 0)
+    SeeAlso
+    	solveSystem
 ///
 
 end--

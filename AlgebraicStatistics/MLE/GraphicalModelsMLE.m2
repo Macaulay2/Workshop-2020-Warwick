@@ -1774,8 +1774,8 @@ V =matrix{{5,1,3,2},{1,5,1,6},{3,1,5,1},{2,6,1,5}}
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix=>true)
 assert(round(4,mx)==-10.1467)
 assert(ML==5)
-assert(round(6,MLE_(0,2))==.541381)
-assert(round(6,MLE_(1,3))==.541381)
+assert(round(6,MLE_(0,1))== -.038900)
+assert(round(6,MLE_(3,1))== 0)
 ///
 
 
@@ -1785,9 +1785,9 @@ U=matrix{{1, 2, 5, 1}, {5, 3, 2, 1}, {4, 3, 5, 10}, {2, 5,1, 3}}
 (mx,MLE,ML)= solverMLE (G,U,ChooseSolver=>"NAG4M2")
 assert(round(5,mx)==-8.4691)
 assert(ML==1)
-assert(MLE_(1,0)==0)
-assert(round(6,MLE_(1,1))== .842105)
-assert(round(6,MLE_(3,2))== -.111056)
+assert(MLE_(2,0)==0)
+assert(round(6,MLE_(1,1))== 1.1875)
+assert(round(6,MLE_(3,2))==   3.264929)
 ///
 --------------------------------------
 --------------------------------------

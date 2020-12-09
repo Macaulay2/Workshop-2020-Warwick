@@ -111,7 +111,8 @@ genListMatrix = (L,A) ->
 ----------------------------------------------
 maxMLE=(L,V)->(
     if #L==0 then  error("No critical points to evaluate");
-    if #L==1 then  (E:=inverse L_0; maxPt:=log det L_0- trace (V*L_0))
+--    if #L==1 then  (E:=inverse L_0; maxPt:=log det L_0- trace (V*L_0))
+    if #L==1 then  (E:=L_0; maxPt:=log det L_0- trace (V*L_0))
     else 
     	(eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
 	evalReal:={};

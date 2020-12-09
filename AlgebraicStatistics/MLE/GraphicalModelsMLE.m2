@@ -682,13 +682,13 @@ doc ///
       R=QQ[x,y];
       M=matrix{{115,-13,x,47},{-13,5,7,y},{x,7,27,-21},{47,y,-21,29}}
      Text   
-      Unknown entries correspond to the non-edges of the 4-cycle. The positive definite completion of this matrix
-      is obtained by giving values to x and y and computing the MLE for the concentration matrix in the Gaussian graphical model 
+      Unknown entries correspond to the non-edges of the 4-cycle. A positive definite completion of this matrix
+      is obtained by giving values to x and y and computing the MLE for the covariance matrix in the Gaussian graphical model 
       given by the 4-cycle. Check @TO solverMLE@ for more details.
      Example
       G=graph{{1,2},{2,3},{3,4},{1,4}};
       V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}};
-      (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+      (mx,MLE,ML)=solverMLE(G,V,SampleData=>false)
       
     Caveat
      GraphicalModelsMLE requires @TO Graphs@,  @TO StatGraphs@ and  @TO GraphicalModels@. 
@@ -1610,8 +1610,8 @@ doc ///
           R=QQ[x,y];
           M=matrix{{115,-13,x,47},{-13,5,7,y},{x,7,27,-21},{47,y,-21,29}}
         Text   
-          Unknown entries correspond to non-edges of the 4-cycle. The positive definite completion of this matrix
-          is obtained by giving values to x and y and computing the MLE for the concentration matrix in the Gaussian graphical model 
+          Unknown entries correspond to non-edges of the 4-cycle. A positive definite completion of this matrix
+          is obtained by giving values to x and y and computing the MLE for the covariance matrix in the Gaussian graphical model 
           given by the 4-cycle. To understand which values of x and y will result in a maximum likelihood estimate,
 	  see Example 12.16 in the book: Mateusz Michalek and Bernd Sturmfels,
 	  {\em Invitation to Nonlinear Algebra}, Graduate Studies in Mathematics, Vol ???, American Mathematical Society, 2021.
@@ -1619,9 +1619,10 @@ doc ///
         Example
           G=graph{{1,2},{2,3},{3,4},{1,4}};
           V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}}
-          (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+          (mx,MLE,ML)=solverMLE(G,V,SampleData=>false)
         Text
-	  The MLE of the concentration matrix is the positive definite completion of the matrix M.
+	  The MLE of the covariance matrix is the unique positive definite completion of the matrix M such that its inverse, namely the concentration matrix, 
+	  has zero's in the entries corresponding to non-edges of the graph.
 	  Observe that all entries of V remain the same in the MLE except for those that correspond to non-edges of the graph.
 	       	
     SeeAlso				

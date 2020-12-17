@@ -42,6 +42,7 @@ newPackage(
 	   HomePage=>"http://faculty.fordham.edu/dswinarski"}
 	  },
      Headline => "maximum likelihood estimates for graphical statistical models",
+     --Keywords => {"Algebraic Statistics"},
      DebuggingMode => false,
      PackageExports => {"GraphicalModels","Graphs","EigenSolver","NumericalAlgebraicGeometry","StatGraphs"}
      )
@@ -352,6 +353,9 @@ MLdegree(Ring):= (R) -> (
    if not R.?graph then error "Expected gaussianRing created from a graph, digraph, bigraph or mixedGraph";
    n:=# vertices R.graph;
    J:=scoreEquations(R,random(QQ^n,QQ^n));
+   dimJ := dim J;
+   if dimJ > 0 then error concatenate("the ideal of score equations has dimension ",toString dimJ, " > 0, 
+       so ML degree is not well-defined. The degree of this ideal is ", toString degree J,".");
    return degree J;
 );
 
@@ -1786,7 +1790,7 @@ U=matrix{{1, 2, 5, 1}, {5, 3, 2, 1}, {4, 3, 5, 10}, {2, 5,1, 3}}
 (mx,MLE,ML)= solverMLE (G,U,ChooseSolver=>"NAG4M2")
 assert(round(5,mx)==-8.4691)
 assert(ML==1)
-assert(MLE_(2,0)==0)
+assert(round(6,MLE_(2,0))==0)
 assert(round(6,MLE_(1,1))== 1.1875)
 assert(round(6,MLE_(3,2))==   3.264929)
 ///

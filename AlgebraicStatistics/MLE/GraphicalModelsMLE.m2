@@ -352,7 +352,7 @@ MLdegree = method(TypicalValue =>ZZ);
 MLdegree(Ring):= (R) -> (
    if not R.?graph then error "Expected gaussianRing created from a graph, digraph, bigraph or mixedGraph";
    n:=# vertices R.graph;
-   J:=scoreEquations(R,random(QQ^n,QQ^n));
+   J:=scoreEquations(R,random(RR^n,RR^n));
    dimJ := dim J;
    if dimJ > 0 then error concatenate("the ideal of score equations has dimension ",toString dimJ, " > 0, 
        so ML degree is not well-defined. The degree of this ideal is ", toString degree J,".");

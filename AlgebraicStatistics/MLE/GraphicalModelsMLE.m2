@@ -43,7 +43,7 @@ newPackage(
 	  },
      Headline => "maximum likelihood estimates for graphical statistical models",
      --Keywords => {"Algebraic Statistics"},
-     DebuggingMode => false,
+     DebuggingMode => true,
      PackageExports => {"GraphicalModels","Graphs","EigenSolver","NumericalAlgebraicGeometry","StatGraphs"}
      )
 export {
@@ -132,7 +132,7 @@ maxMLE=(L,V)->(
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
-scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53}>>opts->(R,U)->(
+scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53, CovarianceMatrix => false}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -205,7 +205,7 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
 ----------------------------------------------------
 --scoreEquationsInternalUndir for undirected graphs
 ----------------------------------------------------
-scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53}>>opts->(R,U)->(    
+scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53, CovarianceMatrix => false}>>opts->(R,U)->(    
     -- Sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
     if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
@@ -268,7 +268,7 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquations = method(TypicalValue =>Sequence, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate,RealPrecision=>53,CovarianceMatrix=>false});
+scoreEquations = method(TypicalValue =>Sequence, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate, RealPrecision => 53, CovarianceMatrix => false});
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input

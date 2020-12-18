@@ -1,42 +1,129 @@
---Example 4-cycle
+uninstallPackage "Graphs"
+uninstallPackage "StatGraphs"
+uninstallPackage "GraphicalModels"
+uninstallPackage "EigenSolver"
+uninstallPackage "GraphicalModelsMLE"
+
+installPackage "Graphs"
+check Graphs
+installPackage "StatGraphs"
+check StatGraphs
+installPackage "GraphicalModels"
+check GraphicalModels
+installPackage "EigenSolver"
+check EigenSolver
+installPackage "GraphicalModelsMLE"
+check GraphicalModelsMLE
+
+
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+--                                                                                       --
+--                          EXAMPLES IN JSAG PAPER                                       --
+--                                                                                       --
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------
+-- Undirected 4-cycle                                                                    --
+-------------------------------------------------------------------------------------------
+-- Connection to PD matrix completion problem
+
 restart
+
+-- Example 3.2
 loadPackage "GraphicalModelsMLE";    
-G=graph{{1,2},{2,3},{3,4},{4,1}};
---U=random(RR^4,RR^4);
---S=sampleCovarianceMatrix(U)
---toString S
-S=matrix {{.105409, -.0745495, -.0186132, .0621907}, {-.0745495, .0783734, -.00844503,
-     -.0872842}, {-.0186132, -.00844503, .128307, .0230245}, {.0621907, -.0872842, .0230245,
-     .109849}};
+G=graph{{1,2},{2,3},{3,4},{4,1}}; 
+S=matrix{{.105409, -.0745495, -.0186132, .0621907},{-.0745495, .0783734,-.00844503,-.0872842},{-.0186132, -.00844503, .128307, .0230245},{.0621907, -.0872842, .0230245,.109849}};
 solverMLE(G,S,SampleData=>false)
 
-R=gaussianRing G
-loadPackage "DeterminantalRepresentations"
-scoreEquations(R,roundMatrix(6,random(RR^4,RR^4)));
-dim oo, degree oo   
-scoreEquations(R,roundMatrix(53,random(RR^4,RR^4)));
-dim oo, degree oo   
-scoreEquations(R,random(RR^4,RR^4));
-dim oo, degree oo   
+-- Example 4.2
+U=matrix{{3,5,9,5},{1,6,1,5},{2,9,6,6},{2,5,0,4}};
+J=scoreEquations(gaussianRing G,U);
+dim J
+
+-- Example 5.2
+MLdegree(gaussianRing G)
 
 
+-------------------------------------------------------------------------------------------
+-- Multiples edges                                                                       --
+-------------------------------------------------------------------------------------------
 -- Example with a multiple edge and positive dimension of score eq ideal
+
 restart
+
+--Example 4.4
 loadPackage "GraphicalModelsMLE";    
-G=mixedGraph(digraph{{1,3},{1,2},{2,4},{3,4}},graph{{1,2}})
-MLdegree gaussianRing G
+G = mixedGraph(digraph{{1,3},{1,2},{2,4},{3,4}},graph{{1,2}});
+R = gaussianRing G;
+U = random(RR^4,RR^4);
+J=scoreEquations(R,U);
+dim J
 
-R=gaussianRing G
-loadPackage "DeterminantalRepresentations"
-scoreEquations(R,roundMatrix(6,random(RR^4,RR^4)));
-dim oo, degree oo   
-scoreEquations(R,roundMatrix(53,random(RR^4,RR^4)));
-dim oo, degree oo   
-scoreEquations(R,random(RR^4,RR^4));
-dim oo, degree oo   
+--Example 5.3
+MLdegree(gaussianRing G)
 
 
---Example with all types of edges
+-------------------------------------------------------------------------------------------
+-- Mixed graph with all type of edges                                                    --
+-------------------------------------------------------------------------------------------
+-- Example with 2 local maxima in the log-likelihood function
+
+restart
+
+--Example 3.3
+loadPackage "GraphicalModelsMLE";    
+G = mixedGraph(digraph{{1,3},{2,4}},bigraph {{3,4}},graph{{1,2}});
+S=matrix {{34183/50000, 716539/10000000, 204869/250000, 12213/25000}, 
+        {716539/10000000, 112191/500000, 309413/1000000, 1803/4000}, 
+        {204869/250000, 309413/1000000, 3849/3125,15172/15625}, 
+        {12213/25000, 1803/4000, 15172/15625, 4487/4000}};
+solverMLE(G,S,SampleData=>false)
+
+--Example 4.3
+R = gaussianRing G;
+(J,Sigma)=scoreEquations(R,S,SampleData=>false,CovarianceMatrix=>true);
+dim J, degree J
+sols=zeroDimSolve(J);netList sols
+checkPD(apply(sols,i->sub(Sigma,matrix{coordinates(i)})))
+-- compute Jacobian matrix (i.e. score equations)
+scoreEq=-1/det Sigma*jacobianMatrixOfRationalFunction(det Sigma)-jacobianMatrixOfRationalFunction(trace(S*(inverse Sigma)));
+-- compute Hessian matrix
+Hessian=matrix for f in flatten entries scoreEq list flatten entries jacobianMatrixOfRationalFunction(f);
+--compute eigenvalues of the Hessian matrix evaluated at real points in sols
+apply({sols_0,sols_1,sols_4},i->eigenvalues sub(Hessian,matrix{coordinates(i)}))
+
+-- Extra info (not in the paper)
+MLdegree R
+
+-- Example 6.1
+restart
+loadPackage "StatGraphs";
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph{{3,4}},graph{{1,2}});
+partitionLMG G
+
+-- Example 6.2
+restart
+loadPackage "GraphicalModels";
+G = mixedGraph(digraph {{1,3},{2,4}},bigraph{{3,4}},graph{{1,2}});
+R=gaussianRing G;
+undirectedEdgesMatrix R
+directedEdgesMatrix R
+bidirectedEdgesMatrix R
+covarianceMatrix R
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+
+-- OLD TESTS 
 restart
 loadPackage "GraphicalModelsMLE";    
 G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}},graph {{1,2}});
@@ -47,6 +134,7 @@ dim oo, degree oo
 scoreEquations(gaussianRing G,S,SampleData=>false);
 dim oo, degree oo   
 solverMLE(G,S,SampleData=>false,ConcentrationMatrix=>true)
+
 
 
 restart
@@ -386,4 +474,26 @@ netList sols;
 MM=genListMatrix(sols,H);
 for m in MM list eigenvalues m
 -- 1 local maxima (all eigenvalues are negative) and 1 saddle point (both negative and positive) 
+
+
+
+
+-- 4-cycle example
+G=graph{{1,2},{2,3},{3,4},{4,1}};
+--U=random(RR^4,RR^4);
+--S=sampleCovarianceMatrix(U)
+--toString S
+S=matrix {{.105409, -.0745495, -.0186132, .0621907}, {-.0745495, .0783734, -.00844503,
+     -.0872842}, {-.0186132, -.00844503, .128307, .0230245}, {.0621907, -.0872842, .0230245,
+     .109849}};
+solverMLE(G,S,SampleData=>false)
+
+R=gaussianRing G
+loadPackage "DeterminantalRepresentations"
+scoreEquations(R,roundMatrix(6,random(RR^4,RR^4)));
+dim oo, degree oo   
+scoreEquations(R,roundMatrix(53,random(RR^4,RR^4)));
+dim oo, degree oo   
+scoreEquations(R,random(RR^4,RR^4));
+dim oo, degree oo   
 

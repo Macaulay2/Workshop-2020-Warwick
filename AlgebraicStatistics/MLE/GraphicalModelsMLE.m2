@@ -849,6 +849,44 @@ doc ///
     
 doc ///
   Key
+    CovarianceMatrix
+  Headline
+    optional input to output covariance matrix 
+  SeeAlso
+     scoreEquations
+   ///
+
+doc ///
+  Key
+    [scoreEquations,CovarianceMatrix]
+  Headline
+    output covariance matrix 
+  Usage
+    scoreEquations(R,U,CovarianceMatrix=>false)
+  Inputs 
+     b:Boolean
+        default is false      
+  Description  
+    Text
+     @TO [scoreEquations,CovarianceMatrix]@ is set to false by default. If b is true, 
+     @TO scoreEquations@ gives an additional output:
+     the covariance matrix with rational entries in the same variables as the ideal of score equations.
+      
+    Example
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+     R=gaussianRing(G);
+     U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
+     (J,Sigma)=scoreEquations(R,U,CovarianceMatrix=>true);
+     Sigma
+     
+  SeeAlso
+     scoreEquations
+///
+
+
+
+doc ///
+  Key
     DoSaturate
   Headline
     optional input to remove saturation 

@@ -1,3 +1,5 @@
+-- A file intended for development only
+
 pathToPackage = "./SubalgebraBases.m2"
 installPackage(
     "SubalgebraBases",
@@ -7,6 +9,54 @@ installPackage(
     )
 debug Core;
 
+i = 2;
+gndR = QQ[symbol t_1, symbol t_2, symbol t_3];
+A := {t_1*t_2*t_3,
+      t_1^2*t_2,
+      t_1*t_2^2,
+      t_1^2*t_3,
+      t_1*t_3^2,
+      t_2^2*t_3,
+      t_2*t_3^2};
+G := matrix {{t_1^(2*i)*t_2^(2*i)*t_3^(2*i), t_1^((3*i)+2)*t_2*t_3^(3*i)}}
+subR = sagbi subring A;
+assert((set first entries gens subR) === (set A)); 
+tsyz := toricSyz(subR, G);
+assert(tsyz * (transpose G) == 0);
+
+ans1 = mingensSubring(subR, tsyz);
+ans2 = extrinsicBuchberger(subR, tsyz);
+
+assert(ans1 == ans2);
+
+degs = matrix apply((entries (ans1//subR)), x -> apply(x, y -> first degree y));
+
+
+print("---------------------");
+print("result:");
+print(ans1);
+print("---------------------");
+print("expected degrees:"|toString(i+1));
+print("actual degrees:");
+print(degs)
+print("---------------------");
+print("num. syzygies:")
+print("Expected:"|toString( (2*i)+1 ));
+print("  Actual:"|toString(numrows ans1));
+print("---------------------");
+
+
+error "stop";
+
+
+-*
+gndR = QQ[x_1..x_25];
+M = genericMatrix(gndR, x_1, 5,5)
+subR = subring gens minors(3,M);
+ans = (det M )//subR
+x = subR#"PresRing"#"FullSub"(ans)
+error "stop"
+*-
 --setRandomSeed("randseed1");
 moTest := (subR, n, maxDeg) -> (
     subMap := subR#"PresRing"#"Substitution";
@@ -75,6 +125,10 @@ M = subR#"PresRing"#"InclusionBase"(M);
 ans = matrix(R,{{-t_2^2, t_1*t_2}, {-t_1*t_2, t_1^2}});
 --ans = subR#"PresRing"#"InclusionBase"(ans);
 time assert (toricSyz(subR, M) == ans);
+
+--subR2 := value get "./test1";
+--"./test1" << toString(subR) << close;
+
 
 ------------------------------------------
 ------------------------------------------
@@ -167,8 +221,14 @@ KA = sagbi subring(leadTerm gens subR);
 tenseKA = KA#"PresRing"#"TensorRing";
 
 -- ans1 contains ans2. 
---ans1 = extrinsicBuchberger(KA, gensSyz);
+ans1 = extrinsicBuchberger(KA, gensSyz);
 --ans2 = mingensSubring(KA, gensSyz);
+
+
+error "stop";
+
+
+
 
 dot = (v1, v2) -> (
     trace ((diagonalMatrix v1)*(diagonalMatrix v2))
@@ -223,7 +283,7 @@ error "stop";
 gndR = QQ[(t_1..t_3)
          |(w_11,w_12,w_13)|(w_21,w_22,w_23)|(w_31,w_32,w_33)
          |(v_11,v_12,v_13)|(v_21,v_22,v_23)|(v_31,v_32,v_33),
-     MonomialOrder => {Eliminate 3, GRevLex}];
+     MonomialOrder => {Eliminate 3, Lex}];
 
 W = matrix({{w_11,w_12,w_13},{w_21,w_22,w_23},{w_31,w_32,w_33}})
 V = matrix({{v_11,v_12,v_13},{v_21,v_22,v_23},{v_31,v_32,v_33}})
@@ -246,8 +306,8 @@ I = id_(source T)
 translation := matrix({{I, T-T},{T, I}})
 G := (flatten entries (translation*(p1|p2|p3)));
 --sag1 = sagbi(G, PrintLevel=>3, Limit=>6)
-sag1 = sagbi(G, PrintLevel=>3)
-error "stop";
+
+sag1 = sagbi(G, PrintLevel=>2, Limit=>9)
 sag1 = sagbi selectInSubring(1, gens sag1)
 error "stop";
 
@@ -279,8 +339,6 @@ ans = mid|other
 
 print("-- Invariants of the adjoint action of SO(3) acting on two screws:");
 print(transpose ans);
-
-
 
 error "stop";
 --=====================================================--
@@ -396,11 +454,6 @@ ans1 = selectInSubring(1, gens sagbi ans0)
 
 
 error "stop";
-
-
-
-
-
 
 
 gndR = QQ[(r_1..r_9)|(t_1..t_3)|(w_1..w_3)|(v_1..v_3), 

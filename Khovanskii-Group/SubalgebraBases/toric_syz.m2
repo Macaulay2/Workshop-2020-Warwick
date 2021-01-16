@@ -77,7 +77,8 @@ toMonomial = (R, L) ->(
     );
 
 -- returns the coefficient of the lead monomial of RingElement f.
-leadCoef = f ->(
+leadCoef = method(TypicalValue => Thing)
+leadCoef(RingElement) := f ->(
     coefficient(leadMonomial f, f)
     );
 
@@ -97,9 +98,8 @@ intrinsicReduce(Subring, Matrix, RingElement) := (subR, G, p) -> (
 	error "Can only use IntrinsicReduce on a Subring instance that is a Sagbi basis.";
 	);
     
-    -- This is one way to guarentee that p is actually an element of subR,
-    -- but it requires p to be put into normal form beforehand which is an
-    -- expensive operation. 
+    -- This is one way to guarentee that p is actually an element of subR, but it requires
+    -- p to be put into normal form beforehand which is an expensive operation. 
     -- TODO: Look into what happens when p isn't an element of subR.
     --if projInc p != p then(
 	--error "p must be a polynomial in the generators of subR."

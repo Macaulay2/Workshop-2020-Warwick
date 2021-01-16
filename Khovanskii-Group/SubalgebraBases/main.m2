@@ -9,30 +9,8 @@ export {
     "SubalgComputations",
     "SagbiGens",
     "SagbiDone",
-    "checkSagbi",
     "Autosubduce"
     }
-
--- Checks if subR is a Sagbi basis and returns a Subring instance with an updated isSagbi flag.
--- This currently has bugs, it might be better to delete this and suggest calling sagbi instead.
--- Based on Corollary 11.5 of Sturmfels.
-checkSagbi = method(TypicalValue => Subring)
-checkSagbi(Subring) := subR -> (
-    pres := subR#"PresRing";
-    if not subR.cache#?"SyzygyIdealGB" then (
-    	subR.cache#"SyzygyIdealGB" = gb (pres#"SyzygyIdeal");
-    	);
-    J := subR.cache#"SyzygyIdealGB";
-    zeroGens := selectInSubring(1, gens J);
-    pf := pres#"FullSub"(zeroGens);
-
-    ht := new MutableHashTable from subR;
-    
-    -- There is weirdness caused by how it treats zero objects as special...
-    ht#"isSagbi" = pres#"FullSub"(subduction(subR, pf)) == 0;    
-    
-    new Subring from ht
-    );
 
 -- Performs subduction using the generators of subR.
 -- currently does not require the generators to be a Sagbi basis.

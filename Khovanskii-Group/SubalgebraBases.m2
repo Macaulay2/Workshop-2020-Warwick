@@ -30,7 +30,6 @@ needs "./SubalgebraBases/toric_syz.m2"
 needs "./SubalgebraBases/subring_modules.m2"
 needs "./SubalgebraBases/tests.m2"
 needs "./SubalgebraBases/print_util.m2"
-needsPackage "Serialization"
 
 beginDocumentation()
 needs "./SubalgebraBases/documentation.m2"

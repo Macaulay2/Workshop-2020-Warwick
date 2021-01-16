@@ -3,8 +3,8 @@ export {
     "subring",
     "PresRing",
     "makePresRing",
-    "getWeight",
-    "setWeight",
+    --"getWeight",
+    --"setWeight",
     "presentationRing",
     "VarBaseName"
     }
@@ -95,10 +95,7 @@ makePresRing(Ring, List) := opts -> (R, gensR) ->(
     -- (This property is important for subrings of quotient rings. Note that it isn't guarenteed currently
     -- when the order does not agree with the grading on the lead term.)
     newOrder := prepend(Eliminate nBaseGens, MonoidAmbient.Options.MonomialOrder);
-    
-    --AA := degrees source matrix({gensR});
-    --BB := degrees source matrix({apply(gensR, gen -> leadTerm gen)});
-    
+        
     NewVariables := monoid[        
 	VariableBaseName=> opts.VarBaseName,
 	Variables=>nBaseGens+nSubalgGens,
@@ -142,24 +139,7 @@ makePresRing(Ring, List) := opts -> (R, gensR) ->(
 	"SyzygyIdeal" => SyzygyIdeal,
 	"LiftedPres" => liftedPres
 	};
-    
-    -*
-    pres := new PresRing from ht;
-    print("-------------");
-    for i from 0 to (length gensR)-1 do(
-	A := genVars_(0,i);
-	B := gensR#i;
-	C := (gens pres#"SyzygyIdeal")_(0,i);
-	
-	if degree B != degree leadTerm B then (
-	    print("!!!");
-	    );
-	
-	print(toString(i)|":"|toString(degree A)|toString(degree B));
-	print(genVars_(0,i));	
-	assert(isHomogeneous C);
-	);
-    *-
+
     new PresRing from ht
     );
 

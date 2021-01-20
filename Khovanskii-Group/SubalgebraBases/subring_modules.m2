@@ -84,7 +84,7 @@ mingensSubring(Subring, Matrix) := (subR, M) -> (
     );
 
 -- For polynomial p monomial m, extract the coefficient of m in p. For example:
--- p = x*y*z + z*y^2 + 2x^2*y^2*z^2
+-- p = x*y*z + z*y^2 + 2*x^2*y^2*z^2
 -- m = x*y
 -- Then:
 -- p = (z+2x*y*z^2)*m + z*y^2 

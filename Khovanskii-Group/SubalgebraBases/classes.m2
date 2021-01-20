@@ -3,9 +3,6 @@ export {
     "subring",
     "PresRing",
     "makePresRing",
-    --"getWeight",
-    --"setWeight",
-    "presentationRing",
     "VarBaseName"
     }
 
@@ -211,73 +208,6 @@ member (RingElement, Subring) := (f, A) -> (
     r := f%A;
     r == 0_(A#"PresRing"#"TensorRing")
     );
-
-
-
-
-
-
-
-
-
-
------------------------------------------------------------------
--- experimental valuation type
------------------------------------------------------------------
-
-Valuation = new Type of HashTable
--- what should a valuation need to know?
-source Valuation := v -> v#source
-target Valuation := v -> v#target
-net Valuation := v -> "valuation: " | toString target v | " <-- " | toString source v
-Valuation RingElement := (v, f) -> (
-    assert(v#?evaluate and ring f === source v);
-    assert instance(v#evaluate, Function);
-    v#evaluate f
-    )
-
-MonomialValuation = new Type of Valuation
-monomialValuation = method()
-monomialValuation Ring := R -> new MonomialValuation from {
-    source => R,
-    target => ZZ^(numgens R),
-    evaluate => (f -> matrix exponents leadTerm f)
-    }
-leadTerm (MonomialValuation, RingElement) := (v, f) -> (
-    assert(ring f === source v);
-    leadTerm f
-    )
-
--- set a weight on the ambient ring that induces a weight on the presentation ring
-setWeight = method()
-setWeight (Subring, List) := (A, W) -> (
-    B := ambient A;
-    assert(numgens B == length W);
-    if not A.cache#?"AmbientWeight" then (
-	A.cache#"AmbientWeight" = W;
-	) else (
-	print "Weight has already been set"
-	);
-    )
-
-getWeight = method()
-getWeight Subring := A -> (
-    if not A.cache#?"AmbientWeight" then (
-	return "None set"
-	);
-    A.cache#"AmbientWeight"
-    )
-
-
--*
-R=QQ[x,y]
-f = x+y^2
-v = monomialValuation R
-source v
-target v
-v f
-leadTerm(v,f) < y
-*-
 
 end--
 

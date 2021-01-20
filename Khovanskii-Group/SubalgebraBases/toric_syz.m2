@@ -21,38 +21,6 @@ genVars(Subring) := subR ->(
     selectInSubring(1, vars subR#"PresRing"#"TensorRing")    
     );
 
--- Not sure if this function is practically useful or not. For now, it's worth
--- keeping for testing the monomial order on the tensor ring created by the
--- subring constructor.
--- Computes the lead term with respect to the ordering on the upper variables
--- induced from the ordering on the variables of the ambient ring.
-   -- subR is any Subring instance.
-   -- f is an element of subR's tensor ring.
-leadTerm(Subring, RingElement) := (subR, f) -> (
-    fullSub := subR#"PresRing"#"FullSub";
-    monos := monomials f;
-    polys := fullSub monos;
-    maxMono := max first entries polys;
-    maxIndex := position(first entries polys, p -> p == maxMono);
-    leadMono := monos_(0, maxIndex);
-    coefficient(leadMono, f)*leadMono
-    );
-leadTerm(Subring, List) := (subR, L) -> (
-    for i from 0 to (length L)-1 list(
-	if L#i == 0 then (
-	    0
-	    ) else(
-	    leadTerm(subR, L#i)
-	    )
-	)
-    );
--- This is a bit different than the implementation of leadTerm(Matrix).
--- leadTerm(Matrix) only operates on the first nonzero entry of every column and sets
--- the entries below to zero. This operates on every single entry.  
-leadTerm(Subring, Matrix) := (subR, M) -> (
-    matrix (apply(entries M, row -> leadTerm(subR, row)))
-    );
-
 
 -- Subring equality
 

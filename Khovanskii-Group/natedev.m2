@@ -9,6 +9,13 @@ installPackage(
     )
 debug Core;
 
+
+gndR = QQ[x, y]
+subR = subring {y, y*x-x^2, y*x^2}
+
+error "stop"
+
+
 i = 2;
 gndR = QQ[symbol t_1, symbol t_2, symbol t_3];
 A := {t_1*t_2*t_3,

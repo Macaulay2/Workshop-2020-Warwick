@@ -5,5 +5,5 @@ installPackage(
     RunExamples => true,
     RerunExamples => false
     )
-
+check SubalgebraBases
 end--

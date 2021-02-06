@@ -11,8 +11,6 @@ newPackage(
 	AuxiliaryFiles => true, -- set to true if package comes with auxiliary files
   	DebuggingMode => true -- set to true only during development
     	)
-
-export {"evaluate"}
 exportMutable {}
 
 -*

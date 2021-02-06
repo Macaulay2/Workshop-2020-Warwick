@@ -164,7 +164,7 @@ RingElement % Subring := (f, A) -> (
 	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
     ans := (subduction(A, f));
-    ans    
+    ans
     );
 
 -- f // Subring is always going to be inside of the subalgebra, hence the output
@@ -201,12 +201,6 @@ Matrix // Subring := (M, A) -> (
 	for j from 0 to numcols M - 1 list(M_(i,j) // A)
 	);
     matrix(pres#"TensorRing", ents)
-    );
-
--- Perhaps it is a bug that this will sometimes throw an error when it should return false
-member (RingElement, Subring) := (f, A) -> (
-    r := f%A;
-    r == 0_(A#"PresRing"#"TensorRing")
     );
 
 end--

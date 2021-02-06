@@ -1,7 +1,6 @@
 export {
     "mingensSubring",
     "moduleToSubringIdeal",
-    "freeModuleSubring",
     "monoCoef"
     }
 

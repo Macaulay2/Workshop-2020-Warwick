@@ -132,7 +132,7 @@ sagbi(Subring) := o -> R -> (
 
     currDegree = subalgComp#"CurrentLowest"+1;
     isPartial := false;
-     
+    
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
 	if o.PrintLevel > 0 then (
 	    print("---------------------------------------");

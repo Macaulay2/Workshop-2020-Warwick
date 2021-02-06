@@ -10,12 +10,6 @@ installPackage(
 debug Core;
 
 
-gndR = QQ[x, y]
-subR = subring {y, y*x-x^2, y*x^2}
-
-error "stop"
-
-
 i = 2;
 gndR = QQ[symbol t_1, symbol t_2, symbol t_3];
 A := {t_1*t_2*t_3,
@@ -612,22 +606,6 @@ subR = sagbi(subring ((gens subR)|newElts), PrintLevel => 0)
 
 error "stop";
 
-------------------------------------------
-------------------------------------------
--- intrinsicBuchberger test
-------------------------------------------
-------------------------------------------
-m1 := map(tenseSagbi, tense, gens tenseSagbi);
-G = m1 G;
-
-result = intrinsicBuchberger(subRSagbi, G)
-
-result = result // subRSagbi;
-h = intrinsicReduce(subRSagbi, result, f);
-
-ltH = leadTerm(subRSagbi,h);
-ltResult = leadTerm(subRSagbi, result);
-print("is h zero? - "|toString(h == 0));
 
 ------------------------------------------
 ------------------------------------------

@@ -39,9 +39,10 @@ subduction(Subring, RingElement) := (subR, f) -> (
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
     fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), tense);    
-    
-    result
+    result = promote(result_(0,0), tense);
+    1/0;    
+    -- want: map result back into ambient ring    
+    subR#"PresRing"#"FullSub" result
     );
 
 -- The C++ implementation of rawSubduction could be improved.

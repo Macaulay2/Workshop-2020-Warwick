@@ -27,7 +27,8 @@ genericminors = (minorsize,rowsize,colsize) -> (
 print("simple inhomog example");
 R = kk[a,b,c]
 F = matrix{{a+b+c-1, a^2+b^2+c^2-a, a^3+b^3+c^3-b}}
-time (assert(subalgebraBasis(F,Limit=>3) == matrix {{a+b+c-1, a*b+a*c+b*c+50*b+50*c, a*b*c+50*b^2+50*b*c+50*c^2-9*b+25*c}}))
+ans = matrix({{a+b+c, a*b+a*c+b*c+50*b+50*c, a*b*c+50*b^2+50*b*c+50*c^2-9*b+25*c}});
+time (assert(subalgebraBasis(F,Limit=>3) == ans))
 
 print("invariants of S3");
 F = invariantsSn 3
@@ -39,7 +40,7 @@ time (assert(subalgebraBasis(F,Limit=>10) == matrix {{x_0+x_1+x_2+x_3, x_0*x_1+x
 
 print("generic minors(2,2,10)");
 F = genericminors(2,2,10)
-time (assert(subalgebraBasis(F,Limit=>100) == matrix {{x_17*x_18-x_16*x_19, x_15*x_18-x_14*x_19, x_13*x_18-x_12*x_19, x_11*x_18-x_10*x_19, x_9*x_18-x_8*x_19, x_7*x_18-x_6*x_19, x_5*x_18-x_4*x_19, x_3*x_18-x_2*x_19, x_1*x_18-x_0*x_19, x_15*x_16-x_14*x_17, x_13*x_16-x_12*x_17, x_11*x_16-x_10*x_17, x_9*x_16-x_8*x_17, x_7*x_16-x_6*x_17, x_5*x_16-x_4*x_17, x_3*x_16-x_2*x_17, x_1*x_16-x_0*x_17, x_13*x_14-x_12*x_15, x_11*x_14-x_10*x_15, x_9*x_14-x_8*x_15, x_7*x_14-x_6*x_15, x_5*x_14-x_4*x_15, x_3*x_14-x_2*x_15, x_1*x_14-x_0*x_15, x_11*x_12-x_10*x_13, x_9*x_12-x_8*x_13, x_7*x_12-x_6*x_13, x_5*x_12-x_4*x_13, x_3*x_12-x_2*x_13, x_1*x_12-x_0*x_13, x_9*x_10-x_8*x_11, x_7*x_10-x_6*x_11, x_5*x_10-x_4*x_11, x_3*x_10-x_2*x_11, x_1*x_10-x_0*x_11, x_7*x_8-x_6*x_9, x_5*x_8-x_4*x_9, x_3*x_8-x_2*x_9, x_1*x_8-x_0*x_9, x_5*x_6-x_4*x_7, x_3*x_6-x_2*x_7, x_1*x_6-x_0*x_7, x_3*x_4-x_2*x_5, x_1*x_4-x_0*x_5, x_1*x_2-x_0*x_3}}))
+time (assert(subalgebraBasis(F,Limit=>100, Autosubduce=>false) == matrix {{x_17*x_18-x_16*x_19, x_15*x_18-x_14*x_19, x_13*x_18-x_12*x_19, x_11*x_18-x_10*x_19, x_9*x_18-x_8*x_19, x_7*x_18-x_6*x_19, x_5*x_18-x_4*x_19, x_3*x_18-x_2*x_19, x_1*x_18-x_0*x_19, x_15*x_16-x_14*x_17, x_13*x_16-x_12*x_17, x_11*x_16-x_10*x_17, x_9*x_16-x_8*x_17, x_7*x_16-x_6*x_17, x_5*x_16-x_4*x_17, x_3*x_16-x_2*x_17, x_1*x_16-x_0*x_17, x_13*x_14-x_12*x_15, x_11*x_14-x_10*x_15, x_9*x_14-x_8*x_15, x_7*x_14-x_6*x_15, x_5*x_14-x_4*x_15, x_3*x_14-x_2*x_15, x_1*x_14-x_0*x_15, x_11*x_12-x_10*x_13, x_9*x_12-x_8*x_13, x_7*x_12-x_6*x_13, x_5*x_12-x_4*x_13, x_3*x_12-x_2*x_13, x_1*x_12-x_0*x_13, x_9*x_10-x_8*x_11, x_7*x_10-x_6*x_11, x_5*x_10-x_4*x_11, x_3*x_10-x_2*x_11, x_1*x_10-x_0*x_11, x_7*x_8-x_6*x_9, x_5*x_8-x_4*x_9, x_3*x_8-x_2*x_9, x_1*x_8-x_0*x_9, x_5*x_6-x_4*x_7, x_3*x_6-x_2*x_7, x_1*x_6-x_0*x_7, x_3*x_4-x_2*x_5, x_1*x_4-x_0*x_5, x_1*x_2-x_0*x_3}}))
 
 -- Sturmfels example 11.7
 print("generic minors(2,3,3)");
@@ -188,10 +189,79 @@ time assert (toricSyz(subR, M//subR) == ans);
 
 
 
+print("Example 2, Stillman and Tsai, N=4 (subring of a quotient ring with a finite sagbi basis)");
+N = 4;
+gndR = kk[(a,b,c,d)|(u_1..u_N)|(v_1..v_N), MonomialOrder => Lex];
+I = ideal(a*b - b*c - 1);
+quot = gndR/I;
+U = (vars quot)_{4..(N+3)}
+V = (vars quot)_{(N+4)..(2*N+3)}
+G = flatten for i from 0 to N-1 list(
+    {a*(U_(0,i)) + b*(V_(0,i)), c*(U_(0,i)) + d*(V_(0,i))}
+    );
+sag = sagbi G
+ans = matrix {{c*u_4+d*v_4, c*u_3+d*v_3, c*u_2+d*v_2, c*u_1+d*v_1, a*u_4+b*v_4, a*u_3+b*v_3, a*u_2+b*v_2,
+     	a*u_1+b*v_1, a*d*u_3*v_4-a*d*u_4*v_3-b*c*u_3*v_4+b*c*u_4*v_3,
+     	a*d*u_2*v_4-a*d*u_4*v_2-b*c*u_2*v_4+b*c*u_4*v_2, a*d*u_2*v_3-a*d*u_3*v_2-b*c*u_2*v_3+b*c*u_3*v_2,
+     	a*d*u_1*v_4-a*d*u_4*v_1-b*c*u_1*v_4+b*c*u_4*v_1, a*d*u_1*v_3-a*d*u_3*v_1-b*c*u_1*v_3+b*c*u_3*v_1,
+     	a*d*u_1*v_2-a*d*u_2*v_1-b*c*u_1*v_2+b*c*u_2*v_1}}
+
+time assert (gens sag == ans);
 
 
 
+-*
+
+Invariants of SO(3) (Rotation subgroup of SE(3))
+
+This test doesn't have any assertions but you can manually verify it with debugPrintAllMaps.
+
+See theorem 2 of https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf
+(For m=3)
+
+the dot products from (5): 
+
+p_18    11 
+p_11    22
+p_9     33
+p_15    12
+p_10    23
+p_13    13
+
+The 2x2 minors of the matrix of scalar products:
+
+p_12    diagonal
+p_16
+p_17
+p_18
+p_19    diagonal
+p_20
+p_21    diagonal
+
+p_14 - The 3x3 determinant of (5)
+
+*-
+
+R = QQ[x_1..x_9, MonomialOrder => Lex];
+M = transpose genericMatrix(R, first gens R, 3, 3)
+A = (M*(transpose M))-(id_(source M))
+B = (det M) - 1 
+eqns := (flatten entries A)|{B}
+sag1 = sagbi eqns
 
 
+-- Invariants of the translation subgroup of SE(3).
+-- No assertions right now, but it's easy to manually verify
+-- See (9) in the paper: https://homepages.ecs.vuw.ac.nz/foswiki/pub/Users/Donelan/WebHome/multiscrews.pdf
 
-
+gndR = QQ[(t_1..t_3)|(w_1..w_3)|(v_1..v_3), MonomialOrder => Lex];
+G = vars gndR;
+t = transpose G_{0..2}
+w = transpose G_{3..5}
+v = transpose G_{6..8}
+plucker := w||v
+T = genericSkewMatrix(gndR, G_(0,0), 3);
+zed = T-T;  
+I = id_(source zed)
+translation := matrix({{I, zed},{T, I}})*plucker
+sag2 = sagbi transpose translation;

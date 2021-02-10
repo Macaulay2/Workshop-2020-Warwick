@@ -1,7 +1,6 @@
 export {
     "mingensSubring",
     "moduleToSubringIdeal",
-    "freeModuleSubring",
     "monoCoef"
     }
 
@@ -47,7 +46,7 @@ moduleToSubringIdeal(Subring, Matrix) := (subR, M) -> (
     
     result2 := ((M2 M1 M)*(transpose gVars));
         
-    -- This call to sagbi should terminate quickly if subR is a Sagbi basis.    
+    -- This call to sagbi *should* terminate quickly if subR is a Sagbi basis.    
     coolRing := sagbi subring ((M2 M1 gens subR)|gVars);    
     
     -- If either of these checks fail, it could mean that the monomial order on coolRing isn't behaving.
@@ -59,8 +58,7 @@ moduleToSubringIdeal(Subring, Matrix) := (subR, M) -> (
     (coolRing, result2, gVars)
     );
 
-
--- Basically this is the inverse of moduleToSubringIdeal.
+-- Basically, this is the inverse of moduleToSubringIdeal.
     -- M is a 1-column matrix that is probably the result of a call to moduleToSubringIdeal
     -- gVars is a 1-row matrix containing the variables that correspond to the generators of the module.
 extractEntries = method()
@@ -77,7 +75,6 @@ extractEntries(Matrix, Matrix) := (M, gVars) -> (
 mingensSubring = method(TypicalValue => Matrix)
 mingensSubring(Subring, Matrix) := (subR, M) -> (  
     (A, B, gVars)  := moduleToSubringIdeal(subR, M);
-    debugPrintAllMaps(A);
     final := autoreduce(A, transpose B);
     -- Sort the rows of the matrix for more predictable behavior.
     final = matrix transpose {sort first entries transpose final};
@@ -86,7 +83,7 @@ mingensSubring(Subring, Matrix) := (subR, M) -> (
     );
 
 -- For polynomial p monomial m, extract the coefficient of m in p. For example:
--- p = x*y*z + z*y^2 + 2x^2*y^2*z^2
+-- p = x*y*z + z*y^2 + 2*x^2*y^2*z^2
 -- m = x*y
 -- Then:
 -- p = (z+2x*y*z^2)*m + z*y^2 

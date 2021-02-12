@@ -40,7 +40,6 @@ subduction(Subring, RingElement) := (subR, f) -> (
     fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
     result = promote(result_(0,0), tense);
-    1/0;    
     -- want: map result back into ambient ring    
     subR#"PresRing"#"FullSub" result
     );

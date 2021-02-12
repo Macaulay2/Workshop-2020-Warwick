@@ -1,9 +1,10 @@
+
+restart
+uninstallAllPackages()
 pathToPackage = "./SubalgebraBases.m2"
 installPackage(
-    "SubalgebraBases",
-    FileName=>pathToPackage,
-    RunExamples => true,
-    RerunExamples => false
+    "SubalgebraBases"
+--    FileName=>pathToPackage
     )
 check SubalgebraBases
 end--

@@ -290,7 +290,7 @@ autosubduce(Subring) := subR -> (
 	    notS = subring notS;
 	    );
 	      
-	answer := notS#"PresRing"#"FullSub"(subduction(notS, s));
+	answer := subduction(notS, s);
     	if(answer != 0) then ( 
 	    answer = answer*(1/leadCoef(answer));
 	    );

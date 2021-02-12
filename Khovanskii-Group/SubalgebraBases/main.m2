@@ -40,8 +40,7 @@ subduction(Subring, RingElement) := (subR, f) -> (
     fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
     result = promote(result_(0,0), tense);    
-    
-    result
+    pres#"FullSub" result    
     );
 
 -- The C++ implementation of rawSubduction could be improved.
@@ -164,7 +163,7 @@ sagbi(Subring) := o -> R -> (
 	
 	local newElems;
        	if entries subd != {{}} then (
-	    newElems = compress ((pres#"ProjectionBase")(subd));
+	    newElems = compress subd;
             ) else (
 	    newElems = subd;
 	    );

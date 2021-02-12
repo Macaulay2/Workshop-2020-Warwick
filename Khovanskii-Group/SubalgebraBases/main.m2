@@ -39,9 +39,8 @@ subduction(Subring, RingElement) := (subR, f) -> (
     numblocks := rawMonoidNumberOfBlocks raw monoid ambient subR;
     fMat := matrix({{pres#"InclusionBase"(f)}});    
     result := rawSubduction(numblocks, raw fMat, raw F, raw J);
-    result = promote(result_(0,0), tense);
-    -- want: map result back into ambient ring    
-    subR#"PresRing"#"FullSub" result
+    result = promote(result_(0,0), tense);    
+    pres#"FullSub" result    
     );
 
 -- The C++ implementation of rawSubduction could be improved.
@@ -132,7 +131,7 @@ sagbi(Subring) := o -> R -> (
 
     currDegree = subalgComp#"CurrentLowest"+1;
     isPartial := false;
-    
+     
     while currDegree <= o.Limit and not R.cache.SagbiDone do (  	
 	if o.PrintLevel > 0 then (
 	    print("---------------------------------------");
@@ -164,7 +163,7 @@ sagbi(Subring) := o -> R -> (
 	
 	local newElems;
        	if entries subd != {{}} then (
-	    newElems = compress ((pres#"ProjectionBase")(subd));
+	    newElems = compress subd;
             ) else (
 	    newElems = subd;
 	    );

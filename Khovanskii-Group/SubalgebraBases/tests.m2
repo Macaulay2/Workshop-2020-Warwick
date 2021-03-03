@@ -62,7 +62,6 @@ TEST ///
 R=QQ[x,y,MonomialOrder=>Lex]
 M=matrix{{x+y,x*y,x*y^2}}
 assert(subalgebraBasis(M,Limit=>3)==M)
-assert(subalgebraBasis(M,Limit=>3,Strategy=>Engine)==M)
 ///
 
 -- 3)
@@ -75,10 +74,6 @@ F = matrix{{a+b+c-1, a^2+b^2+c^2-a, a^3+b^3+c^3-b}}
 ans = matrix {{a+b+c-1, a*b+a*c+b*c+50*b+50*c, a*b*c+50*b^2+50*b*c+50*c^2-9*b+25*c}}
 assert(
      time subalgebraBasis(F,Limit=>3,Autosubduce=>false)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>3,Strategy=>Engine)
      ==
      ans)
 ///
@@ -97,10 +92,6 @@ F = invariantsSn 3
 ans = matrix {{x_0+x_1+x_2, x_0*x_1+x_0*x_2+x_1*x_2, x_0*x_1*x_2}}
 assert(
      time subalgebraBasis(F,Limit=>10)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>10,Strategy=>Engine)
      ==
      ans)
 ///
@@ -122,10 +113,6 @@ ans = matrix {{x_0+x_1+x_2+x_3,
 	  x_0*x_1*x_2*x_3}}
 assert(
      time subalgebraBasis(F,Limit=>10)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>10,Strategy=>Engine)
      ==
      ans)
 ///
@@ -191,10 +178,6 @@ assert(
      time subalgebraBasis(F,Limit=>100,Autosubduce=>false)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine,Autosubduce=>false)
-     ==
-     ans)
 ///
 --------------------------------------------
 
@@ -224,10 +207,6 @@ assert(
      time subalgebraBasis(F,Limit=>100)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine)
-     ==
-     ans)
 ///
 --------------------------------------------
 
@@ -245,10 +224,6 @@ F = genericminors(2,3,4)
 ans = matrix {{x_8*x_10-x_7*x_11, x_5*x_10-x_4*x_11, x_2*x_10-x_1*x_11, x_8*x_9-x_6*x_11, x_7*x_9-x_6*x_10, x_5*x_9-x_3*x_11, x_4*x_9-x_3*x_10, x_2*x_9-x_0*x_11, x_1*x_9-x_0*x_10, x_5*x_7-x_4*x_8, x_2*x_7-x_1*x_8, x_5*x_6-x_3*x_8, x_4*x_6-x_3*x_7, x_2*x_6-x_0*x_8, x_1*x_6-x_0*x_7, x_2*x_4-x_1*x_5, x_2*x_3-x_0*x_5, x_1*x_3-x_0*x_4, x_5*x_7*x_9*x_11-x_4*x_8*x_9*x_11-x_5*x_6*x_10*x_11+x_3*x_8*x_10*x_11+x_4*x_6*x_11^2-x_3*x_7*x_11^2, x_2*x_7*x_9*x_11-x_1*x_8*x_9*x_11-x_2*x_6*x_10*x_11+x_0*x_8*x_10*x_11+x_1*x_6*x_11^2-x_0*x_7*x_11^2, x_2*x_4*x_9*x_11-x_1*x_5*x_9*x_11-x_2*x_3*x_10*x_11+x_0*x_5*x_10*x_11+x_1*x_3*x_11^2-x_0*x_4*x_11^2, x_2*x_4*x_6*x_11-x_1*x_5*x_6*x_11-x_2*x_3*x_7*x_11+x_0*x_5*x_7*x_11+x_1*x_3*x_8*x_11-x_0*x_4*x_8*x_11, x_3*x_5*x_7*x_9-x_3*x_4*x_8*x_9-x_3*x_5*x_6*x_10+x_3^2*x_8*x_10+x_3*x_4*x_6*x_11-x_3^2*x_7*x_11, x_0*x_5*x_7*x_9-x_0*x_4*x_8*x_9-x_0*x_5*x_6*x_10+x_0*x_3*x_8*x_10+x_0*x_4*x_6*x_11-x_0*x_3*x_7*x_11, x_0*x_2*x_7*x_9-x_0*x_1*x_8*x_9-x_0*x_2*x_6*x_10+x_0^2*x_8*x_10+x_0*x_1*x_6*x_11-x_0^2*x_7*x_11, x_0*x_2*x_4*x_9-x_0*x_1*x_5*x_9-x_0*x_2*x_3*x_10+x_0^2*x_5*x_10+x_0*x_1*x_3*x_11-x_0^2*x_4*x_11, x_2*x_4*x_6*x_8-x_1*x_5*x_6*x_8-x_2*x_3*x_7*x_8+x_0*x_5*x_7*x_8+x_1*x_3*x_8^2-x_0*x_4*x_8^2, x_0*x_2*x_4*x_6-x_0*x_1*x_5*x_6-x_0*x_2*x_3*x_7+x_0^2*x_5*x_7+x_0*x_1*x_3*x_8-x_0^2*x_4*x_8}}
 assert(
      time subalgebraBasis(F,Limit=>100)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine)
      ==
      ans)
 ///
@@ -269,10 +244,6 @@ assert(
      time subalgebraBasis(F,Limit=>100,PrintLevel=>1)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine,PrintLevel=>1)
-     ==
-     ans)
 ///
 
 -- 9)
@@ -287,11 +258,6 @@ assert(
      time subalgebraBasis(F,Limit=>30,PrintLevel=>1)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>30,Strategy=>Engine)
-     ==
-     ans)
-
 --     time sagbi(F,Limit=>100,PrintLevel=>1)
 ///
 --------------------------------------------
@@ -306,10 +272,6 @@ F = matrix{{x, x*y-y^2, x*y^2}}
 ans = matrix {{x, y^2-y*x, y*x^2}}
 assert(
      time subalgebraBasis(F,Limit=>1000)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>1000,Strategy=>Engine)
      ==
      ans)
 ///
@@ -331,10 +293,6 @@ assert(
      time subalgebraBasis(F,Limit=>30)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>30, Strategy=>Engine)
-     ==
-     ans)
 ///
 --------------------------------------------
 
@@ -351,10 +309,6 @@ ans = matrix {{a+b+c, a*b+a*c+b*c, a*b*c, a*b^2+a^2*c+b*c^2, a*b^3+a^3*c+b*c^3, 
 F = matrix{{a+b+c, a*b+b*c+c*a, a*b*c, a^2*b+b^2*c+c^2*a}}
 assert(
      time subalgebraBasis(F,Limit=>15)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>15, Strategy=>Engine)
      ==
      ans)
 ///
@@ -374,10 +328,6 @@ F = matrix{{x_5,
 	  t^4*x_5+4*t^3*x_4+12*t^2*x_3+24*t*x_2+24*x_1}}
 assert(
     time subalgebraBasis(F,Limit=>30)
-    ==
-    ans)
-assert(
-    time subalgebraBasis(F,Limit=>30,Strategy=>Engine)
     ==
     ans)
 ///
@@ -400,10 +350,6 @@ assert(
      time subalgebraBasis(F,Limit=>200)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>200,Strategy=>Engine)
-     ==
-     ans)
 ///
 --------------------------------------------
 
@@ -424,10 +370,6 @@ F = matrix{{u_2*v_1-u_1*v_2,
 	  2*s_0*u_2*v_2+2*s_2*u_1*v_1-s_1*(u_2*v_1+u_1*v_2)}}
 assert(
      time subalgebraBasis(F,Limit=>30)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>30,Strategy=>Engine)
      ==
      ans)
 ///
@@ -487,10 +429,6 @@ assert(
      time subalgebraBasis(F,Limit=>100,PrintLevel=>1)
      ==
      ans)
-assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine, PrintLevel=>1)
-     ==
-     ans)
 ///
 
 TEST ///
@@ -501,10 +439,6 @@ ans = matrix {{a+b+c, a*b+a*c+b*c, a*b*c, a*b^2+a^2*c+b*c^2, a*b^3+a^3*c+b*c^3, 
 F = matrix{{a+b+c, a*b+b*c+c*a, a*b*c, a^2*b+b^2*c+c^2*a}}
 assert(
      time subalgebraBasis(F,Limit=>30)
-     ==
-     ans)
-assert(
-     time subalgebraBasis(F,Limit=>30,Strategy=>Engine)
      ==
      ans)
 ///

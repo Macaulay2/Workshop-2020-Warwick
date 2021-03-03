@@ -286,11 +286,9 @@ doc ///
      (sagbi, List)
      [sagbi,Limit]
      [sagbi,PrintLevel]
-     [sagbi,Strategy]
      [sagbi,Autosubduce]
      [subalgebraBasis,Limit]
      [subalgebraBasis,PrintLevel]
-     [subalgebraBasis,Strategy]
      [subalgebraBasis,Autosubduce]
    Headline
      subalgebra basis (sagbi basis)
@@ -308,8 +306,6 @@ doc ///
        a degree limit for the binomial S-pairs that are computed internally.
      PrintLevel=>ZZ
        When this is greater than zero, information is printed about the progress of the computation (See: @TO "PrintLevel"@)
-     Strategy=>String
-       not currently used
      Autosubduce=>Boolean
        Whether to perform autosubduction on the generators before performing the Sagbi basis computation (See: @TO "Autosubduce"@)
    Outputs
@@ -938,7 +934,6 @@ doc ///
        @TT "false"@ in order to gain a performance advantage.     
    SeeAlso
      sagbi
-     Strategy
      Autosubduce
      Limit
      PrintLevel 
@@ -960,7 +955,6 @@ doc ///
 	   }@
    SeeAlso
      sagbi
-     Strategy
      Autosubduce
      Limit
      PrintLevel 

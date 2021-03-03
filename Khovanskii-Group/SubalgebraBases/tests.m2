@@ -192,7 +192,7 @@ assert(
      ==
      ans)
 assert(
-     time subalgebraBasis(F,Limit=>100,Strategy=>Engine)
+     time subalgebraBasis(F,Limit=>100,Strategy=>Engine,Autosubduce=>false)
      ==
      ans)
 ///

@@ -74,7 +74,7 @@ R = kk[a,b,c]
 F = matrix{{a+b+c-1, a^2+b^2+c^2-a, a^3+b^3+c^3-b}}
 ans = matrix {{a+b+c-1, a*b+a*c+b*c+50*b+50*c, a*b*c+50*b^2+50*b*c+50*c^2-9*b+25*c}}
 assert(
-     time subalgebraBasis(F,Limit=>3)
+     time subalgebraBasis(F,Limit=>3,Autosubduce=>false)
      ==
      ans)
 assert(
@@ -188,7 +188,7 @@ ans = matrix {{x_17*x_18-x_16*x_19,
         x_1*x_4-x_0*x_5,
         x_1*x_2-x_0*x_3}}
 assert(
-     time subalgebraBasis(F,Limit=>100)
+     time subalgebraBasis(F,Limit=>100,Autosubduce=>false)
      ==
      ans)
 assert(

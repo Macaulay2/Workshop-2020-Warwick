@@ -3,7 +3,11 @@ export {
     "subring",
     "PresRing",
     "makePresRing",
-    "VarBaseName"
+    "VarBaseName",
+    "tensorRing",
+    "fullSub",
+    "presentationMap",
+    "presentationIdeal"
     }
 
 
@@ -158,12 +162,13 @@ ring Subring := A -> (
 -- output: r in TensorRing of A such that f = a + r w/ a in A, r "minimal"
 RingElement % Subring := (f, A) -> (
     pres := A#"PresRing";
-    if ring f === ambient A then(
-	f = (pres#"InclusionBase")(f);
-	) else if ring f =!= pres#"TensorRing" then(
+    g := f;
+    if ring g === ambient A then(
+	g = (pres#"InclusionBase")(g);
+	) else if ring g =!= pres#"TensorRing" then(
 	error "The RingElement f must be in either TensorRing or ambient A.";
 	);
-    ans := (subduction(A, f));
+    ans := (subduction(A, g));
     ans
     );
 
@@ -202,6 +207,30 @@ Matrix // Subring := (M, A) -> (
 	);
     matrix(pres#"TensorRing", ents)
     );
+
+-- Helper functions for the user
+tensorRing = method(TypicalValue => Subring)
+tensorRing(Subring) := subR -> (
+    subR#"PresRing"#"TensorRing"
+    );
+
+fullSub = method(TypicalValue => Subring)
+fullSub(Subring) := subR -> (
+    subR#"PresRing"#"FullSub"
+    );
+
+presentationMap = method(TypicalValue => Subring)
+presentationMap(Subring) := subR -> (
+    presVars := subR#"PresRing"#"ProjectionInclusion";
+    fullSub := subR#"PresRing"#"FullSub";
+    fullSub * presVars 
+    );
+
+presentationIdeal = method(TypicalValue => Subring)
+presentationIdeal(Subring) := subR -> (
+    kernel presentationMap(subR)
+    );
+
 
 end--
 

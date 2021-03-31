@@ -34,8 +34,8 @@ S = QQ[e1, e2, e3, y];
 f = map(R, S, {x1 + x2 + x3, x1*x2 + x1*x3 + x2*x3, x1*x2*x3,
 (x1 - x2)*(x1 - x3)*(x2 - x3)});
 A = subring matrix f;
-pR = presentationRing A;
-assert (presentation A == matrix {{pR_0^2*pR_1^2-4*pR_0^3*pR_2-4*pR_1^3+18*pR_0*pR_1*pR_2-27*pR_2^2-pR_3^2}})
+pR = tensorRing A;
+assert (gens presentationIdeal A == matrix {{pR_2, pR_1, pR_0, pR_3^2*pR_4^2-4*pR_3^3*pR_5-4*pR_4^3+18*pR_3*pR_4*pR_5-27*pR_5^2-pR_6^2}})
 ///
 
 -- 1) SubalgebraBases tests
@@ -412,13 +412,25 @@ F = matrix{{x_6,
 time subalgebraBasis(F,Limit=>30)
 ///
 --------------------------------------------
+
+-- 18)
 TEST ///
+-- presentationIdeal for Grassmannian(2,4)
+
+kk = ZZ/101
+R = kk[x_1 .. x_4, y_1 .. y_4]
+X = transpose genericMatrix(R, 4, 2)
+A = subring(for S in subsets(4,2) list det(X_S))
+pR = tensorRing A
+assert(gens presentationIdeal A == matrix {{pR_7, pR_6, pR_5, pR_4, pR_3, pR_2, pR_1, pR_0, pR_10*pR_11-pR_9*pR_12+pR_8*pR_13}})
 ///
 
-end --
 
-These tests take too long and are removed until we know what to do with them.
+-- Previously these following tests took too long
+-- invariants of A3 still take some time but they do finish
 
+
+-- 19)
 TEST ///
 -- 'symmetric' quadratic artin ideal in 2x3 variables
 kk = ZZ/101
@@ -426,11 +438,13 @@ R = kk[symbol a..symbol f]
 F = mingens ((ideal(a,b,c))^2 + (ideal(d,e,f))^2 + (ideal(a+d,b+e,c+f))^2)
 ans = matrix {{f^2, e*f, d*f, c*f, e^2, d*e, c*e+b*f, b*e, d^2, c*d+a*f, b*d+a*e, a*d, c^2, b*c, a*c, b^2, a*b, a^2, b*f^3, a*f^3, a*e*f^2, a*e^2*f, b^3*f, a*b^2*f, a^2*b*f, a^3*f, a*e^3, a^3*e}}
 assert(
-     time subalgebraBasis(F,Limit=>100,PrintLevel=>1)
+     time subalgebraBasis(F,Limit=>100)
      ==
      ans)
 ///
 
+
+-- 20)
 TEST ///
 --invariants of A3, to degree 30
 kk = ZZ/101
@@ -444,3 +458,4 @@ assert(
 ///
 
 
+end --

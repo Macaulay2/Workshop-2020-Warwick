@@ -265,3 +265,15 @@ zed = T-T;
 I = id_(source zed)
 translation := matrix({{I, zed},{T, I}})*plucker
 sag2 = sagbi transpose translation;
+
+
+--------------------------------------------------------
+--SAGBI basis for cubics going through four fixed points
+--See Example 23 in Numerical homotopies from Khovanskii bases: https://arxiv.org/abs/2008.13055 
+--cubSagBasis is the polynomials listed in the above paper, generated from the old SubalgebraBases package.
+
+R = QQ[z_1..z_2, t];
+cubSagBasis = {t*z_1*z_2-t*z_2^2+t*z_1-t*z_2, t*z_1^2-t*z_2^2+4*t*z_1-4*t*z_2, t*z_2^3-6*t*z_2^2+5*t*z_2+12*t, t*z_1*z_2^2-6*t*z_2^2-t*z_1+6*t*z_2+12*t, t*z_1^2*z_2-6*t*z_2^2-4*t*z_1+9*t*z_2+12*t, t*z_1^3-6*t*z_2^2-13*t*z_1+18*t*z_2+12*t, t^2*z_1*z_2^3-t^2*z_2^4+10*t^2*z_1^2*z_2-26*t^2*z_1*z_2^2+16*t^2*z_2^3+10*t^2*z_1^2-15*t^2*z_1*z_2+5*t^2*z_2^2+12*t^2*z_1-12*t^2*z_2, 10*t^3*z_1^4*z_2-49*t^3*z_1^3*z_2^2+89*t^3*z_1^2*z_2^3-71*t^3*z_1*z_2^4+21*t^3*z_2^5+10*t^3*z_1^4-18*t^3*z_1^3*z_2-18*t^3*z_1^2*z_2^2+50*t^3*z_1*z_2^3-24*t^3*z_2^4+31*t^3*z_1^3-83*t^3*z_1^2*z_2+73*t^3*z_1*z_2^2-21*t^3*z_2^3+24*t^3*z_1^2-48*t^3*z_1*z_2+24*t^3*z_2^2} ;
+sb = flatten entries subalgebraBasis(drop(cubSagBasis, -2)) ;
+assert(sb == cubSagBasis);
+

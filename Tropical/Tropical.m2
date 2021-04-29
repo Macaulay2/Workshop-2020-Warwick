@@ -66,8 +66,7 @@ export{
   "visualizeHypersurface",
   "Valuation",
   "isBalancedCurves",
-  "BergmanFan",
-  "findMultiplicities"
+  "BergmanFan"
   }
 
 -- TropicalCycle1, tropicalVarietyWithPuiseuxVal and tropicalVarietyWithValExternal commented out until fixed.
@@ -195,7 +194,7 @@ tropicalCycle (Fan, List) := (F,mult)->(
 
 minmaxSwitch = method ()
 
-minmaxSwitch (Fan) := F -> 
+minmaxSwitch (Fan) := F ->
       fanFromGfan({- rays F, linSpace F, maxCones F ,dim F,Polyhedra$isPure F,isSimplicial F,Polyhedra$fVector F});
 
 minmaxSwitch (TropicalCycle) := T ->(
@@ -283,11 +282,11 @@ isBalanced (TropicalCycle):= T->(
 	--use isBalancedCurves to check if balanced for all F
 	d:=dim T;
 	balanced:=true;
-	F:= faces(1,T);
+	F:= Polyhedra$faces(1, fan T);
 	i:=0;
 	while balanced and i<#F do (
 --change next line when PolyhedralComplex change is made
-	    balanced = isBalancedCurves(star(fan T,F_i));
+	    balanced = isBalancedCurves(star(T,polyhedronFromFace(fan T,F_i)));
 	    i=i+1;
 	);
     	return balanced;
@@ -295,6 +294,14 @@ isBalanced (TropicalCycle):= T->(
     );
 );
 
+--F is a fan and f is a list describing a face of F
+polyhedronFromFace = (F, f) -> (
+	L := linealitySpace F;
+	R := rays F;
+	ambientDim := numgens target rays F;
+	origin := transpose matrix{apply(ambientDim, i -> 0)};
+	convexHull(origin, R_f, L)
+);
 
 
 --Computing a tropical prevariety
@@ -384,8 +391,8 @@ findMultiplicity=(M,I)->(
 		  mon2:=1_R;
 		  scan(numgens ring I,i->(if u_i>0 then mon1=mon1*R_i^(u_i) else mon2=mon2*R_i^(-u_i)));
 		  mon1-mon2
-         ));		  
-    --this is where we used to us Binomials package
+         ));
+    --this is where we used to use Binomials package
 --    toricIdeal:=saturate(latticeBasisIdeal(ring InitialIdeal,Basis),ideal product gens ring I);
     toricIdeal = saturate(toricIdeal,product gens R);
     m:=(degree(initialIdeal)/degree (toricIdeal));
@@ -1133,7 +1140,7 @@ doc ///
     	tropicalCycle1(PC,mult)
     Inputs
     	PC:PolyhedralComplex
-		mult:List 
+		mult:List
     Outputs
     	T:TropicalCycle1
     Description
@@ -1288,7 +1295,7 @@ doc///
 
 doc///
     Key
-      tropicalVarietyWithValExternal    
+      tropicalVarietyWithValExternal
       (tropicalVarietyWithValExternal, Ideal)
       [tropicalVarietyWithValExternal, IsHomogeneous]
       [tropicalVarietyWithValExternal, Valuation]
@@ -1298,7 +1305,7 @@ doc///
     Usage
       tropicalVarietyWithValExternal(I,Valuation=>11)
     Inputs
-      I:Ideal 
+      I:Ideal
 	  of polynomials
       IsHomogeneous=>Boolean
         is the ideal homogeneous?
@@ -1317,7 +1324,7 @@ doc///
 
 doc///
     Key
-      tropicalVarietyWithPuiseuxVal  
+      tropicalVarietyWithPuiseuxVal
       (tropicalVarietyWithPuiseuxVal, Ideal)
 
     Headline
@@ -1325,13 +1332,13 @@ doc///
     Usage
       tropicalVarietyWithPuiseuxVal(I)
     Inputs
-      I:Ideal 
+      I:Ideal
 	  of polynomials in QQ[t, x_1, ..., x_n], later interpreted as I in QQ{{t}}[x_1, ..., x_n]
     Outputs
         F:TropicalCycle1
-    Description 
+    Description
        Text
-         EXPERIMENTAL feature to implement puiseux valuation. 
+         EXPERIMENTAL feature to implement puiseux valuation.
       Example
       	QQ[t,x,y]
 	  	I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
@@ -2269,11 +2276,10 @@ P2 = convexHull matrix {{2,-2,0},{1,1,0}};
 P3 = convexHull matrix {{-2,-2,0},{1,-1,0}};
 P4 = convexHull matrix {{-2,-2,0},{-1,-1,0}};
 F = polyhedralComplex {P1,P2,P3,P4};
-apply(faces(1, F), f -> (vertices F)_(f#0))
+apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
 assert (star (F, ) == TODO)
-
 F = hypercube 3
-apply(faces(1, F), f -> (vertices F)_(f#0))
+apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
 assert (star (F, ) == TODO)
 ///
 *-

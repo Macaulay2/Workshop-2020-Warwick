@@ -16,7 +16,7 @@ newPackage(
 	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
   		{Name => "Sara Lamboglia", Email => "lamboglia@math.uni-frankfurt.de", HomePage=>""},
 	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
-   		{Name => "Benjamin Smith", Email => "benjamin.smith@qmul.ac.uk", HomePage=>""},
+   		{Name => "Ben Smith", Email => "benjamin.smith-3@manchester.ac.uk", HomePage=>""},
    		{Name => "Jeff Sommars", Email => "sommars1@uic.edu", HomePage=>"http://homepages.math.uic.edu/~sommars"},
     		{Name => "Paolo Tripoli", Email => "paolo.tripoli@nottingham.ac.uk", HomePage=>"https://sites.google.com/view/paolotripoli/home"},
    		{Name => "Magdalena Zajaczkowska", Email => "Magdalena.A.Zajaczkowska@gmail.com", HomePage=>""}
@@ -379,15 +379,15 @@ findMultiplicity=(M,I)->(
     initialIdeal:= saturate(sub(K,S), product gens S);
     --this is the the basis of the lattice associated to the toric ideal we are going to compute
 --    Basis:= (maxCol( generators kernel transpose M))_0;
-      toricIdeal:= ideal apply(flatten entries gens kernel transpose M, u->(
-	      	  mon1:=1_(ring I);
-		  mon2:=1_(ring I);
+      toricIdeal:= ideal apply(entries transpose gens kernel transpose M, u->(
+	      mon1:=1_R;
+		  mon2:=1_R;
 		  scan(numgens ring I,i->(if u_i>0 then mon1=mon1*R_i^(u_i) else mon2=mon2*R_i^(-u_i)));
 		  mon1-mon2
          ));		  
-    --this is where we used to us  Binomials package
+    --this is where we used to us Binomials package
 --    toricIdeal:=saturate(latticeBasisIdeal(ring InitialIdeal,Basis),ideal product gens ring I);
-    toricIdeal = saturate(toricIdeal,product gens S);
+    toricIdeal = saturate(toricIdeal,product gens R);
     m:=(degree(initialIdeal)/degree (toricIdeal));
     --return multiplicity m as integer, since it lives currently in QQ
     --if m is an integer (as it should be), then the following command parses it to ZZ

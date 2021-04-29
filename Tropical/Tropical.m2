@@ -1168,10 +1168,10 @@ doc///
 		Example
 			QQ[x,y,z]
 			V = tropicalVariety(ideal(x+y+z))
-			-- isBalanced V
+			isBalanced V
 			F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
 			mult = {1,2,-3,1}
-			-- isBalanced (tropicalCycle(F, mult))
+			isBalanced (tropicalCycle(F, mult))
 ///
 
 

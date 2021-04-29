@@ -49,7 +49,7 @@ newPackage(
 
 export{
   "TropicalCycle",
-  "TropicalCycle1",
+--"TropicalCycle1",
   "tropicalCycle",
   "isBalanced",
   "tropicalPrevariety",
@@ -57,8 +57,8 @@ export{
   "Prime",
   "stableIntersection",
   "tropicalVariety",
-  "tropicalVarietyWithValExternal",
-  "tropicalVarietyWithPuiseuxVal",
+--"tropicalVarietyWithValExternal",
+--"tropicalVarietyWithPuiseuxVal",
   "isTropicalBasis",
   "multiplicities",
   "IsHomogeneous",
@@ -66,9 +66,11 @@ export{
   "visualizeHypersurface",
   "Valuation",
   "isBalancedCurves",
-  "BergmanFan"
+  "BergmanFan",
+  "findMultiplicities"
   }
 
+-- TropicalCycle1, tropicalVarietyWithPuiseuxVal and tropicalVarietyWithValExternal commented out until fixed.
 
 
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
@@ -188,25 +190,6 @@ tropicalCycle (Fan, List) := (F,mult)->(
     return T
 )
 
---Setting up the data type TropicalCycle1
-
-TropicalCycle1 = new Type of MutableHashTable
-TropicalCycle1.synonym = "tropical polyhedral complex"
-TropicalCycle1.GlobalAssignHook = globalAssignFunction
-TropicalCycle1.GlobalReleaseHook = globalReleaseFunction
-
-
---basic operations on a tropical cycle
-
-tropicalCycle1 = method(TypicalValue => TropicalCycle1)
-
-tropicalCycle1 (PolyhedralComplex, List) := (PC,mult)->(
-    --- if #maxCones(PC) != #mult then error("The multiplicity list has the wrong length");
-    T := new TropicalCycle1;
-    T#"Multiplicities" = mult;
-    T#"PolyhedralComplex" = PC;
-    return T
-)    
 
 --functions to switch to min-convention
 
@@ -532,148 +515,6 @@ tropicalVariety (Ideal) := o -> (I) ->(
 )
 
 
-tropicalVarietyWithValExternal = method(
-    TypicalValue => TropicalCycle,  
-    Options => {
-	IsHomogeneous => true,
-	Valuation => false
-    }
-)
-
---EXPERIMENTAL: Tropicalization with adic valuation and puisseux valuation.
--- In development. Merge with tropicalVariety method when done.
-tropicalVarietyWithValExternal (Ideal) := o -> (I) ->(
-    local T;
-    local F;
-    R := ring I;
-
---Adic valuation
-
-    if (instance(o.Valuation, ZZ)) then (
-	if (not isPrime(o.Valuation)) then
-	    error("The 'p' in the p-adic valuation has to be prime");
-
-	if (not isHomogeneous(I)) then (
-	    error("Support for non-homogeneous ideals not implemented yet");
-	    --homogenize here
-	);
-
-	inputToSingular := "LIB \"gfanlib.so\"; \n" |
-			  "ring R = 0, (" | replace("[{}]", "", toString gens R) | "), dp; \n" |
-			  "ideal I = " | replace("ideal", "", toString I ) | ";  \n" |
-		          "fan TI = tropicalVariety (I, number( " | o.Valuation | ")); \n" |
-	       	          "write(\":w <<FILENAME>>\",TI);\n" |
-			  "quit;";
-
-	output := runSingularCommand(inputToSingular);
-	return output;
-	--Implement processing of output. Perhaps the following code is useful
-
-	-- since Singular returns a file in the same format, can we use this method to read it?
-	-- this would be a polyhedral fan with miltiplicities for the max cones
-	--F = gfanParsePolyhedralFan output;
-	--return F;
-	--if (instance(F,String)) then
-	--    return F;
-
-	----T=tropicalCycle(F_0,F_1); -- TODO replace with the correct constructor to get:
-	--T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromFan F);
-     );
-
---- Puiseux valuation
-      if (instance(o.Valuation, R)) then (
-	     return "We have not implemented Puiseux valuation yet";
-	-- we need the correct method name from fan
-	--- make sure the "t" is the first variable!!
-	---T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromSliceOfFan (tropicalVariety (I)));
-	);
-
---Otherwise, we don't understand the given valuation. (or maybe no valuation was given?)
-
-       return "Can't handle the given valuation. Maybe no valuation given? Then use tropicalVariety";
-)
-
-tropicalVarietyWithPuiseuxVal = method(
-    TypicalValue => TropicalCycle1,  
-    Options => {
-	Prime => true,
-	IsHomogeneous => true
-    }
-)
-
-tropicalVarietyWithPuiseuxVal (Ideal) := o -> (I) ->(
-    
-    --- we expect that we are working over 	QQ{{t}}, where t is the first variable of the poly ring.
-
-	local T;
-    local F;
-	listOfSlicedCones := {};
-	T = tropicalVariety(I);
-	
-		-- now slice the fan with a plane at height 1 for min convention (or -1) for max convention
-		addsemiringAdd := minmax();
-		heightCut := 0;
-		if (addsemiringAdd == "Min") then
-			heightCut = 1
-		else heightCut = -1;
-			
-		M := matrix{{join(toSequence{1},(numgens ring I -1): 0)}}; 
-		N := matrix{{(numgens ring I): 0}}; 
-		slicePlane := polyhedronFromHData(N, matrix{{0}}, M, matrix{{heightCut}});
-
-		--- for each cone in the fan fan T, slice and append to PolyhedralComplex Output
-		raysMatrix := rays (T);
-		listOfMaxCones := maxCones(T);
-		numberOfMaxCones := length listOfMaxCones; 
-
-		if (numberOfMaxCones == 0) then (print "The vartiey is empty!"; return T;)
-		else( 
-			for i from 1 when i < (numberOfMaxCones) do (
-				currentMaxCone := coneFromVData submatrix(raysMatrix, listOfMaxCones#i);  
-				slicedMaxCone := intersection(currentMaxCone, slicePlane);
-				A := submatrix'(id_(ZZ^(numgens ring I)), {0}, );
-				newSlicedMaxCone := affineImage(A,slicedMaxCone);
-				listOfSlicedCones = listOfSlicedCones | {newSlicedMaxCone};
-			)
-		);
-
-		PC := tropicalCycle1(polyhedralComplex listOfSlicedCones, multiplicities(T));
-		return PC;
-     )
-
-	 ------------------------------------------------------------------------------
-
---EXPERIMENTAL: RAW function to execute singular code
---This function should make its own package of interface to singular, but for now it is just a function to execute raw code
---TODO: Write wrappers around several singular functions
-runSingularCommand = (data) -> (
-	tmpName := temporaryFileName();
-	--the command to run has a placeholder <<FILENAME>> for the name of the output
-	data = replace("<<FILENAME>>", tmpName | ".out", data);
-	tmpFile := openOut tmpName;
-	tmpFile << data << close;
-	-- return tmpName;
-
-	-- in the future we want to make this check when we install SingularInterface package
-
-	if run ("Singular -q -c 'quit;'") =!= 0 then 
-		return("You need to install Singular for using tropicalVarietyWithValExternal") 
-	else (
-	ex := "Singular -q  < " | tmpName | " 2> " | tmpName | ".err";
-
-	returnvalue := run ex;
-
-     	if(returnvalue != 0) then
-	     error("Singular returned an error message.\n",
-	     "COMMAND RUN:\n    ", ex,
-	     "\nINPUT:\n", get(tmpName),
-	     "\nERROR:\n", get(tmpName |".err")  );
-
-	out := get(tmpName | ".out");
-	return out;
-	);
-)
-
 
 --auxiliary function to quotient out the lineality space (1,1,...1) introduced by the homogenisation
 --input= matrix whose columns are either the rays or the generators of the lineality space of a fan
@@ -903,37 +744,27 @@ convertToPolymake = (T) ->(
 
 --functions to get stuff from fans and tropical cycles
 
-
 rays TropicalCycle:= T->( rays fan T)
-
 
 cones (ZZ,TropicalCycle):= (i,T)->( cones(i,fan T))
 
-
 dim TropicalCycle:= T->( dim fan T)
 
-
 ambDim TropicalCycle:= T->( ambDim fan T)
-
 
 fVector (TropicalCycle) := o->T->(Polyhedra$fVector fan T)
 
 fan TropicalCycle := T -> (T#"Fan")
-fan TropicalCycle1 := T -> (T#"PolyhedralComplex")
 
 linealitySpace (TropicalCycle):= T->( linSpace fan T)
 
-
 maxCones (TropicalCycle):= T->( maxCones fan T)
-
 
 multiplicities = method(TypicalValue => List)
 
 multiplicities (TropicalCycle) := T -> (T#"Multiplicities")
-multiplicities (TropicalCycle1) := T -> (T#"Multiplicities")
 
 isPure TropicalCycle := Boolean => T->( Polyhedra$isPure(fan(T)))
-
 
 isSimplicial TropicalCycle:= Boolean => T->( isSimplicial(fan(T)))
 
@@ -990,6 +821,177 @@ BergmanFan = (M) -> (
 	);
     fan L
     )
+
+
+----------------------
+-- EXPERIMENTAL CODE
+----------------------
+
+--Setting up the data type TropicalCycle1
+
+TropicalCycle1 = new Type of MutableHashTable
+TropicalCycle1.synonym = "tropical polyhedral complex"
+TropicalCycle1.GlobalAssignHook = globalAssignFunction
+TropicalCycle1.GlobalReleaseHook = globalReleaseFunction
+
+
+--basic operations on a tropical cycle
+
+tropicalCycle1 = method(TypicalValue => TropicalCycle1)
+
+tropicalCycle1 (PolyhedralComplex, List) := (PC,mult)->(
+    --- if #maxCones(PC) != #mult then error("The multiplicity list has the wrong length");
+    T := new TropicalCycle1;
+    T#"Multiplicities" = mult;
+    T#"PolyhedralComplex" = PC;
+    return T
+)    
+
+fan TropicalCycle1 := T -> (T#"PolyhedralComplex")
+multiplicities (TropicalCycle1) := T -> (T#"Multiplicities")
+
+tropicalVarietyWithValExternal = method(
+    TypicalValue => TropicalCycle,  
+    Options => {
+	IsHomogeneous => true,
+	Valuation => false
+    }
+)
+
+--EXPERIMENTAL: Tropicalization with adic valuation and puisseux valuation.
+-- In development. Merge with tropicalVariety method when done.
+tropicalVarietyWithValExternal (Ideal) := o -> (I) ->(
+    local T;
+    local F;
+    R := ring I;
+
+--Adic valuation
+
+    if (instance(o.Valuation, ZZ)) then (
+	if (not isPrime(o.Valuation)) then
+	    error("The 'p' in the p-adic valuation has to be prime");
+
+	if (not isHomogeneous(I)) then (
+	    error("Support for non-homogeneous ideals not implemented yet");
+	    --homogenize here
+	);
+
+	inputToSingular := "LIB \"gfanlib.so\"; \n" |
+			  "ring R = 0, (" | replace("[{}]", "", toString gens R) | "), dp; \n" |
+			  "ideal I = " | replace("ideal", "", toString I ) | ";  \n" |
+		          "fan TI = tropicalVariety (I, number( " | o.Valuation | ")); \n" |
+	       	          "write(\":w <<FILENAME>>\",TI);\n" |
+			  "quit;";
+
+	output := runSingularCommand(inputToSingular);
+	return output;
+	--Implement processing of output. Perhaps the following code is useful
+
+	-- since Singular returns a file in the same format, can we use this method to read it?
+	-- this would be a polyhedral fan with miltiplicities for the max cones
+	--F = gfanParsePolyhedralFan output;
+	--return F;
+	--if (instance(F,String)) then
+	--    return F;
+
+	----T=tropicalCycle(F_0,F_1); -- TODO replace with the correct constructor to get:
+	--T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromFan F);
+     );
+
+--- Puiseux valuation
+      if (instance(o.Valuation, R)) then (
+	     return "We have not implemented Puiseux valuation yet";
+	-- we need the correct method name from fan
+	--- make sure the "t" is the first variable!!
+	---T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromSliceOfFan (tropicalVariety (I)));
+	);
+
+--Otherwise, we don't understand the given valuation. (or maybe no valuation was given?)
+
+       return "Can't handle the given valuation. Maybe no valuation given? Then use tropicalVariety";
+)
+
+tropicalVarietyWithPuiseuxVal = method(
+    TypicalValue => TropicalCycle1,  
+    Options => {
+	Prime => true,
+	IsHomogeneous => true
+    }
+)
+
+tropicalVarietyWithPuiseuxVal (Ideal) := o -> (I) ->(
+    
+    --- we expect that we are working over 	QQ{{t}}, where t is the first variable of the poly ring.
+
+	local T;
+    local F;
+	listOfSlicedCones := {};
+	T = tropicalVariety(I);
+	
+		-- now slice the fan with a plane at height 1 for min convention (or -1) for max convention
+		addsemiringAdd := minmax();
+		heightCut := 0;
+		if (addsemiringAdd == "Min") then
+			heightCut = 1
+		else heightCut = -1;
+			
+		M := matrix{{join(toSequence{1},(numgens ring I -1): 0)}}; 
+		N := matrix{{(numgens ring I): 0}}; 
+		slicePlane := polyhedronFromHData(N, matrix{{0}}, M, matrix{{heightCut}});
+
+		--- for each cone in the fan fan T, slice and append to PolyhedralComplex Output
+		raysMatrix := rays (T);
+		listOfMaxCones := maxCones(T);
+		numberOfMaxCones := length listOfMaxCones; 
+
+		if (numberOfMaxCones == 0) then (print "The vartiey is empty!"; return T;)
+		else( 
+			for i from 1 when i < (numberOfMaxCones) do (
+				currentMaxCone := coneFromVData submatrix(raysMatrix, listOfMaxCones#i);  
+				slicedMaxCone := intersection(currentMaxCone, slicePlane);
+				A := submatrix'(id_(ZZ^(numgens ring I)), {0}, );
+				newSlicedMaxCone := affineImage(A,slicedMaxCone);
+				listOfSlicedCones = listOfSlicedCones | {newSlicedMaxCone};
+			)
+		);
+
+		PC := tropicalCycle1(polyhedralComplex listOfSlicedCones, multiplicities(T));
+		return PC;
+     )
+
+	 ------------------------------------------------------------------------------
+
+--EXPERIMENTAL: RAW function to execute singular code
+--This function should make its own package of interface to singular, but for now it is just a function to execute raw code
+--TODO: Write wrappers around several singular functions
+runSingularCommand = (data) -> (
+	tmpName := temporaryFileName();
+	--the command to run has a placeholder <<FILENAME>> for the name of the output
+	data = replace("<<FILENAME>>", tmpName | ".out", data);
+	tmpFile := openOut tmpName;
+	tmpFile << data << close;
+	-- return tmpName;
+
+	-- in the future we want to make this check when we install SingularInterface package
+
+	if run ("Singular -q -c 'quit;'") =!= 0 then 
+		return("You need to install Singular for using tropicalVarietyWithValExternal") 
+	else (
+	ex := "Singular -q  < " | tmpName | " 2> " | tmpName | ".err";
+
+	returnvalue := run ex;
+
+     	if(returnvalue != 0) then
+	     error("Singular returned an error message.\n",
+	     "COMMAND RUN:\n    ", ex,
+	     "\nINPUT:\n", get(tmpName),
+	     "\nERROR:\n", get(tmpName |".err")  );
+
+	out := get(tmpName | ".out");
+	return out;
+	);
+)
+
 
 ----------------------------------------------------------------------------
 
@@ -2193,7 +2195,7 @@ assert(l == toList(0..3))
 ///
 
 
-
+-*
 -----------------------
 --tropicalVarietyWithPuiseuxVal
 -----------------------
@@ -2203,7 +2205,7 @@ I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
 T:=tropicalVarietyWithPuiseuxVal(I)
 assert(vertices(T#"PolyhedralComplex")==transpose matrix{{0,0},{-1,0},{0,-1},{2,2}})
 ///
-
+*-
 
 -----------------------
 --convertToPolymake

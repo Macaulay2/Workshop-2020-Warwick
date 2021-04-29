@@ -943,52 +943,53 @@ isSimplicial TropicalCycle:= Boolean => T->( isSimplicial(fan(T)))
 --Bergman fan code
 --------------------
 
--- BergmaneI returns the indicator vector (as a list) for a subset I of the ground set of a matroid M
--- We are assumin that the matroid is over the ground set [[n]] = {0,1,2,..,n}
-BergmaneI = (M, I) -> (
-    E := toList M.groundSet;
-    n := #E;
-    L := {};
-    for i in E do(
-	if member(i,I) then L =  append(L,1) else L = append(L,0);
-	);
-    L
-    )
+-- BergmaneI returns the indicator vector (as a list) for a subset I
+-- of the ground set of a matroid M. 
+--DM: This is being deprecated
+--BergmaneI = (M, I) -> (
+--    groundSetM:=#M.groundSet;
+--    L:={};
+--    scan(groundSetM, i->(
+--	if member(i,I) then L =  append(L,1) else L = append(L,0);
+--	));
+--    L
+--    )
 
--- BergmanconeC returns the matrix of of generators of the cones corresponding to the chain of flats C
--- it does not check whether C is a chain of flat or not
--- This calles and therefore depends on BergmaneI
--- We will remove redundancies later
+-- BergmanconeC returns the matrix of of generators of the cones
+-- corresponding to the chain of flats C it does not check whether C
+-- is a chain of flat or not This calls and therefore depends on
+-- BergmaneI We will remove redundancies later
 BergmanconeC  = (M, C) -> (
-    E := toList M.groundSet;
-    n := #E ;
+    groundSetM:=#M.groundSet;
     L := {};
     for F in C do(
-	L = append(L, BergmaneI(M, F));
+    	  vect:={};
+    	  scan(groundSetM, i->(
+	    if member(i,F) then vect =  append(vect,1) else vect = append(vect,0);
+	  ));
+	L = append(L, vect)
 	);
    transpose  matrix L
     )
 
-
 -- BergmanFan returns the fan of a loopless well-defined matroid
--- groun set must be [n]
+-- ground set must be [n]
 -- depends on functions above
 BergmanFan = (M) -> (
-    if (not isWellDefined(M) ) then
-	    error("The input Matroid is not well-defined");
     if ( loops(M) != {} ) then
 	    error("The current method only works for loopless matroids");
     E := toList M.groundSet;
-    n := #E ;
-    r := rank M;
-     L := {};
+    L := {};
     LM := latticeOfFlats M;
     redLM := dropElements(LM, {{}, E});
     redOrdcplx := maximalChains redLM;
+    allOnes := apply(E,i->1);
     for C in redOrdcplx do(
-	L = append(L, coneFromVData BergmanconeC(M,C));
+	L = append(L, coneFromVData(BergmanconeC(M,C),transpose matrix {allOnes}));
 	);
-    fan L
+    F:= fan L;
+    mults:=apply(#(maxCones F),i->1);
+    tropicalCycle(F,mults)    
     )
 
 ----------------------------------------------------------------------------
@@ -1818,6 +1819,38 @@ doc///
 	   This package should work with Polymake versions > 3.2, and has been tested up to 3.4.
 ///
 
+doc///
+        Key
+	  BergmanFan
+	Headline
+	    the Bergman fan of a matroid
+	Usage
+	    BergmanFan(M)
+	Inputs
+	    M:Matroid
+	Outputs
+	    T:TropicalCycle
+	Description
+	    Text
+	    	Computes the Bergman fan of a matroid, with the fine
+	    	fan structure.  This uses the Matroids package; the
+	    	input should be a matroid in the sense of that
+	    	package.  The output is a tropical cycle T whose
+	    	underlying fan is the fine fan structure in the sense
+	    	of Ardila-Klivans on the Bergman fan of the matroid.
+	    	This has underlying simplicial complex the order
+	    	complex of the lattice of flats of the matroid M.
+		
+    	    	If the ground set of the matroid has size n, then the
+    	    	fan given is in R^n, so there is always a lineality
+    	    	space of dimension at least one.
+	    Example
+	        M=uniformMatroid(2,3);
+		T=BergmanFan(M);
+		rays T
+		maxCones T
+		linealitySpace T
+///
 
 ----- TESTS -----
 
@@ -2188,7 +2221,7 @@ F = BergmanFan U24
 ray = rays F
 mC = maxCones F
 l = sort(flatten(mC))
-assert(ray == id_(ZZ^4))
+assert(ray*transpose(matrix({{1,1,1,1}})) == 0)
 assert(l == toList(0..3))
 ///
 

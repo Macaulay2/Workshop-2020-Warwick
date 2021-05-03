@@ -4,7 +4,6 @@
 --polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version 2>&1") >= "3.0" else false;
 --polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version") >= "3.0" else false;
 
---TODO: uncomment examples for isBalanced and stableIntersection in next release of M2
 --optArgs := new OptionTable from if (version#"VERSION" > "1.10") then {OptionalComponentsPresent => polymakeOkay} else {}
 
 newPackage(
@@ -2330,10 +2329,29 @@ U = tropicalCycle(fan T, {1, 2, 3});
 assert (isBalancedCurves U == false)
 ///
 *-
--*
+
 -----------------------
 --star
 -----------------------
+
+TEST ///
+R=QQ[x,y,z];
+I=ideal(x+y+z+1);
+T=tropicalVariety(I);
+P=convexHull(matrix{{0_ZZ},{0},{0}}, matrix{{1_ZZ},{0},{0}});
+starT=star(T,P);
+R=rays starT;
+assert(rank source R == 3);
+assert(dim starT== dim T-1);
+P2=convexHull(matrix{{0_ZZ}});
+starT2=star(T,P2);
+assert(dim(starT2==dim(T));
+assert(rank source rays starT2 == 4)
+///
+
+
+
+-*
 TEST///
 P1 = convexHull matrix {{2,2,0},{1,-1,0}};
 P2 = convexHull matrix {{2,-2,0},{1,1,0}};
@@ -2349,6 +2367,7 @@ assert (star (F, ) == TODO)
 *-
 
 end
+
 
 restart
 uninstallPackage "Tropical"

@@ -2057,10 +2057,10 @@ assert((cones(1,T))==({{}}))
 
 
 
+
 -----------------------
 --isBalanced
 -----------------------
-if polymakeOK then (
 
 TEST///
 
@@ -2068,17 +2068,38 @@ F=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
 T= tropicalCycle(F,{1,1,1});
 assert(isBalanced T)
 
+T2 = tropicalCycle(F,{1,2,3});
+assert(not isBalanced T2);
+
+///
+
+TEST///
+
 R=QQ[x,y,z];
 V = tropicalVariety(ideal(x+y+z))
 assert(isBalanced V)
 
 G = V;
 G#"Multiplicities" = {1,2,1}
-assert(isBalanced G == false)
+assert(not isBalanced G)
 
 ///
 
-)
+TEST///
+
+S = QQ[x,y];
+V = tropicalVariety(ideal(x+y+1))
+assert(isBalanced V)
+///
+
+TEST///
+
+F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
+mult = {1,2,-3,1}
+assert(not isBalanced (tropicalCycle(F, mult)))
+
+///
+
 
 
 -----------------------

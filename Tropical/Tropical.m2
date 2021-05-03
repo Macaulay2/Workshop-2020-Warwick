@@ -25,7 +25,8 @@ newPackage(
 	Configuration => {
 		"path" => "",
 		"fig2devpath" => "",
-		"keepfiles" => true,
+--		"keepfiles" => true,
+"keepfiles" => false,
 		"cachePolyhedralOutput" => true,
 		"tropicalMax" => false,
 		"polymakeCommand" =>""
@@ -65,7 +66,7 @@ export{
   "Symmetry",
   "visualizeHypersurface",
   "Valuation",
-  "isBalancedCurves",
+--  "isBalancedCurves",
   "BergmanFan"
   }
 
@@ -1268,7 +1269,7 @@ doc///
        rays(T)
        maxCones(T)
        linealitySpace T
-       fVector fan T
+       Polyhedra$fVector fan T
        multiplicities(T)
        QQ[x,y,z,w];
        I = ideal(w+x+y+z)
@@ -1292,7 +1293,7 @@ doc///
 ///
 
 
-
+-*
 doc///
     Key
       tropicalVarietyWithValExternal
@@ -1321,7 +1322,9 @@ doc///
 	   tropicalVarietyWithValExternal(I, Valuation=>11)
        tropicalVarietyWithValExternal(I, Valuation=>x)
 ///
+*-
 
+-*
 doc///
     Key
       tropicalVarietyWithPuiseuxVal
@@ -1344,6 +1347,7 @@ doc///
 	  	I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
       	tropicalVarietyWithPuiseuxVal(I)
 ///
+*-
 
 doc///
     Key
@@ -1501,6 +1505,7 @@ doc///
 			  T=tropicalVariety (I,IsHomogeneous=>false)
 ///
 
+-*
 doc///
     Key
 	Valuation
@@ -1519,7 +1524,7 @@ doc///
 
 
 ///
-
+*-
 
 doc///
     Key
@@ -1811,7 +1816,7 @@ doc///
        	   Configuration option "polymakeCommand".  The default is
        	   that this is empty, which means that Polymake options will
        	   not be used.  To tell the package where your copy of Polymake is installed, use either
-	   loadPackage("Tropical",Configuration=>{"polymakeCommand"=>"YOUR COMMAND"}), or
+	   loadPackage("Tropical",Configuration=>\{"polymakeCommand"=>"YOUR COMMAND"\}), or
 	   edit the init-Tropical.m2 file (created after you install the package)
 	   by changing "polymakeCommand" => "", into "polymakeCommand" => "YOUR COMMAND"
 
@@ -1825,7 +1830,7 @@ doc///
 	   If polymake is installed in a nonstandard location, you can
 	   find YOUR COMMAND with the terminal command "which polymake".
 
-	   This package should work with Polymake versions > 3.2, and has been tested up to 3.4.
+	   This package should work with Polymake versions > 3.2, and has been tested up to 4.2.
 ///
 
 doc///
@@ -1860,6 +1865,36 @@ doc///
 		maxCones T
 		linealitySpace T
 ///
+
+
+doc ///
+    Key 
+        (star,TropicalCycle,Polyhedron)
+    Headline
+    	computes the start of a Polyhedron in the Fan of a TropicalCycle
+    Usage
+    	star(T,P)
+    Inputs
+    	T:TropicalCycle
+	P:Polyhedron
+    Outputs
+    	T:TropicalCycle
+    Description
+    	     Text
+	     	 This function computes the star of a polyhedron in the fan of a TropicalCycle
+	     Example
+	     	 QQ[x,y];
+		 I=ideal(x+y+1);
+		 T=tropicalVariety(I);
+		 P=convexHull(matrix{{0},{0}});
+		 ST=star(T,P)
+		 dim ST
+		 P=convexHull(matrix{{0},{0}},matrix{{1},{0}});
+		 ST=star(T,P)
+		 dim ST
+///		 
+		 
+	      
 
 ----- TESTS -----
 
@@ -2232,8 +2267,17 @@ mC = maxCones F
 l = sort(flatten(mC))
 assert(ray*transpose(matrix({{1,1,1,1}})) == 0)
 assert(l == toList(0..3))
+assert(isBalanced(F)==(true))
 ///
 
+TEST///
+A=transpose matrix{{1,0,0},{1,1,0},{1,2,0},{1,0,1},{1,2,1},{1,0,2}};
+M=matroid(A);
+T=BergmanFan M;
+R=rays T;
+assert(rank source R ==17)
+assert(dim(T)==rank(A))
+///
 
 -*
 -----------------------
@@ -2265,7 +2309,6 @@ U = tropicalCycle(fan T, {1, 2, 3});
 assert (isBalancedCurves U == false)
 ///
 *-
-
 -*
 -----------------------
 --star

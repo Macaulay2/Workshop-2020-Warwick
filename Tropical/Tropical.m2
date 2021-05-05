@@ -2350,29 +2350,7 @@ assert(dim starT== 1);
 ///
 
 
--*
---Rest of star test for when it's working in full dimensions
-P2=convexHull(matrix{{0},{0},{0}});
-starT2=star(T,P2);
-assert(dim(starT2)==dim(T));
-assert(rank source rays starT2 == 4)
-*-
 
-
--*
-TEST///
-P1 = convexHull matrix {{2,2,0},{1,-1,0}};
-P2 = convexHull matrix {{2,-2,0},{1,1,0}};
-P3 = convexHull matrix {{-2,-2,0},{1,-1,0}};
-P4 = convexHull matrix {{-2,-2,0},{-1,-1,0}};
-F = polyhedralComplex {P1,P2,P3,P4};
-apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
-assert (star (F, ) == TODO)
-F = hypercube 3
-apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
-assert (star (F, ) == TODO)
-///
-*-
 
 end
 
@@ -2383,18 +2361,3 @@ uninstallPackage "Tropical"
 installPackage "Tropical"
 check "Tropical"
 
----playing with some commands
-
-F = fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
-(tropicalCycle(F,{1,1,1}))#"Fan"== F
-(tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1}
-T = tropicalCycle(F,{1,1,1})
-r = rays T
-r == matrix{{0,0,0},{1,-1,0},{0,-1,1}}
-isBalanced T
-Q= QQ[x_0..x_3]
-TP = tropicalPrevariety({x_0-x_1, x_1-x_2+x_3, x_2-x_3})
-L={x_0-x_1, x_1-x_2+x_3, x_2-x_3}
-rays TP
-TV = tropicalVariety(ideal(L)) --this is empty...is this right? Gives error, should it be zero instead?
-rays TV

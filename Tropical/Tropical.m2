@@ -2355,7 +2355,6 @@ assert(rank source rays starT2 == 4)
 *-
 
 
-
 -*
 TEST///
 P1 = convexHull matrix {{2,2,0},{1,-1,0}};

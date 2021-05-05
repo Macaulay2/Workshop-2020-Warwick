@@ -2297,36 +2297,11 @@ assert(rank source R ==17)
 assert(dim(T)==rank(A))
 ///
 
--*
------------------------
---tropicalVarietyWithPuiseuxVal
------------------------
-TEST///
-QQ[t,x,y]
-I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
-T:=tropicalVarietyWithPuiseuxVal(I)
-assert(vertices(T#"PolyhedralComplex")==transpose matrix{{0,0},{-1,0},{0,-1},{2,2}})
-///
-*-
 
 -----------------------
 --convertToPolymake
 -----------------------
 
-
--*
------------------------
---isBalancedCurves
------------------------
-TEST///
-R = QQ[x, y];
-I = ideal (x+y+1);
-T = tropicalVariety(I);
-assert (isBalancedCurves T == true)
-U = tropicalCycle(fan T, {1, 2, 3});
-assert (isBalancedCurves U == false)
-///
-*-
 
 -----------------------
 --star

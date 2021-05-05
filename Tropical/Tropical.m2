@@ -65,8 +65,9 @@ export{
   "Symmetry",
   "visualizeHypersurface",
   "Valuation",
---  "isBalancedCurves",
-  "BergmanFan"
+  "isBalancedCurves",
+  "BergmanFan",
+  "polyhedronFromFace"
   }
 
 -- TropicalCycle1, tropicalVarietyWithPuiseuxVal and tropicalVarietyWithValExternal commented out until fixed.
@@ -220,8 +221,8 @@ star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
 	--and quotient by it
 	--Version for cones
 	d:=dim P;
-	V:= gens  kernel transpose rays(P);
-	B:=inverse(rays(P) | V);
+	V:= gens  kernel transpose (rays(P)|linealitySpace(P));
+	B:=inverse(rays(P) | linealitySpace(P) | V);
     	--version for polyhedral complex
 --    	adjacentCells=select(maxPolyhedra(fan Sigma),sigma->(contains(sigma,P)));
     	--version for fans, as currently implemented
@@ -234,7 +235,7 @@ star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
 --    		w:=interiorPoint(sigma)-interiorPoint(P);
     	        --version for fans
 		w:=sum(rank source rays sigma, i->(rays sigma)_{i}) -
-		     sum(rank source rays P, i->(rays sigma)_{i});
+		     sum(rank source rays P, i->(rays P)_{i});
 		--Project it onto ker(P)
 		w=entries(B*w);
 		w=posHull matrix apply(#w-d,i->(w_(i+d)))
@@ -252,9 +253,6 @@ isBalanced (TropicalCycle):= T->(
 --in polymake, the lineality span (1,...,1) is default.  we embed the
 --fans in a higher dimensional fan in case our lineality span does not
 --contain (1,...,1)
-
---Bug here - this is not recognizing correctly if the user has Polymake installed.
---ToDo: Write a non-polymake version, and also work out how to check.
 	C := tropicalCycle(embedFan fan T, multiplicities T);
 -- parse object into a polymake script, run polymake and get result back from the same file (which got overwritten by polymake)
 	filename := temporaryFileName();
@@ -2342,7 +2340,13 @@ P=convexHull(matrix{{0},{0},{0}}, matrix{{1},{0},{0}});
 starT=star(T,P);
 R=rays starT;
 assert(rank source R == 3);
-assert(dim starT== dim T-1);
+assert(dim starT== 1);
+R=QQ[x,y,z,w];
+I=ideal(x+y+z+w);
+T=tropicalVariety(I);
+P=convexHull(matrix{{0},{0},{0},{0}}, matrix{{1},{0},{0},{0}}, matrix{{1},{1},{1},{1}});
+starT=star(T,P);
+assert(dim starT== 1);
 ///
 
 

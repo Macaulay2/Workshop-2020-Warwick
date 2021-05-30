@@ -32,7 +32,7 @@ newPackage(
 	},
 
     --Might need PackageImports here - should Polyhedra be here instead??
---        PackageExports => {"gfanInterface","EliminationMatrices","Polyhedra","Binomials","Matroids"},
+tropicalVarietyWithPuiseuxVal--        PackageExports => {"gfanInterface","EliminationMatrices","Polyhedra","Binomials","Matroids"},
         PackageExports => {"gfanInterface","EliminationMatrices","Matroids","Polyhedra"},
 	DebuggingMode => true,
 	AuxiliaryFiles => true,

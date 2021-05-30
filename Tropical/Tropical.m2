@@ -1,16 +1,16 @@
 newPackage(
     	"Tropical",
-	Version => "1.0",
-	Date => "July 2019",
+	Version => "1.1",
+	Date => "May 2021",
 	Authors => {
 	    	{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
 	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
-  		{Name => "Sara Lamboglia", Email => "lamboglia@math.uni-frankfurt.de", HomePage=>""},
+  		{Name => "Sara Lamboglia", Email => "", HomePage=>""},
 	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
    		{Name => "Ben Smith", Email => "benjamin.smith-3@manchester.ac.uk", HomePage=>""},
-   		{Name => "Jeff Sommars", Email => "sommars1@uic.edu", HomePage=>"http://homepages.math.uic.edu/~sommars"},
-    		{Name => "Paolo Tripoli", Email => "paolo.tripoli@nottingham.ac.uk", HomePage=>"https://sites.google.com/view/paolotripoli/home"},
-   		{Name => "Magdalena Zajaczkowska", Email => "Magdalena.A.Zajaczkowska@gmail.com", HomePage=>""}
+   		{Name => "Jeff Sommars", Email => "", HomePage=>""},
+    		{Name => "Paolo Tripoli", Email => "", HomePage=>""},
+   		{Name => "Magdalena Zajaczkowska", Email => "", HomePage=>""}
 		},
 	Headline => "A package for doing computations in tropical geometry",
 	Configuration => {

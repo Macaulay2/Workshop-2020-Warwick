@@ -40,41 +40,45 @@ stat3=t_3-2*s_12
 stat4=t_4-2*(s_23+s_14)
 stat5=t_5-2*s_34
 
+----------------
+-- IDEAL OF VARIETY OF L^{-1}
+----------------
 -- compute P_G
 P_G=eliminate({l_1,l_2,l_3,l_4,l_5},ideal(K*S-id_(R^4)))
 
+-----------------------------
+-- ALGEBRAIC BOUNDARY
+-----------------------------
 --algebraic boundary H_G
+-- See p. 7 from Sturmfels and Uhler paragraph after Proposition 2.4
+-- Algorithm for K a s x s matrix
+-- 1. For all 1 <=p<=s compute I:= the ideal of the p-minors of K
+-- 2. Compute the dual variety of each minimal prime of I
+-- 3. Keep only those varieties, whose ideal is principal
+-- 4. H_L is the product of these principal generators
 p=2
-previousComponentsP2=minimalPrimes minors(1,K)
---numPreviousComponents=length previousComponents
-previousIdealP2= product previousComponentsP2
 I2=minors(p,K)
 minPrimesI2=minimalPrimes I2
-m=length minPrimesI2
---boundaryP2=for i to m-1 list (
---    if saturate(minPrimesI2_i,previousIdeal)!=ideal 1_R 
---       then dualVariety(minPrimesI2_i,n,l,t)
---    )
-
-indexBoundaryP2=for i to m-1 list (
-    if saturate(minPrimesI2_i,previousIdeal)!=ideal 1_R 
-       then i
+m= length minPrimesI2
+boundaryP2= new HashTable from (
+    for i to  m-1 list (
+    dualComponent=dualVariety(minPrimesI2_i,n,l,t);
+    if numgens trim dualComponent==1 then  i=>dualComponent
     )
-concentrationMatP2=minPrimesI2_indexBoundaryP2
-boundaryP2= for J in concentrationMatP2 list dualVariety(J,n,l,t)
+)
 
 p=3
---previousComponents=concentrationMatP2
 previousComponents=minimalPrimes minors(2,K)
 previousIdeal= product previousComponents
 I3=minors(p,K)
 minPrimesI3=minimalPrimes I3
 m=length minPrimesI3
-boundaryP3=for i to m-1 list (
-    if saturate(minPrimesI3_i,previousIdeal)!=ideal 1_R 
-       then dualVariety(minPrimesI3_i,n,l,t)
+boundaryP3= new HashTable from (
+    for i to  m-1 list (
+    dualComponent=dualVariety(minPrimesI3_i,n,l,t);
+    if numgens trim dualComponent==1 then  i=>dualComponent
     )
-
+)
 
 -- NOT WORKING - computation of I_(G,n)
 

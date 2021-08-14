@@ -80,18 +80,15 @@ boundaryP3= new HashTable from (
     )
 )
 
--- NOT WORKING - computation of I_(G,n)
+-------------------------------------
+-- EXISTENCE OF MLE 
+------------------------------------
+-- Computation of I_(G,n) (Theorem 3.3, Uhler)
+-- with coloring
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+Istat=ideal(stat1,stat2,stat3,stat4,stat5)
 
--- ideal(t_1-t_3)*(t_1+t_3)*(t_2-t_5)*(t_2+t_5)
---I_G2=eliminate({s_11,s_12,s_13,s_24},minors(3,S)+ideal(stat1,stat2,stat3,stat4,stat5))
-Iminors=minors(3,S)
-Iinverse=ideal(K*S-id_(R^4))
-I_G2=eliminate({s_13,s_24},Iminors+Iinverse)
-I_G2=eliminate({s_11,s_12,s_13,s_14,s_22,s_23,s_24,s_33,s_34,s_44},I_G2)
---leadTerm minors(3,S)
+I_G2=eliminate(varList,minors(3,S)+Istat)
+I_G1=eliminate(varList,minors(2,S)+Istat)
 
-gens gb (minors(3,S)+ideal(stat1,stat2,stat3,stat4,stat5))
 
-Itest=ideal(K*S-id_(R^4),stat1,stat2,stat3,stat4,stat5)+minors(3,S)
-Jtest=eliminate({l_1,l_2,l_3,l_4,l_5},Itest)
-eliminate({s_13,s_24},Jtest)

@@ -11,6 +11,13 @@ loadPackage "GraphicalModelsMLE"
 debug loadPackage "GraphicalModelsMLE"
 installPackage "GraphicalModelsMLE"
 
+needsPackage "GraphicalModelsMLE"
+G=mixedGraph(digraph {{1,2},{1,3},{4,3}})
+U=matrix{{1.88,0.55,2.34,4.97},{0.22,-2.16,-0.05,-3.26},
+    {-0.46,1.16,0.06,2.66},{0.77,-0.3,1.82,-0.03},
+    {-1.03,1.31,-1.93,.93},{0.74,1.95,2.78,5.58}}
+solverMLE(G,U)
+
 -- Testing concentrationMatrix
 G = mixedGraph(digraph {{1,3},{2,4}},bigraph {{3,4}})
 U = {matrix{{1,2,1,-1}}, matrix{{2,1,3,0}}, matrix{{-1, 0, 1, 1}}, matrix{{-5, 3, 4, -6}}}

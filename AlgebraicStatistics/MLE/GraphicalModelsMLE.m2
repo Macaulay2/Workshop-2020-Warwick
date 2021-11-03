@@ -52,7 +52,7 @@ export {
     "ChooseSolver",--optional argument in solverMLE
     "ConcentrationMatrix",-- optional argument in solverMLE
     "CovarianceMatrix", -- optional argument in scoreEquations
-    "DoSaturate",-- optional argument in scoreEquations and solverMLE
+    "Saturate",-- optional argument in scoreEquations and solverMLE
     "jacobianMatrixOfRationalFunction",
     "MLdegree",
     "OptionsEigenSolver",--optional argument in solverMLE
@@ -132,7 +132,7 @@ maxMLE=(L,V)->(
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
-scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53, CovarianceMatrix => false}>>opts->(R,U)->(
+scoreEquationsInternal={Saturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53, CovarianceMatrix => false}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -192,7 +192,7 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
     denoms := apply(#LL, i -> lift(denominator(LL_i), lpR));
     J:=ideal apply(#LL, i -> lift(numerator(LL_i),lpR));
     --Saturate
-    if opts.DoSaturate then (
+    if opts.Saturate then (
         argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, newOpts);
     	for i from 0 to (#denoms-1) do (
 	    if degree denoms_i =={0} then J=J else  
@@ -205,7 +205,7 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
 ----------------------------------------------------
 --scoreEquationsInternalUndir for undirected graphs
 ----------------------------------------------------
-scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53, CovarianceMatrix => false}>>opts->(R,U)->(    
+scoreEquationsInternalUndir={Saturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53, CovarianceMatrix => false}>>opts->(R,U)->(    
     -- Sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
     if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
@@ -215,7 +215,7 @@ scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options satu
     lpR:=coefficientRing(R)[gens R - set support covarianceMatrix R];
     K=sub(K,lpR);
     J:=ideal{jacobian ideal{determinant(K)}-determinant(K)*jacobian(ideal{trace(K*V)})};
-    if opts.DoSaturate then 
+    if opts.Saturate then 
     (  	argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, newOpts);
     	J=saturate(argSaturate(J,ideal{determinant(K)}));
 	);
@@ -268,7 +268,7 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquations = method(TypicalValue =>Sequence, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate, RealPrecision => 53, CovarianceMatrix => false});
+scoreEquations = method(TypicalValue =>Sequence, Options =>{SampleData => true, Saturate => true, SaturateOptions => options saturate, RealPrecision => 53, CovarianceMatrix => false});
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input
@@ -365,7 +365,7 @@ MLdegree(Ring):= (R) -> (
 );
 
 
-solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 6, ZeroTolerance=>1e-10});
+solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, Saturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 6, ZeroTolerance=>1e-10});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numgens source U ==#vertices G then error "Size of sample data does not match the graph."; 
@@ -376,10 +376,10 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     else (V=U; 
     if not V==transpose V then error "The sample covariance matrix must be symmetric.");
     -- generate the ideal of the score equations
-    if opts.DoSaturate then (
+    if opts.Saturate then (
 	 argSaturate:=opts.SaturateOptions  >>newOpts-> args ->(args, SaturateOptions=>newOpts,SampleData=>false);
          (J,SInv):=scoreEquationsInternal(argSaturate(R,V));)
-    else (J,SInv)= scoreEquationsInternal(R,V,DoSaturate=>false, SampleData=>false);
+    else (J,SInv)= scoreEquationsInternal(R,V,Saturate=>false, SampleData=>false);
     -- check that the system has finitely many solutions
     if dim J =!= 0 then return J
 	else (
@@ -825,7 +825,7 @@ doc ///
 	    JV=scoreEquations(R,V,SampleData=>false)
         Text
 	    @TO SaturateOptions@ allows to use all functionalities of @TO saturate@.
-	    @TO DoSaturate@ removes the saturation procedure. Note that the latter will not
+	    @TO Saturate@ determines whether to saturate. Note that the latter will not
 	    provide the score equations of the model. 
 
         Example
@@ -833,7 +833,7 @@ doc ///
 	    R = gaussianRing(G);
             U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
             J=scoreEquations(R,U,SaturateOptions => {Strategy => Eliminate})
-            JnoSat=scoreEquations(R,U,DoSaturate=>false)   
+            JnoSat=scoreEquations(R,U,Saturate=>false)   
 	Text
 	   The ML-degree of the model is the degree of the score equations ideal. The ML-degree 
 	   of the running example is 1:
@@ -887,9 +887,9 @@ doc ///
 
 doc ///
   Key
-    DoSaturate
+    Saturate
   Headline
-    optional input to remove saturation 
+    optional input whether to saturate 
   SeeAlso
      scoreEquations
      solverMLE
@@ -897,21 +897,21 @@ doc ///
 
 doc ///
   Key
-    [scoreEquations, DoSaturate]
+    [scoreEquations, Saturate]
   Headline
-    remove saturation 
+     whether to saturate
   Usage
-    scoreEquations(R,U,DoSaturate=>true)
+    scoreEquations(R,U,Saturate=>true)
   Inputs 
      b:Boolean
         default is true      
   Description  
     Text
-     @TO [scoreEquations,DoSaturate]@ is set to true by default. If b is false, saturation is not performed.
+     @TO [scoreEquations,Saturate]@ is set to true by default. If b is false, saturation is not performed.
       
      Avoiding saturation is only intended for big computations 
      when saturation cannot be computed or the computational time is very high. 
-     When @TO DoSaturate@ is set to false, @TO scoreEquations@ might not output the ideal 
+     When @TO Saturate@ is set to false, @TO scoreEquations@ might not output the ideal 
      generated by score equations because of the existence of vanishing denominators.
     
      For graphs with only undirected edges, the ideal of score equations is the saturation of the
@@ -924,7 +924,7 @@ doc ///
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
      R=gaussianRing(G);
      U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
-     JnoSat=scoreEquations(R,U,DoSaturate=>false);
+     JnoSat=scoreEquations(R,U,Saturate=>false);
      dim JnoSat  
      degree JnoSat     
      J=scoreEquations(R,U)
@@ -936,21 +936,21 @@ doc ///
 
 doc ///
   Key
-    [solverMLE, DoSaturate]
+    [solverMLE, Saturate]
   Headline
-    remove saturation 
+    whether to saturate 
   Usage
-    solverMLE(G,U,DoSaturate=>true)  
+    solverMLE(G,U,Saturate=>true)  
   Inputs  
      b:Boolean
         default is true
   Description
     Text
      
-     @TO [solverMLE,DoSaturate]@ is set to true by default.
-     If we set @TO DoSaturate@ to false in @TO solverMLE@, saturation will not be 
+     @TO [solverMLE,Saturate]@ is set to true by default.
+     If we set @TO Saturate@ to false in @TO solverMLE@, saturation will not be 
      performed when computing the score equations of the log-likelihood function, 
-     see @TO [scoreEquations,DoSaturate]@. 
+     see @TO [scoreEquations,Saturate]@. 
      
      If the ideal returned by @TO scoreEquations@ has positive dimension, @TO solverMLE@ 
      gives this ideal as output.
@@ -970,12 +970,12 @@ doc ///
     Example
      G=graph{{1,2},{2,3},{3,4},{1,4}}
      U=random(ZZ^4,ZZ^4)
-     solverMLE(G,U,DoSaturate=>false)     
+     solverMLE(G,U,Saturate=>false)     
 
   SeeAlso
      solverMLE 
      scoreEquations
-     [scoreEquations,DoSaturate]	
+     [scoreEquations,Saturate]	
 ///
 
 
@@ -987,7 +987,7 @@ doc ///
   SeeAlso
      scoreEquations
      solverMLE
-     DoSaturate
+     Saturate
      saturate
    ///
 doc ///
@@ -1014,7 +1014,7 @@ doc ///
     
   SeeAlso
      scoreEquations   
-     DoSaturate
+     Saturate
      saturate
      solverMLE	
 ///
@@ -1043,7 +1043,7 @@ doc ///
 
   SeeAlso
      scoreEquations   
-     DoSaturate
+     Saturate
      saturate
      solverMLE	
 ///

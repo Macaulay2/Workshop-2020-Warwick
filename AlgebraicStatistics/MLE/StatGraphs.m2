@@ -251,6 +251,8 @@ isSimple MixedGraph := Boolean => G -> (
 -- Check whether a MixedGraph is cyclic, i.e., does not contain any directed cycles
 isCyclic MixedGraph := Boolean => g -> (
     G:=indexLabelGraph g;
+    flag:= isCyclic digraph G;
+    if flag then flag else(
     U:= graph(sort vertices G#graph#Graph,edges G#graph#Graph);
     B:= bigraph(sort vertices G#graph#Bigraph,edges G#graph#Bigraph);
     D:= digraph(vertices G,edges G#graph#Digraph);
@@ -268,7 +270,7 @@ isCyclic MixedGraph := Boolean => g -> (
 	       ));
 
     adjMG=matrix adjMG;
-    isCyclic (digraph adjMG))  
+    isCyclic (digraph adjMG)))  
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    -- 
@@ -868,7 +870,7 @@ doc ///
     Description 
         Text
 	   This method checks whether a @TO MixedGraph@ is cyclic, i.e. contains
-	   a directed cycle. 
+	   a directed cycle or a cycle on directed edges. 
 	   
 	   A directed cycle is a cycle in the @TO Digraph@ constructed from a
 	   mixed graph G by identifying all connected components on bidirected and undirected edges.
@@ -902,7 +904,14 @@ doc ///
 	   B = bigraph{{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D,B)
-	   isCyclic G      
+	   isCyclic G 
+	
+	Text
+	  In the following example, there is a cycle on the directed edges
+	  that is inside a connected undirected component.
+	Example
+	  G = mixedGraph(graph{{1,2}},digraph {{1,2},{2,1}})
+	  isCyclic G
    ///
    
 --------------------------------------------
@@ -1368,7 +1377,7 @@ doc ///
 --------------------------------------------
 --  Tests for Bigraph and bigraph
 --------------------------------------------
---1
+
 TEST /// 
 G = bigraph {{3,4},{1,2},{2,4}}
 assert(instance (G, Bigraph))
@@ -1377,7 +1386,7 @@ assert(instance (G, Bigraph))
 --------------------------------------------
 -- Tests for MixedGraph and mixedGraph
 --------------------------------------------
---2
+
 TEST /// 
 G = mixedGraph(graph{{1,2}},digraph {{1,3},{2,3}},bigraph {{3,4}})
 assert(instance (G, MixedGraph))
@@ -1390,7 +1399,7 @@ assert(instance (G, MixedGraph))
 --------------------------------------------
 -- Tests for bigraph(MixedGraph)
 --------------------------------------------
---3
+
 TEST ///
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
         assert(bigraph G=== G#graph#Bigraph)
@@ -1399,7 +1408,7 @@ TEST ///
 --------------------------------------------
 --  Tests for digraph(MixedGraph)
 --------------------------------------------
---4
+
 TEST ///
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
 	assert(digraph G=== G#graph#Digraph)
@@ -1408,7 +1417,7 @@ TEST ///
 --------------------------------------------
 --  Tests for undirectedGraph(MixedGraph)
 --------------------------------------------
---5
+
 TEST ///
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
 	assert(undirectedGraph G=== G#graph#Graph)
@@ -1417,7 +1426,7 @@ TEST ///
 --------------------------------------------
 --  Tests for graph(MixedGraph)
 --------------------------------------------
---6
+
 TEST ///
 
         G= mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
@@ -1428,7 +1437,7 @@ TEST ///
 --------------------------------------------
 -- Tests for collateVertices 
 --------------------------------------------
---7
+
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
@@ -1438,7 +1447,7 @@ TEST ///
 	   assert(vertices bigraph G2 === vertices G1)
 ///
 
---8
+
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
@@ -1452,7 +1461,7 @@ TEST ///
 --------------------------------------------
 -- Tests for  isSimple(MixedGraph)  
 --------------------------------------------
---9
+
 TEST /// 
    
 	   U = graph{{1,2},{2,3},{3,4}}
@@ -1461,7 +1470,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert (isSimple G)
  ///	  
---10  
+ 
 TEST ///       
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{1,2},{2,5}}
@@ -1473,7 +1482,7 @@ TEST ///
 --------------------------------------------
 -- Tests for indexLabelGraph
 --------------------------------------------
---11
+
 TEST ///
         G1 = mixedGraph(graph{{a,b},{b,c}},digraph {{a,d},{c,e},{f,g}},bigraph {{d,e}})
 	G2 = indexLabelGraph G1
@@ -1485,7 +1494,7 @@ TEST ///
 --------------------------------------------
 -- Tests for  isLoopless 
 --------------------------------------------
---12
+
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4}}
 	   D = digraph{{2,5}}
@@ -1494,16 +1503,16 @@ TEST ///
 	   assert(isLoopless G)  
    ///
    
---13
+
 TEST /// 
 	   U = graph{{1,1}}
 	   assert (not isLoopless U)   
    ///   
 
 --------------------------------------------
--- Tests for noDirCycles 
+-- Tests for isCyclic(Mixed Graph) 
 --------------------------------------------
---14
+
 TEST /// 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
 	   D = digraph{{2,1},{3,1},{7,8}}
@@ -1511,14 +1520,14 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(not isCyclic G)    
 ///
---15
+
 TEST /// 
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
 	   assert(isCyclic G)     
 ///
---16
+
 TEST /// 
 	   U = graph{{1,2}}
 	   B = bigraph{{3,4}}
@@ -1527,10 +1536,16 @@ TEST ///
 	   assert(isCyclic G)      
 ///
 
+TEST /// 
+	   U = graph{{1,2}}
+	   D = digraph{{1,2},{2,1}}
+	   G = mixedGraph(U,D)
+	   assert(isCyclic G)      
+///
 --------------------------------------------
 -- Tests for partititionLMG 
 --------------------------------------------
---17
+
 TEST /// 
 
 	   U = graph{{1,2},{2,3},{3,4},{1,4},{1,5}}
@@ -1539,14 +1554,14 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)
   ///
---18  
+  
 TEST ///
 	   U = graph{{1,2},{3,4}}
 	   D = digraph{{1,3},{4,2}}
 	   G = mixedGraph(U,D)
 	   assert(try partitionLMG G then false else true)
   ///
---19  
+  
 TEST ///
 	   U = graph{{1,2}}
 	   B = bigraph{{3,4}}
@@ -1554,7 +1569,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)    
    ///
---20
+
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{4,1},{3,7}}
@@ -1562,7 +1577,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(try partitionLMG G then false else true)   
    ///
---21   	 
+  	 
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7}}
@@ -1570,7 +1585,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8}))
    ///     
---22   
+  
 TEST ///
     	   U = graph{{1,2},{2,3},{1,3}}
 	   D = digraph{{1,4},{3,7},{8,9}}
@@ -1578,7 +1593,7 @@ TEST ///
 	   G = mixedGraph(U,D,B)
 	   assert(partitionLMG G === ({1, 2, 3}, {4, 5, 6, 7, 8, 9}))
    ///  
---23   
+   
 TEST ///      	   
 	   U = graph{{2,3},{3,4},{4,2}}
 	   D = digraph{{1,2},{2,5},{4,9}}
@@ -1593,7 +1608,7 @@ TEST ///
 --------------------------------------------
 -- Tests for children
 --------------------------------------------
---24
+
 TEST ///
 
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
@@ -1605,7 +1620,7 @@ TEST ///
 --------------------------------------------
 -- Tests for parents
 --------------------------------------------
---26
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(parents (G,1)===set{})
@@ -1615,7 +1630,7 @@ TEST ///
 --------------------------------------------
 -- Tests for descendants
 --------------------------------------------
---27
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(descendants (G,1)===set{1,2,3})
@@ -1626,7 +1641,7 @@ TEST ///
 --------------------------------------------
 -- Tests for nondescendants
 --------------------------------------------
---28
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(nondescendents (G,1)===set{4})
@@ -1637,7 +1652,7 @@ TEST ///
 --------------------------------------------
 -- Tests for foreFathers
 --------------------------------------------
---29
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(foreFathers (G,1)===set{1})
@@ -1648,7 +1663,7 @@ TEST ///
 --------------------------------------------
 -- Tests for neighbors
 --------------------------------------------
---30
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(neighbors (G,1)===set{3})
@@ -1658,7 +1673,7 @@ TEST ///
 --------------------------------------------
 -- Tests for nonneighbors
 --------------------------------------------
---31
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4},{2,4}})
 	assert(nonneighbors (G,1)===set{2,4})
@@ -1668,7 +1683,7 @@ TEST ///
 --------------------------------------------
 -- Tests for  vertices and vertexSet
 --------------------------------------------
---32
+
 TEST ///
         G = mixedGraph(graph{{3,1}},digraph {{1,2},{2,3}},bigraph {{3,4}})
 	assert(vertices G=== {1,2,3,4})

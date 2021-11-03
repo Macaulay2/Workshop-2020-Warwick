@@ -42,7 +42,8 @@ newPackage(
 	   HomePage=>"http://faculty.fordham.edu/dswinarski"}
 	  },
      Headline => "maximum likelihood estimates for graphical statistical models",
-     DebuggingMode => false,
+     --Keywords => {"Algebraic Statistics"},
+     DebuggingMode => true,
      PackageExports => {"GraphicalModels","Graphs","EigenSolver","NumericalAlgebraicGeometry","StatGraphs"}
      )
 export {
@@ -50,6 +51,7 @@ export {
     "checkPSD",
     "ChooseSolver",--optional argument in solverMLE
     "ConcentrationMatrix",-- optional argument in solverMLE
+    "CovarianceMatrix", -- optional argument in scoreEquations
     "DoSaturate",-- optional argument in scoreEquations and solverMLE
     "jacobianMatrixOfRationalFunction",
     "MLdegree",
@@ -111,7 +113,7 @@ genListMatrix = (L,A) ->
 ----------------------------------------------
 maxMLE=(L,V)->(
     if #L==0 then  error("No critical points to evaluate");
-    if #L==1 then  (E:=inverse L_0; maxPt:=log det L_0- trace (V*L_0))
+    if #L==1 then  (E:=L_0; maxPt:=log det L_0- trace (V*L_0))
     else 
     	(eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
 	evalReal:={};
@@ -130,7 +132,7 @@ maxMLE=(L,V)->(
 -- The user-facing scoreEquations method returns only 
 -- the ideal, whereas SInv is used in solverMLE
 -------------------------------------------
-scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53}>>opts->(R,U)->(
+scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=>53, CovarianceMatrix => false}>>opts->(R,U)->(
     ----------------------------------------------------
     -- Extract information about the graph
     ---------------------------------------------------- 
@@ -203,7 +205,7 @@ scoreEquationsInternal={DoSaturate => true, SaturateOptions => options saturate,
 ----------------------------------------------------
 --scoreEquationsInternalUndir for undirected graphs
 ----------------------------------------------------
-scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53}>>opts->(R,U)->(    
+scoreEquationsInternalUndir={DoSaturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53, CovarianceMatrix => false}>>opts->(R,U)->(    
     -- Sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
     if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
@@ -266,7 +268,7 @@ jacobianMatrixOfRationalFunction(RingElement) := (F) -> (
     return transpose(matrix({{(1/g)^2}})*answer)
 );
 
-scoreEquations = method(TypicalValue =>Ideal, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate,RealPrecision=>53});
+scoreEquations = method(TypicalValue =>Sequence, Options =>{SampleData => true, DoSaturate => true, SaturateOptions => options saturate, RealPrecision => 53, CovarianceMatrix => false});
 scoreEquations(Ring,Matrix) := opts -> (R, U) -> ( 
     ----------------------------------------------------
     --Check input
@@ -280,7 +282,11 @@ scoreEquations(Ring,Matrix) := opts -> (R, U) -> (
     if R.graphType===Graph 
     then (J,Sinv):=scoreEquationsInternalUndir(R,U,opts)
     else (J,Sinv)=scoreEquationsInternal(R,U,opts);
-    return J;
+    
+    if not opts.CovarianceMatrix
+    then return J
+    else return (J, inverse Sinv)
+    ;
 );
 
 scoreEquations(Matrix,Ring) := opts ->(U,R) -> ( 
@@ -351,7 +357,10 @@ MLdegree = method(TypicalValue =>ZZ);
 MLdegree(Ring):= (R) -> (
    if not R.?graph then error "Expected gaussianRing created from a graph, digraph, bigraph or mixedGraph";
    n:=# vertices R.graph;
-   J:=scoreEquations(R,random(QQ^n,QQ^n));
+   J:=scoreEquations(R,random(RR^n,RR^n));
+   dimJ := dim J;
+   if dimJ > 0 then error concatenate("the ideal of score equations has dimension ",toString dimJ, " > 0, 
+       so ML degree is not well-defined. The degree of this ideal is ", toString degree J,".");
    return degree J;
 );
 
@@ -359,7 +368,7 @@ MLdegree(Ring):= (R) -> (
 solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, DoSaturate => true, SaturateOptions => options saturate, ChooseSolver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 6, ZeroTolerance=>1e-10});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
-    if not numRows U==#vertices G then error "Size of sample data does not match the graph."; 
+    if not numgens source U ==#vertices G then error "Size of sample data does not match the graph."; 
     -- generate the Gaussian ring of the MixedGraph
     R:= gaussianRing(G);
     -- sample covariance matrix
@@ -682,13 +691,13 @@ doc ///
       R=QQ[x,y];
       M=matrix{{115,-13,x,47},{-13,5,7,y},{x,7,27,-21},{47,y,-21,29}}
      Text   
-      Unknown entries correspond to the non-edges of the 4-cycle. The positive definite completion of this matrix
-      is obtained by giving values to x and y and computing the MLE for the concentration matrix in the Gaussian graphical model 
+      Unknown entries correspond to the non-edges of the 4-cycle. A positive definite completion of this matrix
+      is obtained by giving values to x and y and computing the MLE for the covariance matrix in the Gaussian graphical model 
       given by the 4-cycle. Check @TO solverMLE@ for more details.
      Example
       G=graph{{1,2},{2,3},{3,4},{1,4}};
       V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}};
-      (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+      (mx,MLE,ML)=solverMLE(G,V,SampleData=>false)
       
     Caveat
      GraphicalModelsMLE requires @TO Graphs@,  @TO StatGraphs@ and  @TO GraphicalModels@. 
@@ -792,8 +801,11 @@ doc ///
 	   or @TO List@ of sample data. 
 	   Alternatively, the input can be the sample covariance @TO Matrix@ by setting the optional input @TO SampleData@ to false
     Outputs
-         :Ideal
-	   generated by the score equations of the log-likelihood function of the Gaussian model
+         :Sequence
+	   consisting either of (Ideal) or (Ideal,Matrix)  
+	   where the ideal is generated by the score equations of the log-likelihood 
+	   function of the Gaussian model and the matrix is the symbolic covariance
+	   matrix of the model
     Description 
         Text
 	    This function computes the score equations that arise from taking 
@@ -835,6 +847,44 @@ doc ///
         
     ///
     
+doc ///
+  Key
+    CovarianceMatrix
+  Headline
+    optional input to output covariance matrix 
+  SeeAlso
+     scoreEquations
+   ///
+
+doc ///
+  Key
+    [scoreEquations,CovarianceMatrix]
+  Headline
+    output covariance matrix 
+  Usage
+    scoreEquations(R,U,CovarianceMatrix=>false)
+  Inputs 
+     b:Boolean
+        default is false      
+  Description  
+    Text
+     @TO [scoreEquations,CovarianceMatrix]@ is set to false by default. If b is true, 
+     @TO scoreEquations@ gives an additional output:
+     the covariance matrix with rational entries in the same variables as the ideal of score equations.
+      
+    Example
+     G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
+     R=gaussianRing(G);
+     U = matrix{{6, 10, 1/3, 1}, {3/5, 3, 1/2, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
+     (J,Sigma)=scoreEquations(R,U,CovarianceMatrix=>true);
+     Sigma
+     
+  SeeAlso
+     scoreEquations
+///
+
+
+
 doc ///
   Key
     DoSaturate
@@ -1610,8 +1660,8 @@ doc ///
           R=QQ[x,y];
           M=matrix{{115,-13,x,47},{-13,5,7,y},{x,7,27,-21},{47,y,-21,29}}
         Text   
-          Unknown entries correspond to non-edges of the 4-cycle. The positive definite completion of this matrix
-          is obtained by giving values to x and y and computing the MLE for the concentration matrix in the Gaussian graphical model 
+          Unknown entries correspond to non-edges of the 4-cycle. A positive definite completion of this matrix
+          is obtained by giving values to x and y and computing the MLE for the covariance matrix in the Gaussian graphical model 
           given by the 4-cycle. To understand which values of x and y will result in a maximum likelihood estimate,
 	  see Example 12.16 in the book: Mateusz Michalek and Bernd Sturmfels,
 	  {\em Invitation to Nonlinear Algebra}, Graduate Studies in Mathematics, Vol ???, American Mathematical Society, 2021.
@@ -1619,9 +1669,10 @@ doc ///
         Example
           G=graph{{1,2},{2,3},{3,4},{1,4}};
           V=matrix{{115,-13,-29,47},{-13,5,7,-11},{-29,7,27,-21},{47,-11,-21,29}}
-          (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix => true)
+          (mx,MLE,ML)=solverMLE(G,V,SampleData=>false)
         Text
-	  The MLE of the concentration matrix is the positive definite completion of the matrix M.
+	  The MLE of the covariance matrix is the unique positive definite completion of the matrix M such that its inverse, namely the concentration matrix, 
+	  has zero's in the entries corresponding to non-edges of the graph.
 	  Observe that all entries of V remain the same in the MLE except for those that correspond to non-edges of the graph.
 	       	
     SeeAlso				
@@ -1774,8 +1825,8 @@ V =matrix{{5,1,3,2},{1,5,1,6},{3,1,5,1},{2,6,1,5}}
 (mx,MLE,ML)=solverMLE(G,V,SampleData=>false,ConcentrationMatrix=>true)
 assert(round(4,mx)==-10.1467)
 assert(ML==5)
-assert(round(6,MLE_(0,2))==.541381)
-assert(round(6,MLE_(1,3))==.541381)
+assert(round(6,MLE_(0,1))== -.038900)
+assert(round(6,MLE_(3,1))== 0)
 ///
 
 
@@ -1785,9 +1836,9 @@ U=matrix{{1, 2, 5, 1}, {5, 3, 2, 1}, {4, 3, 5, 10}, {2, 5,1, 3}}
 (mx,MLE,ML)= solverMLE (G,U,ChooseSolver=>"NAG4M2")
 assert(round(5,mx)==-8.4691)
 assert(ML==1)
-assert(MLE_(1,0)==0)
-assert(round(6,MLE_(1,1))== .842105)
-assert(round(6,MLE_(3,2))== -.111056)
+assert(round(6,MLE_(2,0))==0)
+assert(round(6,MLE_(1,1))== 1.1875)
+assert(round(6,MLE_(3,2))==   3.264929)
 ///
 --------------------------------------
 --------------------------------------

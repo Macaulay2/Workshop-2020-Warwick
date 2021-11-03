@@ -106,8 +106,7 @@ maxMLE=(L,V)->(
     if #L==1 then  (E:=L_0; maxPt:=log det L_0- trace (V*L_0))
     else
     	(eval:=for Sinv in L list log det Sinv- trace (V*Sinv);
-	evalReal:={};
-	for pt in eval do (if isReal pt then evalReal=evalReal  | {pt});
+	evalReal:=for pt in eval when isReal pt list pt;
 	if #evalReal==0 then  error("No critical point evaluates to a real solution");
 	maxPt=max evalReal;
 	indexOptimal:=positions(eval, i ->i== maxPt);

@@ -85,18 +85,8 @@ export {
 ------------------------------------------------------
 genListMatrix = (L,A) ->
 (
-    T := {};
-
-    for l in L do
-    (
-    	T = T|{coordinates(l)};
-    );
-    M := {};
-    for t in T do
-    (
-    	m := substitute(A,matrix{t});
-    	M = M|{m};
-    );
+		T:= for l in L list coordinates(l);
+		M:= for t in T list substitute(A,matrix{t});
     return M
 );
 

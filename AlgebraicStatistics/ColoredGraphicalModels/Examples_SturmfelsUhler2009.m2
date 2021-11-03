@@ -1,7 +1,7 @@
 restart
 R=QQ[l_1..l_3,s_11..s_13,s_22,s_23,s_33,t_1..t_3,x_11..x_13,x_22,x_23,x_33]
 R=QQ[l_1..l_3,t_1..t_3,x_11..x_13,x_22,x_23,x_33]
---gens R
+gens R
 K=matrix{{l_1+l_2+l_3,l_3,l_2},{l_3,l_1+l_2+l_3,l_1},{l_2,l_1,l_1+l_2+l_3}}
 --F=frac R
 --K=sub(K,F)

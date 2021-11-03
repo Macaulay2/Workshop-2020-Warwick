@@ -110,8 +110,7 @@ maxMLE=(L,V)->(
 	if #evalReal==0 then  error("No critical point evaluates to a real solution");
 	maxPt=max evalReal;
 	indexOptimal:=positions(eval, i ->i== maxPt);
-	E={};
-        for i in indexOptimal do E=E | {L_i};);
+		E= for i in indexOptimal list L_i;);
     return (maxPt, E)
     );
 

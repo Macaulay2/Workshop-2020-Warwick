@@ -10,8 +10,8 @@ the License, or any later version.
 *-
 newPackage(
      "GraphicalModelsMLE",
-     Version => "0.3",
-     Date => "November 9, 2020",
+     Version => "0.4",
+     Date => "November 3, 2021",
      Authors => {
 	  {Name=> "Carlos Amendola",
 	   Email=> "carlos.amendola@tum.de",
@@ -171,7 +171,7 @@ scoreEquationsInternal={Saturate => true, SaturateOptions => options saturate, S
     ----------------------------------------------------
     -- Sample covariance matrix
     if opts.SampleData then V:= sampleCovarianceMatrix(U) else V=U;
-    if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
+    if ring V===RR_53 then V = matrix apply(entries V,r->r/(v->lift(numeric(opts.RealPrecision,v),QQ)));
     -- Jacobian of log-likelihood function
     C1 := trace(Sinv * V);
     C1derivative := jacobianMatrixOfRationalFunction(C1);
@@ -196,7 +196,7 @@ scoreEquationsInternal={Saturate => true, SaturateOptions => options saturate, S
 scoreEquationsInternalUndir={Saturate => true, SaturateOptions => options saturate, SampleData=>true, RealPrecision=> 53, CovarianceMatrix => false}>>opts->(R,U)->(
     -- Sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U) else V=U;
-    if ring V===RR_53 then V = roundMatrix(opts.RealPrecision,V);
+    if ring V===RR_53 then V = matrix apply(entries V,r->r/(v->lift(numeric(opts.RealPrecision,v),QQ)));
     -- Concentration matrix K
     K:=undirectedEdgesMatrix R;
     -- move to a new ring, lpR, which does not have the s variables
@@ -212,17 +212,13 @@ scoreEquationsInternalUndir={Saturate => true, SaturateOptions => options satura
 
 
 -------------------------------------------
--- Methods copied from package DeterminantalRepresentations
+-- Method copied from package DeterminantalRepresentations
 -------------------------------------------
 -----------------------------------------------
--- method for approximating real matrices to rational matrices.
+
+-- Method for retriving the real part of a matrix. 
 --The code of this function is directly taken from DeterminantalRepresentations package in M2.
--- We use it to deal with real sample data and sample covariance matrices
------------------------------------------------
-roundMatrix = (n, A) -> matrix apply(entries A, r -> r/(e -> (round(n,0.0+e))^QQ));
--------------------------------------------
---
--------------------------------------------
+
 realPartMatrix = A -> matrix apply(entries A, r -> r/realPart)
 
 --**************************--
@@ -333,7 +329,8 @@ MLdegree(Ring):= (R) -> (
 );
 
 
-solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, Saturate => true, SaturateOptions => options saturate, Solver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 6, ZeroTolerance=>1e-10});
+
+solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, Saturate => true, SaturateOptions => options saturate, Solver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 53, ZeroTolerance=>1e-10});
 solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
     -- check input
     if not numgens source U ==#vertices G then error "Size of sample data does not match the graph.";
@@ -830,8 +827,8 @@ doc ///
   Headline
     output covariance matrix
   Usage
-    scoreEquations(R,U,CovarianceMatrix=>false)
-  Inputs
+    scoreEquations(R,U,CovarianceMatrix=>b)
+  Inputs 
      b:Boolean
         default is false
   Description
@@ -869,8 +866,8 @@ doc ///
   Headline
      whether to saturate
   Usage
-    scoreEquations(R,U,Saturate=>true)
-  Inputs
+    scoreEquations(R,U,Saturate=>b)
+  Inputs 
      b:Boolean
         default is true
   Description
@@ -908,8 +905,8 @@ doc ///
   Headline
     whether to saturate
   Usage
-    solverMLE(G,U,Saturate=>true)
-  Inputs
+    solverMLE(G,U,Saturate=>b)  
+  Inputs  
      b:Boolean
         default is true
   Description
@@ -964,8 +961,8 @@ doc ///
   Headline
     use options from "saturate"
   Usage
-    scoreEquations(R,U,SaturateOptions=>options saturate)
-  Inputs
+    scoreEquations(R,U,SaturateOptions=>L)
+  Inputs 
     L: List
        of options to set up saturation. Accepts any option from the function
        @TO saturate@
@@ -993,8 +990,8 @@ doc ///
   Headline
     use options from "saturate"
   Usage
-    solverMLE(G,U,SaturateOptions=>options saturate)
-  Inputs
+    solverMLE(G,U,SaturateOptions=>L)  
+  Inputs 
     L: List
        of options to set up saturation. Accepts any option from the function
        @TO saturate@
@@ -1034,8 +1031,8 @@ doc ///
   Headline
     choose numerical solver
   Usage
-    solverMLE(G,U,Solver=>"EigenSolver")
-  Inputs
+    solverMLE(G,U,Solver=>P)  
+  Inputs 
     P: String
        name of the corresponding package
 
@@ -1076,8 +1073,8 @@ doc ///
   Headline
     use options of "zeroDimSolve" in "EigenSolver"
   Usage
-    solverMLE(G,U,Solver=>"EigenSolver",OptionsEigenSolver=>options zeroDimSolve)
-  Inputs
+    solverMLE(G,U,Solver=>"EigenSolver",OptionsEigenSolver=>L)
+  Inputs 
     L: List
        of optional inputs in @TO zeroDimSolve@
 
@@ -1118,8 +1115,8 @@ doc ///
   Headline
     use options of "solveSystem" in "NumericalAlgebraicGeometry"
   Usage
-    solverMLE(G,U,Solver=>"NAG4M2",OptionsEigenSolver=>options solveSystem)
-  Inputs
+    solverMLE(G,U,Solver=>"NAG4M2",OptionsNAG4M2=>L)
+  Inputs 
     L: List
        of optional inputs to @TO solveSystem@
 
@@ -1152,16 +1149,16 @@ doc ///
   Key
     [scoreEquations, RealPrecision]
   Headline
-    number of decimals used to round input data in RR to data in QQ
+    the number of bits of precision to use in the computation
   Usage
-    scoreEquations(R,U,RealPrecision=>53)
-  Inputs
+    scoreEquations(R,U,RealPrecision=>n)
+  Inputs 
     n: ZZ
         default is 53
   Description
     Text
      This optional input only applies when the sample data or the sample covariance matrix has real entries.
-     By default, the precision is 53, the default precision for real numbers in M2.
+     By default, the precision is 53 (the default precision for real numbers in M2).
     Example
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
      R=gaussianRing(G);
@@ -1176,16 +1173,16 @@ doc ///
   Key
     [solverMLE, RealPrecision]
   Headline
-    number of decimals used to round input data in RR to data in QQ
+    the number of bits of precision to use in the computation
   Usage
-    solverMLE(G,U,RealPrecision=>53)
-  Inputs
+    solverMLE(G,U,RealPrecision=>n)
+  Inputs 
     n: ZZ
         default is 53
   Description
     Text
      This optional input only applies when the sample data or the sample covariance matrix has real entries.
-     By default, the precision is 53, the default precision for real numbers in M2.
+     By default, the precision is 53 (the default precision for real numbers in M2).
     Example
      G = mixedGraph(digraph {{1,2},{1,3},{2,3},{3,4}},bigraph {{3,4}});
      U = matrix{{6.2849049, 10.292875, 1.038475, 1.1845757}, {3.1938475, 3.2573, 1.13847, 1}, {4/5, 3/2, 9/8, 3/10}, {10/7, 2/3,1, 8/3}};
@@ -1211,8 +1208,8 @@ doc ///
   Headline
     input sample covariance matrix instead of sample data
   Usage
-    scoreEquations(R,U,SampleData=>true)
-  Inputs
+    scoreEquations(R,U,SampleData=>b)
+  Inputs 
     b: Boolean
         default is true
   Description
@@ -1238,8 +1235,8 @@ doc ///
   Headline
     input sample covariance matrix instead of sample data
   Usage
-    solverMLE(G,U,SampleData=>true)
-  Inputs
+    solverMLE(G,U,SampleData=>b)  
+  Inputs 
     b: Boolean
         default is true
   Description
@@ -1272,8 +1269,8 @@ doc ///
   Headline
     output MLE for concentration matrix instead of MLE for covariance matrix
   Usage
-    solverMLE(G,U,ConcentrationMatrix=>false)
-  Inputs
+    solverMLE(G,U,ConcentrationMatrix=>b)  
+  Inputs 
     b: Boolean
         false by default
   Description
@@ -1299,21 +1296,22 @@ doc   ///
 	(checkPD,List)
 	(checkPD,Matrix)
     Headline
-    	returns positive definite matrices from a list of matrices
+    	returns positive definite matrices from a list of symmetric  matrices
     Usage
     	checkPD(L)
     Inputs
-    	L: List
-	   of matrices, or a single @TO Matrix@
+    	L: List  
+	   of symmetric matrices, or a single symmetric @TO Matrix@
     Outputs
     	 : List
 	   of positive definite matrices
     Description
     	Text
-	   This function takes a list of matrices (or a single matrix) and returns another list with
-	   only positive definite matrices.
+	   This function takes a list of symmetric matrices (or a single symmetric matrix) and returns the sublist of its positive definite matrices. 
 	   If there are no positive definite matrices in the list, it returns an empty list.
-
+	   
+	   Note that the function does not check whether the matrices in the original list are symmetric.
+	   
 	   If a matrix contains an imaginary part below the tolerance level, then only
 	   the real part is reported in the output. (See  @TO [checkPD, ZeroTolerance]@)
 
@@ -1328,20 +1326,23 @@ doc   ///
 	(checkPSD,List)
 	(checkPSD,Matrix)
     Headline
-    	returns positive semidefinite matrices from a list of matrices
+    	returns positive semidefinite matrices from a list of symmetric matrices
     Usage
     	checkPSD(L)
     Inputs
-    	L: List
-	    of matrices, or a single @TO Matrix@
+    	L: List  
+	    of symmetric matrices, or a single symmetric @TO Matrix@
     Outputs
     	 : List
 	   of positive semidefinite matrices
     Description
     	Text
-	   This function takes a list of matrices (or a single matrix) and returns another list with
-	   only positive semidefinite matrices
-           If there are no positive semidefinite matrices in the list, it returns an empty list.
+	   This function takes a list of symmetric matrices (or a single symmetric matrix) and returns the sublist of its
+	   positive semidefinite matrices.
+          
+	   Note that the function does not check whether the matrices in the original list are symmetric.
+	  
+	   If there are no positive semidefinite matrices in the list, it returns an empty list.
       	Example
 	    L={matrix{{1,0},{0,1}},matrix{{-2,0},{0,1}},matrix{{sqrt(-1),0},{0,sqrt (-1)}},matrix{{0,0},{0,0}}}
     	    checkPSD(L)
@@ -1364,8 +1365,8 @@ doc ///
   Headline
     optional input to set the largest absolute value that should be treated as zero
   Usage
-    solverMLE(G,U,ZeroTolerance=>1e-10)
-  Inputs
+    solverMLE(G,U,ZeroTolerance=>n)  
+  Inputs 
     n: RR
         default is 1e-10
   Description
@@ -1393,8 +1394,8 @@ doc ///
   Headline
     optional input to set the largest absolute value that should be treated as zero
   Usage
-    checkPD(L,ZeroTolerance=>1e-10)
-  Inputs
+    checkPD(L,ZeroTolerance=>n)  
+  Inputs 
     n: RR
         default is 1e-10
   Description
@@ -1427,8 +1428,8 @@ doc ///
   Headline
     optional input to set the largest absolute value that should be treated as zero
   Usage
-    checkPD(L,ZeroTolerance=>1e-10)
-  Inputs
+    checkPD(L,ZeroTolerance=>n)  
+  Inputs 
     n: RR
         default is 1e-10
   Description
@@ -1564,18 +1565,17 @@ doc ///
 
     Outputs
         : Sequence
-	   consisting of (CC,Matrix,ZZ) or (CC,List,ZZ)
-           where the first element is always a real number - the maximum value attained in the log-likelihood function,
-	   the matrix (or list of matrices) is the MLE for the covariance matrix
-	   and the integer is the ML-degree of the model.
-	   Alternatively, the MLE for the concentration matrix can be given as output
-	   by setting @TO ConcentrationMatrix@ to true
+	   of length 3, whose first element is the maximum value attained in the log-likelihood function (of type @TO RR@), 
+	   its second element is the MLE (or MLEs) of the covariance matrix (of types @TO Matrix@ or @TO List@), 
+	   and its third element is the ML-degree of the model (of type @TO ZZ@).
+	   
+	   By providing true as the value for the option @TO ConcentrationMatrix@, the MLE for the concentration matrix can be given as output.
 
     Description
 
 	Text
-	    This function takes as input a @TO Graph@, or a @TO Digraph@, or a @TO Bigraph@ or a @TO MixedGraph@ and a list or matrix that encodes, by default, the sample data.
-	    It computes the critical points of the score equations and
+	    This function takes as input a TO2{@TO Graph@,graph},or a TO2{@TO Digraph@,digraph}, or a TO2{@TO Bigraph@,bigraph} or a TO2{@TO MixedGraph@,mixed graph} and a list or matrix that encodes, by default, the sample data.
+	    It computes the critical points of the score equations and 
 	    selects the maximum value achieved among those that lie in the cone of positive-definite matrices.
 	    The default output is the maximum value in the log-likelihood function, maximum likelihood estimators (MLE) for the covariance matrix
 	    and the ML-degree of the model.

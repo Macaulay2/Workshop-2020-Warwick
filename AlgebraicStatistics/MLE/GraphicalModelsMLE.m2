@@ -311,21 +311,11 @@ checkPD(Matrix):= opts -> (L)->{
 
 checkPSD = method(TypicalValue =>List, Options =>{ZeroTolerance=>1e-10});
 checkPSD(List) :=  opts -> (L) -> (
-   mat := {};
-    for l in L do
-    (
-    	flag := 0;
-    	-- Compute eigenvalues for each matrix
-	L1 := eigenvalues l;
-    	--Check whether all of them are non-negative and real
-	for t in L1 do
-    	(
-	    if realPart t< -opts.ZeroTolerance then flag = 1;
-	    if abs(imaginaryPart t )>opts.ZeroTolerance then flag=1;
-     	);
-        if flag == 0 then mat = mat | {realPartMatrix l} ;
-    );
-    return mat;
+	for l in L
+		list (
+			if not length (select(eigenvalues l, i->realPart i< -opts.ZeroTolerance
+				or abs(imaginaryPart i )>opts.ZeroTolerance))==0 then continue;
+				realPartMatrix l)
 );
 checkPSD(Matrix):= opts -> (L)->{
     return checkPSD({L},opts);

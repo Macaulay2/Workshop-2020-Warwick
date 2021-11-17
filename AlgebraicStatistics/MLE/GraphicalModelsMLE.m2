@@ -1574,7 +1574,7 @@ doc ///
     Description
 
 	Text
-	    This function takes as input a TO2{@TO Graph@,graph},or a TO2{@TO Digraph@,digraph}, or a TO2{@TO Bigraph@,bigraph} or a TO2{@TO MixedGraph@,mixed graph} and a list or matrix that encodes, by default, the sample data.
+	    This function takes as input a @TO2{Graph,"graph"}@, or a @TO2{Digraph,"digraph"}@, or a @TO2{Bigraph,"bigraph"}@ or a @TO2{MixedGraph,"mixed graph"}@ and a list or matrix that encodes, by default, the sample data.
 	    It computes the critical points of the score equations and 
 	    selects the maximum value achieved among those that lie in the cone of positive-definite matrices.
 	    The default output is the maximum value in the log-likelihood function, maximum likelihood estimators (MLE) for the covariance matrix

@@ -1275,8 +1275,8 @@ doc ///
         false by default
   Description
     Text
-     By default, @TO solverMLE@ outputs the MLE for the covariance matrix. By setting
-     @TO [solverMLE, ConcentrationMatrix]@ to true, @TO solverMLE@ provides the MLE for
+     By default, @TO solverMLE@ outputs the MLE for the covariance matrix. By providing true as the value for the option
+     @TO [solverMLE, ConcentrationMatrix]@, @TO solverMLE@ provides the MLE for
      the concentration matrix.
 
      Note that both the maximum value attained in the log-likelihood function and

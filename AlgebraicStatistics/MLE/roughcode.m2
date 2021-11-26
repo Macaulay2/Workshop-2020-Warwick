@@ -203,6 +203,10 @@ installPackage "EigenSolver"
 installPackage "GraphicalModels"
 installPackage "GraphicalModelsMLE"
 
+check "StatGraphs"
+check "GraphicalModels"
+check "GraphicalModelsMLE" 
+
 installPackage "ReactionNetworks"
 installPackage "Visualize"
 installPackage "BinomialEdgeIdeals"

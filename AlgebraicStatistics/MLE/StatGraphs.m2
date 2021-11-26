@@ -188,17 +188,19 @@ partitionLMG MixedGraph := g -> (
    --check that vertices in U (undir) have lower value than vertices in W (bidir):
    if max U > min W then error ("Vertex ordering issues: vertices adjacent to undirected edges should have lower value than vertices adjacent to bidirected edges");
    --check there are no directed edges from set U to set W
-   for e in edges D do (if (member(e_0,set W) and member(e_1,set U)) 
+   E:= edges D;
+   for i from 0 to (#E-1) do (if (member(E_i_0,set W) and member(E_i_1,set U))
    then error("Directed edges cannot go from vertices adjacent to a bidirected edge to vertices adjacent to an undirected edge"));
    --check directed edges always go from lower value to higher value
-   for e in edges D do (
-       if e_0 > e_1 then error ("Vertex ordering issues: directed edges must go from low to high");
+   for i from 0 to (#E-1) do (
+       if E_i_0 > E_i_1 then error ("Vertex ordering issues: directed edges must go from low to high");
    );
    --check whether there are remaining vertices (only adjacent to directed edges)
    V:=set vertices g-set W-set U;
    if V===set{} then return (U,W);
    --place remaining vertices in either U or W depending on their value
-   for v in toList V do (if v < max U then U=append(U,v) else W=append(W,v););
+   Vl := toList V;
+   for i from 0 to (#Vl-1) do (if Vl_i < max U then U=append(U,Vl_i) else W=append(W,Vl_i););
    sort U,sort W
 )
 

@@ -293,6 +293,213 @@ scoreEquations(List,Ring) := opts ->(U,R) -> (
     return scoreEquations(R,U,opts);
     );
 
+--Allow for graphs as input 
+scoreEquations(MixedGraph, Matrix) := opts ->(G,U) -> (
+    return scoreEquations(gaussianRing(G),U,opts);
+    );
+
+scoreEquations(MixedGraph,List) := opts ->(G,U) -> (
+    return scoreEquations(gaussianRing(G),U,opts);
+    );
+
+--All permutations of input for MixedGraphs and other type of graphs
+scoreEquations(Graph,List) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+
+scoreEquations(Digraph,List) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Bigraph,List) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Graph,Digraph,List) := opts -> (G,D,U) -> (
+    return scoreEquations(mixedGraph (G,D),U, opts);
+    );
+scoreEquations(Digraph,Graph,List) := opts -> (D,G,U) -> (
+    return scoreEquations(mixedGraph (D,G),U, opts);
+    );
+scoreEquations(Digraph,Bigraph,List) := opts -> (D,B,U) -> (
+    return scoreEquations(mixedGraph (D,B),U, opts);
+    );
+scoreEquations(Bigraph,Digraph,List) := opts -> (B,D,U) -> (
+    return scoreEquations(mixedGraph (B,D),U, opts);
+    );
+scoreEquations(Graph, Bigraph,List) := opts -> (G,B,U) -> (
+    return scoreEquations(mixedGraph (G,B),U, opts);
+    );
+scoreEquations(Bigraph,Graph,List) := opts -> (B,G,U) -> (
+    return scoreEquations(mixedGraph (B,G),U, opts);
+    );
+scoreEquations(Graph, Digraph, Bigraph, List) := opts -> (G,D,B,U) -> (
+    return scoreEquations(mixedGraph (G,D,B),U, opts);
+    );
+scoreEquations(Digraph, Bigraph, Graph, List) := opts -> (D,B,G,U) -> (
+    return scoreEquations(mixedGraph (D,B,G),U, opts);
+    );
+scoreEquations(Bigraph, Graph, Digraph, List) := opts -> (B,G,D,U) -> (
+    return scoreEquations(mixedGraph (B,G,D),U, opts);
+    );
+scoreEquations(Graph,Bigraph, Digraph, List) := opts -> (G,B,D,U) -> (
+    return scoreEquations(mixedGraph (G,B,D),U, opts);
+    );
+scoreEquations(Bigraph, Digraph,Graph, List) := opts -> (B,D,G,U) -> (
+    return scoreEquations(mixedGraph (B,D,G),U, opts);
+    );
+scoreEquations(Digraph, Graph, Bigraph, List) := opts -> (D,G,B,U) -> (
+    return scoreEquations(mixedGraph (D,G,B),U, opts);
+    );
+
+scoreEquations(List,MixedGraph) := opts -> (U,G) -> (
+    return scoreEquations(G,U, opts);
+    );
+
+scoreEquations(List,Graph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+
+scoreEquations(List,Digraph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(List,Bigraph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(List,Graph,Digraph) := opts -> (U,G,D) -> (
+    return scoreEquations(mixedGraph (G,D),U, opts);
+    );
+scoreEquations(List,Digraph,Graph) := opts -> (U,D,G) -> (
+    return scoreEquations(mixedGraph (D,G),U, opts);
+    );
+scoreEquations(List,Digraph,Bigraph) := opts -> (U,D,B) -> (
+    return scoreEquations(mixedGraph (D,B),U, opts);
+    );
+scoreEquations(List,Bigraph,Digraph) := opts -> (U,B,D) -> (
+    return scoreEquations(mixedGraph (B,D),U, opts);
+    );
+scoreEquations(List,Graph, Bigraph) := opts -> (U,G,B) -> (
+    return scoreEquations(mixedGraph (G,B),U, opts);
+    );
+scoreEquations(List,Bigraph,Graph) := opts -> (U,B,G) -> (
+    return scoreEquations(mixedGraph (B,G),U, opts);
+    );
+scoreEquations(List,Graph, Digraph, Bigraph) := opts -> (U,G,D,B) -> (
+    return scoreEquations(mixedGraph (G,D,B),U, opts);
+    );
+scoreEquations(List,Digraph, Bigraph, Graph) := opts -> (U,D,B,G) -> (
+    return scoreEquations(mixedGraph (D,B,G),U, opts);
+    );
+scoreEquations(List,Bigraph, Graph, Digraph) := opts -> (U,B,G,D) -> (
+    return scoreEquations(mixedGraph (B,G,D),U, opts);
+    );
+scoreEquations(List,Graph,Bigraph, Digraph) := opts -> (U,G,B,D) -> (
+    return scoreEquations(mixedGraph (G,B,D),U, opts);
+    );
+scoreEquations(List,Bigraph, Digraph,Graph) := opts -> (U,B,D,G) -> (
+    return scoreEquations(mixedGraph (B,D,G),U, opts);
+    );
+scoreEquations(List,Digraph, Graph, Bigraph) := opts -> (U,D,G,B) -> (
+    return scoreEquations(mixedGraph (D,G,B),U, opts);
+    );
+
+scoreEquations(Graph,Matrix) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+
+scoreEquations(Digraph,Matrix) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Bigraph,Matrix) := opts -> (G, U) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Graph,Digraph,Matrix) := opts -> (G,D,U) -> (
+    return scoreEquations(mixedGraph (G,D),U, opts);
+    );
+scoreEquations(Digraph,Graph,Matrix) := opts -> (D,G,U) -> (
+    return scoreEquations(mixedGraph (D,G),U, opts);
+    );
+scoreEquations(Digraph,Bigraph,Matrix) := opts -> (D,B,U) -> (
+    return scoreEquations(mixedGraph (D,B),U, opts);
+    );
+scoreEquations(Bigraph,Digraph,Matrix) := opts -> (B,D,U) -> (
+    return scoreEquations(mixedGraph (B,D),U, opts);
+    );
+scoreEquations(Graph, Bigraph,Matrix) := opts -> (G,B,U) -> (
+    return scoreEquations(mixedGraph (G,B),U, opts);
+    );
+scoreEquations(Bigraph,Graph,Matrix) := opts -> (B,G,U) -> (
+    return scoreEquations(mixedGraph (B,G),U, opts);
+    );
+scoreEquations(Graph, Digraph, Bigraph, Matrix) := opts -> (G,D,B,U) -> (
+    return scoreEquations(mixedGraph (G,D,B),U, opts);
+    );
+scoreEquations(Digraph, Bigraph, Graph, Matrix) := opts -> (D,B,G,U) -> (
+    return scoreEquations(mixedGraph (D,B,G),U, opts);
+    );
+scoreEquations(Bigraph, Graph, Digraph, Matrix) := opts -> (B,G,D,U) -> (
+    return scoreEquations(mixedGraph (B,G,D),U, opts);
+    );
+scoreEquations(Graph,Bigraph, Digraph, Matrix) := opts -> (G,B,D,U) -> (
+    return scoreEquations(mixedGraph (G,B,D),U, opts);
+    );
+scoreEquations(Bigraph, Digraph,Graph, Matrix) := opts -> (B,D,G,U) -> (
+    return scoreEquations(mixedGraph (B,D,G),U, opts);
+    );
+scoreEquations(Digraph, Graph, Bigraph, Matrix) := opts -> (D,G,B,U) -> (
+    return scoreEquations(mixedGraph (D,G,B),U, opts);
+    );
+
+scoreEquations(Matrix,MixedGraph) := opts -> (U,G) -> (
+    return scoreEquations(G,U, opts);
+    );
+
+scoreEquations(Matrix,Graph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+
+scoreEquations(Matrix,Digraph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Matrix,Bigraph) := opts -> (U,G) -> (
+    return scoreEquations(mixedGraph (G),U, opts);
+    );
+scoreEquations(Matrix,Graph,Digraph) := opts -> (U,G,D) -> (
+    return scoreEquations(mixedGraph (G,D),U, opts);
+    );
+scoreEquations(Matrix,Digraph,Graph) := opts -> (U,D,G) -> (
+    return scoreEquations(mixedGraph (D,G),U, opts);
+    );
+scoreEquations(Matrix,Digraph,Bigraph) := opts -> (U,D,B) -> (
+    return scoreEquations(mixedGraph (D,B),U, opts);
+    );
+scoreEquations(Matrix,Bigraph,Digraph) := opts -> (U,B,D) -> (
+    return scoreEquations(mixedGraph (B,D),U, opts);
+    );
+scoreEquations(Matrix,Graph, Bigraph) := opts -> (U,G,B) -> (
+    return scoreEquations(mixedGraph (G,B),U, opts);
+    );
+scoreEquations(Matrix,Bigraph,Graph) := opts -> (U,B,G) -> (
+    return scoreEquations(mixedGraph (B,G),U, opts);
+    );
+scoreEquations(Matrix,Graph, Digraph, Bigraph) := opts -> (U,G,D,B) -> (
+    return scoreEquations(mixedGraph (G,D,B),U, opts);
+    );
+scoreEquations(Matrix,Digraph, Bigraph, Graph) := opts -> (U,D,B,G) -> (
+    return scoreEquations(mixedGraph (D,B,G),U, opts);
+    );
+scoreEquations(Matrix,Bigraph, Graph, Digraph) := opts -> (U,B,G,D) -> (
+    return scoreEquations(mixedGraph (B,G,D),U, opts);
+    );
+scoreEquations(Matrix,Graph,Bigraph, Digraph) := opts -> (U,G,B,D) -> (
+    return scoreEquations(mixedGraph (G,B,D),U, opts);
+    );
+scoreEquations(Matrix,Bigraph, Digraph,Graph) := opts -> (U,B,D,G) -> (
+    return scoreEquations(mixedGraph (B,D,G),U, opts);
+    );
+scoreEquations(Matrix,Digraph, Graph, Bigraph) := opts -> (U,D,G,B) -> (
+    return scoreEquations(mixedGraph (D,G,B),U, opts);
+    );
+
+
 checkPD = method(TypicalValue =>List, Options =>{ZeroTolerance=>1e-10});
 checkPD(List) :=  opts -> (L) -> (
 		for l in L
@@ -331,11 +538,19 @@ MLdegree(Ring):= (R) -> (
 
 
 solverMLE = method(TypicalValue =>Sequence, Options =>{SampleData=>true, ConcentrationMatrix=> false, Saturate => true, SaturateOptions => options saturate, Solver=>"EigenSolver", OptionsEigenSolver => options zeroDimSolve, OptionsNAG4M2=> options solveSystem, RealPrecision => 53, ZeroTolerance=>1e-10});
-solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
-    -- check input
-    if not numgens source U ==#vertices G then error "Size of sample data does not match the graph.";
-    -- generate the Gaussian ring of the MixedGraph
-    R:= gaussianRing(G);
+solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (    
+    return  solverMLE(gaussianRing G,U,opts);
+);
+
+-- Allow list instead of matrix
+solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
+    return  solverMLE(gaussianRing G,U,opts);
+);
+
+--Allow ring instead of graph
+solverMLE(Ring,Matrix):= opts ->(R,U) -> (
+        -- check input
+    if not numgens source U ==#R.gaussianRingData#nn then error "Size of sample data does not match the graph.";
     -- sample covariance matrix
     if opts.SampleData then V := sampleCovarianceMatrix(U)
     else (V=U;
@@ -374,18 +589,27 @@ solverMLE(MixedGraph,Matrix) := opts -> (G, U) -> (
 	if instance(E,List) then E=(for e in E list e=inverse e) else  E=inverse E
 	);
     return  (maxPt,E,ML));
+
+
 );
 
--- Allow list instead of matrix
-solverMLE(MixedGraph,List):=  opts ->(G,U) -> (
+-- Allow ring instead of graph and list instead of matrix
+solverMLE(Ring,List):=  opts ->(R,U) -> (
     -- check input
     if not opts.SampleData then error "The sample covariance matrix must be a matrix.";
     -- call solverMLE for a matrix
-    return  solverMLE(G,matrix U,opts);
+    return  solverMLE(R,matrix U,opts);
 );
 
 
 -- Permutations of input
+
+solverMLE(Matrix,Ring) := opts -> (U, R) -> (
+    return solverMLE(R,U, opts);
+    );
+solverMLE(List,Ring) := opts -> (U, R) -> (
+    return solverMLE(R,U, opts);
+    );
 
 solverMLE(Graph,List) := opts -> (G, U) -> (
     return solverMLE(mixedGraph (G),U, opts);
@@ -582,6 +806,7 @@ solverMLE(Matrix,Bigraph, Digraph,Graph) := opts -> (U,B,D,G) -> (
 solverMLE(Matrix,Digraph, Graph, Bigraph) := opts -> (U,D,G,B) -> (
     return solverMLE(mixedGraph (D,G,B),U, opts);
     );
+
 
 --******************************************--
 -- DOCUMENTATION     	       	    	    --

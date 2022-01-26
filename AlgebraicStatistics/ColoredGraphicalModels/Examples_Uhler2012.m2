@@ -124,12 +124,8 @@ R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
 S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
 
 --sufficient statistics
-stat1=t_1-s_11-s_22-s_33-s_44
-stat2=t_2-2*(s_12+s_14+s_34)
-stat3=t_3-2*s_23
-
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
-Istat=ideal(stat1,stat2,stat3)
+Istat=ideal(t_1-s_11-s_22-s_33-s_44,t_2-2*(s_12+s_14+s_34),t_3-2*s_23)
 
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
@@ -158,15 +154,73 @@ R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
 S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
 
 --sufficient statistics
-stat1=t_1-s_11-s_22-s_44
-stat2=t_2-s_33
-stat3=t_3-2*(s_12+s_14)
-stat4=t_4-2*s_23
-stat5=t_5-2*s_34
-
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
-Istat=ideal(stat1,stat2,stat3,stat4,stat5)
+Istat=ideal(t_1-s_11-s_22-s_44,t_2-s_33,t_3-2*(s_12+s_14),t_4-2*s_23,t_5-2*s_34)
 
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
+
+-- GRAPH 9
+restart
+-- initialize all functions in the beginning of the file, then run this code
+n=6
+R=QQ[l_1..l_n,t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+-- compute P_G (ideal of variety of L^{-1})
+P_G=eliminate(toList(l_1..l_n),ideal(K*S-id_(R^4)))
+
+-- algebraic boundary 
+H_G= algBoundary K
+
+-- EXISTENCE OF MLE 
+-- Computation of I_(G,n) (Theorem 3.3, Uhler)
+-- with coloring
+restart
+n=6
+R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+--sufficient statistics
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+Istat=ideal(t_1-s_11,t_2-s_22-s_44,t_3-s_33,t_4-2*(s_12+s_14),t_5-2*s_23,t_6-2*s_34)
+
+I_G3=eliminate(varList,minors(4,S)+Istat)
+I_G2=eliminate(varList,minors(3,S)+Istat)
+I_G1=eliminate(varList,minors(2,S)+Istat)
+
+-- GRAPH 16
+restart
+-- initialize all functions in the beginning of the file, then run this code
+n=7
+R=QQ[l_1..l_n,t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+K=matrix{{l_1,l_4,0,l_7},{l_4,l_1,l_5,0},{0,l_5,l_2,l_6},{l_7,0,l_6,l_3}}
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+-- compute P_G (ideal of variety of L^{-1})
+P_G=eliminate(toList(l_1..l_n),ideal(K*S-id_(R^4)))
+
+-- algebraic boundary 
+H_G= algBoundary K
+
+-- EXISTENCE OF MLE 
+-- Computation of I_(G,n) (Theorem 3.3, Uhler)
+-- with coloring
+restart
+n=7
+R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+--sufficient statistics
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+Istat=ideal(t_1-s_11-s_22,t_2-s_33,t_3-s_44,t_4-2*s_12,t_5-2*s_23,t_6-2*s_34,t_7-2*s_14)
+
+I_G3=eliminate(varList,minors(4,S)+Istat)
+I_G2=eliminate(varList,minors(3,S)+Istat)
+I_G1=eliminate(varList,minors(2,S)+Istat)
+
+--------------------------------
+-- TBD Graphs 11, 14, 17, 18
+--------------------------------

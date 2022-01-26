@@ -83,9 +83,10 @@ H_G= {ideal t_1, ideal t_3, ideal(4*t_2*t_3-t_5^2-t_6^2),
       ideal(8*t_1*t_2*t_3-t_3*t_4^2-t_1*t_5^2+2*t_1*t_5*t_6-t_1*t_6^2)}
   
 --I_Gn
-I_G3=
-I_G2=
-I_G1=
+I_G3=ideal()
+I_G2=ideal()
+I_G1=ideal(4*t_2*t_3-t_5^2-t_6^2,t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2
+     )
   
 -- GRAPH 16
 restart

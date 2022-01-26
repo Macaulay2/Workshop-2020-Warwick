@@ -78,6 +78,19 @@ H_G= algBoundary K
 ------------------------------------
 -- Computation of I_(G,n) (Theorem 3.3, Uhler)
 -- with coloring
+-- (for some reason, I need to restart and redeclare all rings...)
+restart
+n=5
+R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+--sufficient statistics
+stat1=t_1-s_11-s_22
+stat2=t_2-s_33-s_44
+stat3=t_3-2*s_12
+stat4=t_4-2*(s_23+s_14)
+stat5=t_5-2*s_34
+
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
 Istat=ideal(stat1,stat2,stat3,stat4,stat5)
 
@@ -96,11 +109,6 @@ R=QQ[l_1..l_n,t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
 K=matrix{{l_1,l_2,0,l_2},{l_2,l_1,l_3,0},{0,l_3,l_1,l_2},{l_2,0,l_2,l_1}}
 S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
 
---sufficient statistics
-stat1=t_1-s_11-s_22-s_33-s_44
-stat2=t_2-2*(s_12+s_14+s_34)
-stat3=t_3-2*s_23
-
 -- compute P_G (ideal of variety of L^{-1})
 P_G=eliminate(toList(l_1..l_n),ideal(K*S-id_(R^4)))
 
@@ -112,8 +120,19 @@ H_G= algBoundary K
 ------------------------------------
 -- Computation of I_(G,n) (Theorem 3.3, Uhler)
 -- with coloring
-varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
-Istat=ideal(stat1,stat2,stat3,stat4,stat5)
+restart
+n=3
+R=QQ[t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
 
+--sufficient statistics
+stat1=t_1-s_11-s_22-s_33-s_44
+stat2=t_2-2*(s_12+s_14+s_34)
+stat3=t_3-2*s_23
+
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+Istat=ideal(stat1,stat2,stat3)
+
+I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)

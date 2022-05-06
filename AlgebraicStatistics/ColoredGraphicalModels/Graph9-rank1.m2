@@ -40,7 +40,7 @@ statCand=apply(statCand,i->lift(i,QQ))
 
 dim I_G1  
   
-partialSol=sub(I_G1orig,{t_1 => statCand_0, t_2 => statCand_1, t_3 => statCand_2, t_4 => statCand_3, t_5 => statCand_4, t_6 => statCand_5})  
+partialSol=sub(I_G1,{t_1 => statCand_0, t_2 => statCand_1, t_3 => statCand_2, t_4 => statCand_3, t_5 => statCand_4, t_6 => statCand_5})  
 sub((gens partialSol)_1,RR)
 
 dim partialSol

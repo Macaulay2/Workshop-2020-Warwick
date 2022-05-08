@@ -75,7 +75,7 @@ rankProjection=(stats,rk,S)->(
 eliminationIdeal=(stats,rk,S,numDrop)->(
     I:=minors(rk+1,S);
     varList:= support I;
-    rankProjection:=eliminate(drop(varList,-numDrop),I+stats)
+    eliminationIdeal:=eliminate(drop(varList,-numDrop),I+stats)
     )
 
 

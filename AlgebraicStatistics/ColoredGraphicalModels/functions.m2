@@ -67,3 +67,21 @@ rankProjection=(stats,rk,S)->(
 -------------------------------------------------
 -- EXTENSION OF PARTIAL SOLUTIONS
 -------------------------------------------------
+--INPUT:
+-- stats - ideal of sufficient statistics
+-- rk - rank of matrices
+-- S - variable matrix for samle covariance
+-- numDrop - number of variables to drop for s_{i,j} (in the monomial order)
+eliminationIdeal=(stats,rk,S,numDrop)->(
+    I:=minors(rk+1,S);
+    varList:= support I;
+    rankProjection:=eliminate(drop(varList,-numDrop),I+stats)
+    )
+
+
+------------------------------------------------
+-- TBD
+------------------------------------------------
+-- automatically generate the ideal of sufficient stats from K
+-- generate points in the interior
+-- generate point on the intersection of complement

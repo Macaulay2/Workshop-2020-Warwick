@@ -1153,7 +1153,7 @@ doc///
 	isBalanced
 	(isBalanced, TropicalCycle)
     Headline
-		checks whether a tropical cycle is balanced
+		determines whether a tropical cycle is balanced
     Usage
     	isBalanced T
     Inputs
@@ -1162,7 +1162,7 @@ doc///
     	B:Boolean
     Description
 		Text
-			This function checks if a tropical cycle is balanced.
+			This function determines whether a tropical cycle is balanced.
 		Example
 			QQ[x,y,z]
 			V = tropicalVariety(ideal(x+y+z))
@@ -1370,7 +1370,7 @@ doc///
     	Text
 	    This computes the stable intersection of two tropical
 	    cycles.  For details on the definition of stable
-	    intersection, see, for example, Section 3.6 of TROPICALBOOK.
+	    intersection, see, for example, Section 3.6 of ["Introduction to Tropical Geometry", Maclagan, Sturmfels].
 	    If a recent enough version of polymake is installed,
 	    the Strategy "atint" is default. Otherwise "gfan" will be used,
 	    which only computes the fan of the stable intersection
@@ -1397,7 +1397,7 @@ doc///
 	(isTropicalBasis, List)
 	[isTropicalBasis, Strategy]
     Headline
-	checks if a list of polynomials is a tropical basis for the ideal they generate
+	determines if a list of polynomials is a tropical basis for the ideal they generate
     Usage
 	isTropicalBasis(L)
 	isTropicalBasis(L,Strategy=>S)
@@ -1411,7 +1411,7 @@ doc///
 	    whether the list of polynomials is a tropical basis for the ideal it generates
     Description
 	Text
-	    This method checks if the intersection of the tropical hypersurfaces associated to the polynomials in the list equals the tropicalization of the variety corresponding to the ideal they generate.
+	    This method determines if the intersection of the tropical hypersurfaces associated to the polynomials in the list equals the tropicalization of the variety corresponding to the ideal they generate.
         Example
 	    QQ[x,y,z]
 	    isTropicalBasis({x+y+z,2*x+3*y-z})
@@ -1424,7 +1424,7 @@ doc///
 	multiplicities
 	(multiplicities, TropicalCycle)
     Headline
-		returns the list of multiplicities on maximal cones in a tropical cycle
+		returns the list of multiplicities of the maximal cones in a tropical cycle
     Usage
     	multiplicities(T)
     Inputs
@@ -1433,7 +1433,7 @@ doc///
     	L:List
     Description
 		Text
-			This method returns the list of multiplicities on maximal cones in a tropical cycle.
+			This method returns the list of multiplicities of the maximal cones in a tropical cycle.
 		Example
 			QQ[x,y,z]
 			V = tropicalVariety(ideal(x+y+z));
@@ -1444,12 +1444,12 @@ doc///
     Key
 	ComputeMultiplicities
     Headline
-		option to compute the multiplicities in case they ideal is not prime
+		option to compute the multiplicities in case the ideal is not prime
     Usage
     	tropicalVariety(I,ComputeMultiplicities=>true)
     Description
 		Text
-			This option allows to compute the multiplicities in case the ideal I is not prime. In fact the output of gfan
+			This option allows the user to compute the multiplicities in case the ideal I is not prime. In fact the output of gfan
 			does not include them and hence they are computed separately by this package. By default the ideal is assumed to be prime.
 		Example
 			QQ[x,y,z];
@@ -1465,14 +1465,14 @@ doc///
     Key
 	Prime
     Headline
-		option to declare if the input ideal is prime
+		option to declare whether the input ideal is prime
     Usage
     	tropicalVariety(I,Prime=>false)
 
     Description
 		Text
 			By default the ideal is assumed to be prime. If the ideal is not prime then the internal  procedure to compute the tropicalization is different.
-			It is used gfan_tropicalbrute force instead of gfan_tropicaltraverse.
+			It uses gfan_tropicalbrute force instead of gfan_tropicaltraverse.
 		Example
 			QQ[x,y,z];
 			I=ideal(x^2+y^2-2*x*y);
@@ -1485,17 +1485,15 @@ doc///
     Key
 	IsHomogeneous
     Headline
-		option to declare if the input ideal is homogeneous
+		option to declare whether the input ideal is homogeneous
     Usage
     	tropicalVariety(I,IsHomogeneous=>true)
 
     Description
 		Text
-			If the option is used than homogeneity of the
-			ideal is not tested. By default the ideal is
-			always assumed not homogeneous and a test is
-			performed before applying the function
-			tropicalVariety.
+			If the option value "true" is provided, then homogeneity of the ideal is not tested.
+      By default the ideal is	always assumed not homogeneous and a test is
+			performed before applying the function tropicalVariety.
 		Example
 		          QQ[x,y];
 			  I=ideal(x+y+1);
@@ -1527,7 +1525,7 @@ doc///
     Key
 	Symmetry
     Headline
-		option to declare if the input ideal has symmetries
+		option to declare whether the input ideal has symmetries
     Usage
     	tropicalVariety(I,Symmetry=>{{..},{..}})
 
@@ -1538,7 +1536,7 @@ doc///
 			tropical variety. For an ideal I of a
 			polynomial ring R = KK[x_0 .. x_N], each
 			symmetry is a permutation encoded in a list
-			\{s_0, s_1, ..., s_N\} of numbers from 0 to N
+			{s_0, s_1, ..., s_N} of numbers from 0 to N
 			which records that swapping the variable x_j
 			with the variable x_{s_j} in R leaves the
 			ideal I fixed. Exploiting symmetries reduces
@@ -1556,7 +1554,7 @@ doc///
     Key
 	(fan,TropicalCycle)
     Headline
-	    outputs the fan assocated to the tropical cycle
+	    computes the fan assocated to the tropical cycle
     Usage
     	fan(T)
     Inputs
@@ -1564,11 +1562,11 @@ doc///
 
     Outputs
 	F:Fan
-	    the fan associated to the  tropical cycle T
+	    the fan associated to the tropical cycle T
 
     Description
 		Text
-		        This function outputs the fan associated to the tropical cycle T.
+		        This function computes the fan associated to the tropical cycle T.
 		Example
 			QQ[x,y,z]
 			T=tropicalVariety (ideal(x+3*y+3));
@@ -1606,7 +1604,7 @@ doc///
     Key
 	(isPure,TropicalCycle)
     Headline
-	checks whether  a tropical cycle is pure
+	determines whether a tropical cycle is pure
     Usage
     	isPure(T)
     Inputs
@@ -1618,7 +1616,7 @@ doc///
 
     Description
 		Text
-		        This function checks whether the fan associated to the tropical cycle is pure, i.e. if the maximal cones have all the same dimension.
+		        This function determines whether the fan associated to the tropical cycle is pure, i.e. if the maximal cones have all the same dimension.
 		Example
 		        F=fan ({posHull(matrix{{1,2,3},{0,2,0}}),posHull(matrix{{0},{1}})});
 			T=tropicalCycle (F,{1,2});
@@ -1629,7 +1627,7 @@ doc///
     Key
 	(isSimplicial,TropicalCycle)
     Headline
-		checks whether a tropical cycle is simplicial
+		determines whether a tropical cycle is simplicial
     Usage
     	isSimplicial(T)
     Inputs
@@ -1641,7 +1639,7 @@ doc///
 
     Description
 		Text
-		       This function checks if the fan associated to the tropical cycle T is simplicial, i.e. if for each cone the rays generating  it are linearly independent.
+		       This function determines if the fan associated to the tropical cycle T is simplicial, i.e. if for each cone the rays generating  it are linearly independent.
 		Example
 		       F=fan ({posHull(matrix{{1,2,3},{0,2,0}}),posHull(matrix{{0},{1}})});
 		       T=tropicalCycle (F,{1,2});
@@ -1739,7 +1737,7 @@ doc///
 
     Description
 		Text
-		        This function computes the dimension of the space where the tropical cycle is contained.
+		        This function computes the dimension of the space in which the tropical cycle is contained.
 		Example
 			QQ[x,y,z]
 			T=tropicalVariety(ideal(x+y+z));
@@ -1763,7 +1761,7 @@ doc///
 
     Description
 		Text
-		        This function computes the cone of codimension k of the fan associated to the tropical cycle T.
+		        This function computes the cones of codimension k of the fan associated to the tropical cycle T.
 		Example
 			QQ[x,y,z,w,t]
 			I=ideal(x^2-y*z+w^2,w^3-y^3*x+z^3,t-w+x);
@@ -1788,8 +1786,7 @@ doc///
 
     Description
 		Text
-		        This function computes the lineality space of the fan associated to the tropical cycle T. The generators of the lineality space are the columns of the
-		        output  matrix
+		        This function computes the lineality space of the fan associated to the tropical cycle T. The generators of the lineality space are the columns of the output matrix.
 		Example
 		        QQ[x,y,z];
 			I=ideal(x-y);
@@ -1813,7 +1810,7 @@ doc///
        	   Configuration option "polymakeCommand".  The default is
        	   that this is empty, which means that Polymake options will
        	   not be used.  To tell the package where your copy of Polymake is installed, use either
-	   loadPackage("Tropical",Configuration=>\{"polymakeCommand"=>"YOUR COMMAND"\}), or
+	   loadPackage("Tropical",Configuration=>{"polymakeCommand"=>"YOUR COMMAND"}), or
 	   edit the init-Tropical.m2 file (created after you install the package)
 	   by changing "polymakeCommand" => "", into "polymakeCommand" => "YOUR COMMAND"
 

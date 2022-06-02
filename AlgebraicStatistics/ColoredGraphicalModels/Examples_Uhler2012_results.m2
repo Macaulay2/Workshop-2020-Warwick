@@ -87,7 +87,7 @@ I_G3=ideal()
 I_G2=ideal()
 I_G1=ideal(4*t_2*t_3-t_5^2-t_6^2,t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2
      )
-
+decompose I_G1
 
 -- GRAPH 8
 restart

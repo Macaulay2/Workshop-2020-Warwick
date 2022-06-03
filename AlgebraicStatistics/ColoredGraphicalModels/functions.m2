@@ -76,7 +76,6 @@ rankProjection=(stats,rk,S)->(
 eliminationIdeal=(stats,rk,S,numDrop)->(
     I:=minors(rk+1,S);
     varList:= support I;
-    --eliminationIdeal:=eliminate(drop(varList,-numDrop),I+stats)
     return eliminate(drop(varList,-numDrop),I+stats);
     )
 
@@ -297,3 +296,4 @@ checkRankCompletion=(compl,rk,tol)->(
 -- TBD
 ------------------------------------------------
 -- generate point on the intersection of complement
+

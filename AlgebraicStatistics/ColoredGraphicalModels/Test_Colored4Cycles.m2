@@ -150,3 +150,47 @@ suf=ideal{t_1-s_{1,1},
 t_2-(2*(s_{1,2}+s_{1,4}+s_{3,4})),
 t_3-2*s_{2,3}}+sub(JCov,R3)
 dim suf, degree suf
+
+
+--Graph 9
+restart
+m=4
+L=flatten for i from 1 to binomial(m+1,2) list l_i
+Raux=QQ[L]
+K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
+R=QQ[support K]
+K=sub(K,R)
+n=dim R
+
+-- STEP 2: ML-degree computation
+X=random(QQ^m,QQ^1);              
+print X
+S=(1/m)*X*transpose(X);
+rank S
+I=ideal{jacobian(matrix{{det K}})-det(K)*jacobian(matrix{{trace(S*K)}})};
+J=saturate(I,det K);
+degree J -- ML-degree in table
+
+K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
+
+restart
+m=4
+L=flatten for i from 1 to binomial(m+1,2) list l_i
+Raux=QQ[L]
+K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
+R=QQ[support K]
+K=sub(K,R)
+
+--R2=QQ[y_1..y_10]
+--GS=genericSymmetricMatrix(R2,y_1,4)
+--GS^2
+
+X=random(QQ^m,QQ^m);              
+print X
+S=(1/m)*X*transpose(X);
+rank S
+tr=trace(S*K)
+saturate(ideal{tr},ideal{l_1})
+saturate(ideal{tr},ideal{l_1,l_1*l_2-l_4^2})
+-- check that tr is strictly positive 
+-- with some inequalities on the l's coming from assuming PD matrices in the linear space of concentration matrices

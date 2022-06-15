@@ -2,7 +2,7 @@
 --FUNCTIONS--
 -------------
 needsPackage "GraphicalModelsMLE"
-
+  
 -----------------
 -- DUAL VARIETY
 -----------------
@@ -38,7 +38,7 @@ dualVariety=(IX,n,x,u)->(
 -- 3. Keep only those varieties, whose ideal is principal
 -- 4. H_L is the product of these principal generators
 
-boundaryComponents=(K,p)->(
+boundaryComponents=(K,p,n)->(
     I:=minors(p,K);
     minPrimes:=minimalPrimes I;
     m:= length minPrimes;
@@ -47,9 +47,9 @@ boundaryComponents=(K,p)->(
     )
 
 
-algBoundary=(K)->(
+algBoundary=(K,n)->(
     s=numgens target K;       
-    delete (null, flatten (for p from 1 to s list boundaryComponents(K,p))) 
+    delete (null, flatten (for p from 1 to s list boundaryComponents(K,p,n))) 
     )
 
 -------------------------------------------------
@@ -203,9 +203,76 @@ maxMLE=(L,V)->(
 adjacencyMat=(A)->(
     matrix toList apply(0..(p-1),i->toList apply(0..(p-1),j-> if A_(i,j)!=0 then 1_QQ else 0_QQ))
 )
+
+realPartMatrix = A -> matrix apply(entries A, r -> r/realPart)
+
+checkRealReg = method(TypicalValue =>List);
+checkRealReg(List):=(L) -> (
+		for l in L
+		list (if not length (select(eigenvalues l, i->abs(realPart i)<0.000000001 
+			             or abs(imaginaryPart i )>0.0000000001))==0
+		      then continue; 
+		      realPartMatrix l)
+);
+checkRealReg(Matrix):=(L)->{
+    return checkRealReg(L);
+};
+
+
+--m: rk of empirical covariance matrix
+--k: number of points we want to try	
+empiricalMLEexistence=(m,k,K)->(
+    count:=0;
+    for i from 1 to k do (    
+    	p=numcols K;
+    	X=random(QQ^p,QQ^m);              
+    	S=(1/m)*X*transpose(X);
+    	I=ideal{jacobian(matrix{{det K}})-det(K)*jacobian(matrix{{trace(S*K)}})};
+    	J=saturate(I,det K);
+	if dim J!=0 then return(count,"The ideal does not have the right dimension ");
+    	criticalPoints=zeroDimSolve(J);
+        criticalMatrices=genListMatrix(criticalPoints,K);
+	if checkPD(criticalMatrices,ZeroTolerance=>1e-7)!={} then count=count+1;
+        );
+        return(count);
+     )	
+
+empiricalMLENoPD=(m,k,K)->(
+    count:=0;
+    for i from 1 to k do (    
+    	p=numcols K;
+    	X=random(QQ^p,QQ^m);              
+    	S=(1/m)*X*transpose(X);
+    	I=ideal{jacobian(matrix{{det K}})-det(K)*jacobian(matrix{{trace(S*K)}})};
+    	J=saturate(I,det K);
+	if dim J!=0 then return("The ideal does not have the right dimension ");
+    	criticalPoints=zeroDimSolve(J);
+        criticalMatrices=genListMatrix(criticalPoints,K);
+	if length(criticalMatrices)!=0 then count=count+1;
+        );
+        return(count);
+     )	
+
+empiricalMLERealReg=(m,k,K)->(
+    count:=0;
+    for i from 1 to k do (    
+    	p=numcols K;
+    	X=random(QQ^p,QQ^m);              
+    	S=(1/m)*X*transpose(X);
+    	I=ideal{jacobian(matrix{{det K}})-det(K)*jacobian(matrix{{trace(S*K)}})};
+    	J=saturate(I,det K);
+	if dim J!=0 then return("The ideal does not have the right dimension ");
+    	criticalPoints=zeroDimSolve(J);
+        criticalMatrices=genListMatrix(criticalPoints,K);
+	if checkRealReg(criticalMatrices)!={} then count=count+1;
+        );
+        return(count);
+     )	
+
 	
 interiorPoint=(v1,v2,n,f,K)->(
     Rt:=QQ[t_1..t_n,lambda];
+    tol:=0.000000000000001; --only applies to discard complex sols
     v:=sub(vector delete(lambda,gens Rt),Rt);
     P:=sub(v1,Rt);
     Q:=sub(v2,Rt);
@@ -227,7 +294,6 @@ interiorPoint=(v1,v2,n,f,K)->(
         );
     Rl=ring(K);
     intPoints:={};
-    tol=0.000001;
     for k from 0 to (#sols -1) do(
 	--next two lines allow us to omit complex solutions
         listIm=apply(coordinates sols_k,i->abs(imaginaryPart i));

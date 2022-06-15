@@ -116,9 +116,23 @@ rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
 netList IG1_*
 
+-----test
+Rt=QQ[support IG1]
+f1=sub(IG1_0,Rt)
+f2=sub(IG1_1,Rt)
+
+f=f1^2+f2^2
+m=4
+k=10
+(L1,L2)=differentSign(f,m,k,p,n,stats);
+netList L1 --initial point (suff statistics, evaluation)
+netList L2 --if exists, point with different sign (suff statistics, evaluation, number of points we had to try)
+------
+
 m=4 --rank of empirical covariance matrices
 k=10 --number of points we want to try out
 L=empiricalVanishingPolynomials(IG1,m,k,p,n,stats)
+netList L
 use ring IG1
 (L1,L2)=differentSign(IG1_0,m,k,p,n,stats);
 netList L1 --initial point (suff statistics, evaluation)
@@ -137,3 +151,12 @@ sub(IG_1,transpose matrix v1)
 sub(IG_1,transpose matrix v2)
 
 
+P=interiorPoint(v1,v2,n,L_0,K)
+
+
+intP=P_0
+tol=0.000001 
+compl=rankCompletion(intP,p,rk,stats,S,Rtotal,tol)
+
+I=sub(IG1,QQ[support IG1])
+dim I, degree I

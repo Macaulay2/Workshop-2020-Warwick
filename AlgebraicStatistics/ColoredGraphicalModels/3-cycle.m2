@@ -15,4 +15,18 @@ S1=genericSymmetricMatrix(R1,3)
 J=eliminate(toList(x_1..x_6),ideal(Adj-S1))
 J==minors(2,S1)
 
-for i to 100 list random RR
+--for i to 100 list random R
+restart
+R=QQ[l1,l2,l3,l4]
+Kv=matrix{{l1,l2,l3},{l2,l1,l4},{l3,l4,l1}} -- all vertices
+Ke=matrix{{l1,l4,l4},{l4,l2,l4},{l4,l4,l3}} -- all edges
+K2e=matrix{{l1,l4,0},{l4,l2,l4},{0,l4,l3}} -- 2 edges, one removed
+fv=det Kv
+fe=det Ke  
+f2e=det K2e  
+Hv=jacobian ideal flatten entries jacobian ideal fv
+He=jacobian ideal flatten entries jacobian ideal fe
+H2e=jacobian ideal flatten entries jacobian ideal f2e
+rank Hv
+rank He
+rank H2e

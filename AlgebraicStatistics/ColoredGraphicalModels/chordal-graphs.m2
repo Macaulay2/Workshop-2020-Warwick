@@ -45,6 +45,7 @@ I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
 
+I_G1New=eliminate(t_3,I_G1+ideal(1-t_1-t_2-t_3))
 restart
 n=4
 R=QQ[t_1..t_n,s_11..s_13,s_22..s_23,s_33]
@@ -59,6 +60,7 @@ I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
 
+eliminate(t_1,I_G1+ideal(t_1-1/3))
 restart
 n=4
 R=QQ[t_1..t_n,s_11..s_13,s_22..s_23,s_33]
@@ -72,6 +74,9 @@ Istat=ideal(t_1-s_11,t_2-s_22,t_3-s_33,t_4-2*s_12-2*s_13-2*s_23)
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
+
+I_G1New=eliminate(t_3,I_G1+ideal(1-t_1-t_2-t_3))
+toString gens I_G1New
 
 restart
 n=4

@@ -2,7 +2,7 @@
 --FUNCTIONS--
 -------------
 needsPackage "GraphicalModelsMLE"
-  
+
 -----------------
 -- DUAL VARIETY
 -----------------
@@ -28,7 +28,7 @@ dualVariety=(IX,n,x,u)->(
     )
 
 -----------------------------
--- ALGEBRAIC BOUNDARY
+-- ALGEBRAIC BOUNDARY and boundary components
 -----------------------------
 --algebraic boundary H_G
 -- See p. 7 from Sturmfels and Uhler paragraph after Proposition 2.4
@@ -46,11 +46,27 @@ boundaryComponents=(K,p,n)->(
     boundaryComponents:= for i in allComponents list (if i_1==1 then i_0)
     )
 
-
-algBoundary=(K,n)->(
-    s=numgens target K;       
-    delete (null, flatten (for p from 1 to s list boundaryComponents(K,p,n))) 
+algBoundary=(V,n,K)->(
+    delete (null, flatten (for p from 1 to V list boundaryComponents(K,p,n))) 
     )
+
+--NOTE: use as input for algBoundary embededdK(K)
+
+--QUESTION: shouldn't we consider p from 2 to V? the ideal of 1-minors doesn't make much sense...
+
+-----------------------------------------
+-- auxiliary function for algebraic boundary and related functions
+-- returns K in the right ideal
+-----------------------------------------
+  
+embeddedK=(K)->(
+    (V,n,Rtotal,S):=coloredData(K);
+    R:=ring K;
+    R2:=QQ[gens R,gens Rtotal];
+    K=sub(K,R2);
+    return(V,n,K);
+    )
+
 
 -------------------------------------------------
 -- PROJECTIONS OF MATRICES OF GIVEN RANK ON GRAPH
@@ -91,9 +107,10 @@ naiveMatrixProduct=(M1,M2)->(
 -- ring and other basic data
 -- INPUT: concentration matrix K
 -- OUTPUT: sequence (Rtotal,S,stats) with
-------  1. Rtotal: ring with variables s_ij and t_i with the suitable ordering for extension theorem  
-------  2. S: Sample covariance matrix with variables s_ij
-------  3. stats: ideal of sufficient statistics
+------- 1. p: number of vertices of the graph, i.e. size of matrix K
+--------2. n: dimension of the space of concentration matrices
+------  3. Rtotal: ring with variables s_ij and t_i with the suitable ordering for extension theorem  
+------  4. S: Sample covariance matrix with variables s_ij
 coloredData=(K)->(
     p:=numcols K;
     n:=#support K;
@@ -225,8 +242,11 @@ empiricalMLEexistence=(m,k,K)->(
     count:=0;
     for i from 1 to k do (    
     	p=numcols K;
-    	X=random(QQ^p,QQ^m);              
-    	S=(1/m)*X*transpose(X);
+    	--X=random(QQ^p,QQ^m);              
+    	X=random(RR^p,RR^m);  
+	X=transpose matrix {toList apply(0..p-1,i->promote(X_(i,0),QQ))};            
+	S=(1/m)*X*transpose(X);
+	--S=matrix toList apply(0..2,i->toList apply(0..2,j->lift(S_(i,j),QQ)));
     	I=ideal{jacobian(matrix{{det K}})-det(K)*jacobian(matrix{{trace(S*K)}})};
     	J=saturate(I,det K);
 	if dim J!=0 then return(count,"The ideal does not have the right dimension ");
@@ -268,6 +288,16 @@ empiricalMLERealReg=(m,k,K)->(
         );
         return(count);
      )	
+
+MLE=(K,coord)->(
+        score:=ideal{jacobian(matrix{{det K}})-det(K)*sub(transpose(matrix{coord}),ring K)};
+	scoreEq=saturate(score,det K);
+	criticalPoints=zeroDimSolve(scoreEq);
+	criticalMatrices=genListMatrix(criticalPoints,K);
+	existence=checkPD(criticalMatrices);
+	if existence!={} then return(degree scoreEq)
+	else return("MLE doesn't exist");
+     )
 
 	
 interiorPoint=(v1,v2,n,f,K)->(

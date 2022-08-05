@@ -45,6 +45,7 @@ I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
 
+I_G1New=eliminate(t_3,I_G1+ideal(1-t_1-t_2-t_3))
 restart
 n=4
 R=QQ[t_1..t_n,s_11..s_13,s_22..s_23,s_33]
@@ -59,6 +60,7 @@ I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
 
+eliminate(t_1,I_G1+ideal(t_1-1/3))
 restart
 n=4
 R=QQ[t_1..t_n,s_11..s_13,s_22..s_23,s_33]
@@ -72,6 +74,9 @@ Istat=ideal(t_1-s_11,t_2-s_22,t_3-s_33,t_4-2*s_12-2*s_13-2*s_23)
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
+
+I_G1New=eliminate(t_3,I_G1+ideal(1-t_1-t_2-t_3))
+toString gens I_G1New
 
 restart
 n=4
@@ -158,3 +163,24 @@ Istat=ideal(t_1-s_11,t_2-s_22,t_3-s_33,t_4-s_44,t_5-2*s_12,t_6-2*s_13-2*s_34,t_7
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)
+
+
+restart
+R=QQ[x_1..x_4]
+X=matrix{{x_1,x_2},{x_2,x_1},{x_3,x_4},{x_4,x_3}}
+S=X*transpose X
+
+restart
+n=4
+R=QQ[l_1..l_n,t_1..t_n,s_11..s_13,s_22..s_23,s_33]
+K=matrix{{l_1,l_4,l_4},{l_4,l_2,l_4},{l_4,l_4,l_3}}
+S=matrix{{s_11,s_12,s_13},{s_12,s_22,s_23},{s_13,s_23,s_33}}--estimate
+
+BC=boundaryComponents(K,3)
+algBoundary(K)
+
+ I2=minors(3,K)
+ minPrimes2=minimalPrimes I2
+dualVariety(minPrimes2_0,n,l,t)
+
+decompose I2

@@ -391,5 +391,4 @@ checkRankCompletion=(compl,rk,tol)->(
 ------------------------------------------------
 -- TBD
 ------------------------------------------------
--- generate point on the intersection of complement
-
+-- generate point on the intersection of complement  

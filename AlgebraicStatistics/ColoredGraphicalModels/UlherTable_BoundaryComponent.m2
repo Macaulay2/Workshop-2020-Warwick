@@ -96,6 +96,9 @@ netList (trim IG1)_* --7 minimal generators
 
 --check changes of sign of the generators in IG1
 
+--RECOMPUTE WITH m=4 because that's the rk of the cov matrices we want (should be the same
+-- because it's p=1 for m=3). Same for the rest of the computation
+
 use ring IG1
 netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
 --there are two generators that don't change sign

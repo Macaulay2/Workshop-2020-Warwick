@@ -21,11 +21,49 @@ dim J, degree J
 --n=2 MLdeg=0
 --n=1 MLdeg=0
 
+-- Algebraic boundary
 (V,n,K2)=embeddedK(K);
 algBoundary(V,n,K2)
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-boundaryComponents(K2,1,n)
+BC2=boundaryComponents(K2,3,n) --empty
+BC1=boundaryComponents(K2,2,n) --1 cubic
+netList BC1
+
+-- Elimination ideals
+(p,n,Rtotal,S)=coloredData(K)
+stats=sub(suffStat(K),Rtotal)
+IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)))
+netList (trim IG2)_* --1 cubic, principal
+sub(IG2_0,Rtotal)==sub((BC1_0)_0,Rtotal)
+
+IG1=sub(rankProjection(stats,1,S),ring(suffStat(K)))
+netList (trim IG1)_* --6 quartics
+
+-- Change of signs
+use ring IG2
+netList empiricalVanishingPolynomials(IG2,3,10000,p,n,stats)
+--no change
+
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--3 out of 6 don't change
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --5
+betti(resol) --l=8 
+-- maximal linear rank 5(here 6-1)
+--linearly presented
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --6
+
+
+--p=1 for rk=3, NO for rk=1,2
+
+
 
 -----------------------------------------------------------
 --3-cycle with 3 vertices equal
@@ -39,12 +77,40 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+netList BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
 --Elimination ideal
+use Rtotal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
 netList IG1_*
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+sub((BC2_0)_0,Rtotal)==sub(IG1_0,Rtotal)
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--changes
+
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --3 (4-1)
+betti(resol) --l=0
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --4
+
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -99,18 +165,6 @@ dim J, degree J
 --n=1 MLdeg=3
 
 
-restart
-load "functions.m2"
-R=QQ[l_1..l_4]
-K=matrix{{l_1,l_2,l_3},{l_2,l_1,l_4},{l_3,l_4,l_1}}
-
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-boundaryComponents(K2,1,n) --I don't think it makes sense
-minors(1,K)
 -----------------------------------------------------------
 --3-cycle with 3 edges equal
 -----------------------------------------------------------
@@ -129,6 +183,31 @@ IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
 netList IG1_*
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+netList BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+sub((BC2_0)_0,Rtotal)==sub(IG1_0,Rtotal)
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --3 (4-1)
+betti(resol) --l=0
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --6
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--changes
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -231,16 +310,6 @@ netList Jrk1_*
 dim Jrk1,degree Jrk1
 multidegree Jrk1
 
-restart
-load "functions.m2"
-R=QQ[l_1..l_4]
-K=matrix{{l_1,l_4,l_4},{l_4,l_2,l_4},{l_4,l_4,l_3}}
-
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
 
 
 -----------------------------------------------------------
@@ -259,6 +328,42 @@ netList stats_*
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
 netList IG1_*
+
+IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
+IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+sub((BC1_0)_0,Rtotal) % gb sub(IG1,Rtotal) 
+sub((BC1_1)_0,Rtotal) % gb sub(IG1,Rtotal) 
+
+extractFactors factor (BC1_0)_0
+extractFactors factor (BC1_1)_0
+
+aux=ideal{sub((BC1_0)_0,Rtotal),sub((BC1_1)_0,Rtotal)}
+aux==sub(IG1,Rtotal)
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --4 (5-1)
+betti(resol) --l=4
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --5
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--1 changes, 1 not
+
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -301,16 +406,6 @@ dim J, degree J
 --n=2 MLdeg=1
 --n=1 MLdeg=0
 
-restart
-load "functions.m2"
-R=QQ[l_1..l_5]
-K=matrix{{l_1,l_2,l_3},{l_2,l_1,l_4},{l_3,l_4,l_5}}
-
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
 
 
 -----------------------------------------------------------
@@ -325,26 +420,40 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-
-
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
-netList IG1_*
-sing=trim ideal singularLocus IG1;
-netList sing_*
-betti sing
-codim IG1,degree IG1
-codim sing,degree sing
+netList IG1_* --2 quadrics
 
-use R
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+sub((BC1_0)_0,Rtotal)==sub(IG1_1,Rtotal) 
+sub((BC1_1)_0,Rtotal)==sub(IG1_0,Rtotal) 
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --4 (5-1)
+betti(resol) --l=4
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --5
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--none changes
+
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -389,19 +498,38 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
-
---Algebraic boundary
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-
-
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
-netList IG1_*
+netList IG1_* --1 quartic
+
+IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
+IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+sub((BC2_0)_0,Rtotal)==sub(IG1_0,Rtotal) 
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --3
+resol=resolution(gradI)
+rank(resol.dd_2) --3 (4-1)
+betti(resol) --l=1
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --4
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--changes
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -441,21 +569,39 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
---Algebraic boundary
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-
-
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
-netList IG1_*
+netList IG1_* --1 quadric
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2 --empty
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+sub((BC1_0)_0,Rtotal)==sub(IG1_0,Rtotal) 
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --2
+resol=resolution(gradI)
+rank(resol.dd_2) --3 (4-1)
+betti(resol) --l=4
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --4
+
+-- Change of signs
+use ring IG1
+netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
+--doesn't change
+
 
 --Intersection of the algebraic boundary with the interior
 m=3 --rank of empirical covariance matrices
@@ -495,21 +641,32 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
---Algebraic boundary
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-
-
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
-IG1
+IG1 --0
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
-IG2
+IG2 --0
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --2
+resol=resolution(gradI)
+rank(resol.dd_2) --2 (3-1)
+betti(resol) --l=1
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --3
 
 
 --Test ML degree for different ranks
@@ -539,14 +696,6 @@ suffStat(K)
 stats=sub(suffStat(K),Rtotal);
 netList stats_*
 
---Algebraic boundary
-(V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
-
-
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
@@ -554,6 +703,25 @@ IG1
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+--Boundary components
+(V,n,K2)=embeddedK(K);
+BC2=boundaryComponents(K2,3,n)
+BC2
+BC1=boundaryComponents(K2,2,n)
+netList BC1
+
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --2
+resol=resolution(gradI)
+rank(resol.dd_2) --2 (3-1)
+betti(resol) --l=1
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --3
 
 
 --Test ML degree for different ranks
@@ -587,10 +755,10 @@ netList stats_*
 
 --Algebraic boundary
 (V,n,K2)=embeddedK(K);
-algb=algBoundary(V,n,K2)
-netList algb
-boundaryComponents(K2,3,n)
-boundaryComponents(K2,2,n)
+BC2=boundaryComponents(K2,3,n)
+BC1=boundaryComponents(K2,2,n)
+netList BC2
+netList BC1
 
 --Elimination ideal
 rk=1;
@@ -599,6 +767,17 @@ IG1
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
+
+--gradient ideal and Hessian
+use R
+f=det K
+gradI= ideal flatten entries jacobian ideal f
+codim gradI --1
+resol=resolution(gradI)
+rank(resol.dd_2) --1 (2-1)
+betti(resol) --l=1
+H=jacobian ideal flatten entries jacobian ideal f
+rank H --2
 
 
 --Test ML degree for different ranks

@@ -56,7 +56,7 @@ algBoundary=(V,n,K)->(
 
 -----------------------------------------
 -- auxiliary function for algebraic boundary and related functions
--- returns K in the right ideal
+-- returns K in the right ring
 -----------------------------------------
   
 embeddedK=(K)->(

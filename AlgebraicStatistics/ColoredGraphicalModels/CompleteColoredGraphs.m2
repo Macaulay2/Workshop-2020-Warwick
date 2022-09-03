@@ -32,10 +32,12 @@ netList BC1
 (p,n,Rtotal,S)=coloredData(K)
 stats=sub(suffStat(K),Rtotal)
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)))
+codim IG2,dim IG2,degree IG2
 netList (trim IG2)_* --1 cubic, principal
 sub(IG2_0,Rtotal)==sub((BC1_0)_0,Rtotal)
 
 IG1=sub(rankProjection(stats,1,S),ring(suffStat(K)))
+codim IG1,dim IG1,degree IG1
 netList (trim IG1)_* --6 quartics
 
 -- Change of signs
@@ -88,6 +90,7 @@ netList BC1
 use Rtotal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
+codim IG1,dim IG1,degree IG1
 netList IG1_*
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
 IG2
@@ -327,6 +330,7 @@ netList stats_*
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
+codim IG1,dim IG1,degree IG1
 netList IG1_*
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));
@@ -423,6 +427,7 @@ netList stats_*
 --Elimination ideal
 rk=1;
 IG1=sub(rankProjection(stats,rk,S),ring(suffStat(K)));
+codim IG1,dim IG1,degree IG1
 netList IG1_* --2 quadrics
 
 IG2=sub(rankProjection(stats,2,S),ring(suffStat(K)));

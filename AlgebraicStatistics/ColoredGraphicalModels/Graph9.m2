@@ -33,6 +33,16 @@ K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
 numcols K
 Sigma=genericSymmetricMatrix(R,s_11,4)
 
+algBoundary(K)
+---test with new functions
+load "functions.m2"
+(V,n,K2)=embeddedK(K)
+n
+gens ring K2
+gens R
+
+algBoundary(V,n,K2)
+
 --empiricalVanishingPolynomials
 restart
 naiveMatrixProduct=(M1,M2)->(
@@ -180,6 +190,11 @@ HG=algBoundary(K);
 netList HG
 isPrime(HG_2)
 toString (HG_2)_0
+
+gens ring(K)
+boundaryComponents(K,2)
+boundaryComponents(K,3)
+boundaryComponents(K,1)
 
 I=HG_2+HG_3+HG_4
 netList I_*

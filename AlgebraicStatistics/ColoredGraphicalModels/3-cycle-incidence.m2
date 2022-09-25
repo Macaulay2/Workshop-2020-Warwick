@@ -35,6 +35,7 @@ I=ideal(sigma_12+sigma_13+sigma_23-s_12-s_13-s_23,sigma_11-s_11,sigma_22-s_22,si
 S=matrix{{s_11,s_12,s_13},{s_12,s_22,s_23},{s_13,s_23,s_33}}
 J=ideal(s_11*s_22-s_12^2,s_11*s_33-s_13^2,s_22*s_33-s_23^2, det S)
 K=trim eliminate(toList(s_11,s_12,s_13,s_22,s_23,s_33),I+J)
+K=trim eliminate(toList(sigma_11,sigma_12,sigma_13,sigma_22,sigma_23,sigma_33),I+J)
 minPrimesK=minimalPrimes K
 K=trim eliminate(toList(s_11,s_12,s_13,s_22,s_23,s_33),I+ideal(det S))
 

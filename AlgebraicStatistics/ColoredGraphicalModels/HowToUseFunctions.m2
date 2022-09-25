@@ -90,6 +90,7 @@ k=20
 for i to k do(
     U=random(QQ^2,QQ^3);
     A=transpose(U)*U;
+    adjA=exteriorPower(2,A);
     adjA=adjugate(A);
     aux=flatten toList apply(1..3,i->(toList apply(i..3,j->sub(s_(i,j),Rtotal)=>adjA_(i-1,j-1))));
     suff=sub(stats,aux);
@@ -97,10 +98,23 @@ for i to k do(
     coord=-flatten entries gens sub(suff,{t_1=>0,t_2=>0,t_3=>0,t_4=>0});
     print MLE(K,coord);
 )
+
+--one iteration line-by-line
+    U=random(QQ^2,QQ^3)
+    A=transpose(U)*U
+    adjA=adjugate(A)
+    aux=flatten toList apply(1..3,i->(toList apply(i..3,j->sub(s_(i,j),Rtotal)=>adjA_(i-1,j-1))))
+    suff=sub(stats,aux)
+    use Rtotal
+    coord=-flatten entries gens sub(suff,{t_1=>0,t_2=>0,t_3=>0,t_4=>0})
+    print MLE(K,coord)
 --the output is either the ML-degree, if it exists, or "MLE doesn't exist", if it doesn't
 
 --NOTE: both in empiricalMLEexistence and adjugates, we are considering truly rk 1 matrices,
 --as opposed to PART II, and the ML-degree seems to be always 3.
+
+--example for MLE to exist and MLdegree=3
+{441/256, 729/400, 289/100, -4407/800}
 
 
 --PART IV: DEEPER INTO CRITICAL POINTS 

@@ -1,4 +1,37 @@
 restart
+R=QQ[x_1..x_6,y_1..y_3]
+X=matrix{{x_1..x_3},{x_4..x_6}}
+SX=transpose(X)*X
+AdjSX=exteriorPower (2,SX)
+
+Y=matrix{{y_1..y_3}}
+SY=transpose(Y)*Y
+
+I=ideal(AdjSX-SY)
+J=eliminate(toList(x_1..x_6),I)
+eliminate(toList(y_1..y_3),I)
+
+restart
+R=QQ[x_1..x_6]
+X=matrix{{x_1..x_3},{x_4..x_6}}
+SX=transpose(X)*X
+AdjSX=exteriorPower (2,SX)
+
+Y=random(QQ^1,QQ^3);
+SY=transpose(Y)*Y;
+I=ideal(AdjSX-SY);
+(dim I, degree I) --(3,4)
+
+Yadj=random(QQ^2,QQ^3)
+Sadj=transpose(Yadj)*Yadj
+SYfromAdj=exteriorPower (2,Sadj)
+
+Iadj=ideal(AdjSX-SYfromAdj);
+(dim Iadj, degree Iadj)  --(3,4)
+
+--J=eliminate(toList(x_1..x_6),I)
+
+restart
 R=QQ[s_11,s_12,s_13,s_22,s_23,s_33]
 S=genericSymmetricMatrix(R,3)
 I=minors(2,S)
@@ -7,6 +40,7 @@ I=minors(2,S)
 
 R1=QQ[join(x_1..x_6,gens R)]
 use R1
+X=matrix{{x_1..x_3}}
 X=matrix{{x_1..x_3},{x_4..x_6}}
 SHat=transpose(X)*X
 Adj=exteriorPower (2,SHat)

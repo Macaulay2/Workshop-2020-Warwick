@@ -292,6 +292,7 @@ empiricalMLERealReg=(m,k,K)->(
 MLE=(K,coord)->(
         score:=ideal{jacobian(matrix{{det K}})-det(K)*sub(transpose(matrix{coord}),ring K)};
 	scoreEq=saturate(score,det K);
+	if dim scoreEq!=0 then return("The ideal does not have the right dimension ");
 	criticalPoints=zeroDimSolve(scoreEq);
 	criticalMatrices=genListMatrix(criticalPoints,K);
 	existence=checkPD(criticalMatrices);

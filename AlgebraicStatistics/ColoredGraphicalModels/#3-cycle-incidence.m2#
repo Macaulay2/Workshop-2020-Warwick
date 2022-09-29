@@ -42,6 +42,9 @@ detSigma=ideal det Sigma
 (det Sigma)%minPrimesK_1
 isSubset(detSigma,minPrimesK_1)
 isSubset(minPrimesK_1,detSigma)
+(codim minPrimesK_1, degree minPrimesK_1)
+relevantI=sub(minPrimesK_1,QQ[sigma_11,sigma_12,sigma_13,sigma_22,sigma_23,sigma_33])
+(dim relevantI, degree relevantI)
 
 K=trim eliminate(toList(s_11,s_12,s_13,s_22,s_23,s_33),I+ideal(det S))
 

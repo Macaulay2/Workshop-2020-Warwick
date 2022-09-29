@@ -7,6 +7,45 @@ AdjSX=exteriorPower (2,SX)
 Y=matrix{{y_1..y_3}}
 SY=transpose(Y)*Y
 
+I=ideal(SY_(0,0)-AdjSX_(0,0),SY_(1,1)-AdjSX_(1,1),SY_(2,2)-AdjSX_(2,2),
+    SY_(0,1)+SY_(0,2)+SY_(1,2)-AdjSX_(0,1)-AdjSX_(0,2)-AdjSX_(1,2))
+J=eliminate(toList(x_1..x_6),I)
+--J=eliminate(toList(y_1..y_3),I)
+
+restart
+R=QQ[s_11,s_12,s_13,s_22,s_23,s_33]
+S=genericSymmetricMatrix(R,3)
+I=minors(2,S)
+(dim I,degree I) --(3,4)
+
+
+R1=QQ[join(x_1..x_6,gens R)]
+use R1
+X=matrix{{x_1..x_3}}
+X=matrix{{x_1..x_3},{x_4..x_6}}
+SHat=transpose(X)*X
+Adj=exteriorPower (2,SHat)
+rank Adj
+S1=genericSymmetricMatrix(R,3)
+S1=sub(S1,R1)
+AdjS1=ideal(Adj-S1) 
+J=eliminate(toList(x_1..x_6),AdjS1)
+--Elim1=eliminate(toList(x_2..x_6), AdjS1)
+--J=eliminate(toList(x_1..x_6),ideal(Adj-S1))
+J==minors(2,S1)
+
+--IGNORE BELOW
+
+
+restart
+R=QQ[x_1..x_6,y_1..y_3]
+X=matrix{{x_1..x_3},{x_4..x_6}}
+SX=transpose(X)*X
+AdjSX=exteriorPower (2,SX)
+
+Y=matrix{{y_1..y_3}}
+SY=transpose(Y)*Y
+
 I=ideal(AdjSX-SY)
 J=eliminate(toList(x_1..x_6),I)
 eliminate(toList(y_1..y_3),I)

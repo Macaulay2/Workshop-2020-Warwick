@@ -79,7 +79,7 @@ MLE(K,intP)
 --PART III: EMPIRICAL CHECK OF MLE EXISTENCE OF RK 1 POINTS
 
 --Check MLE existence of random rk 1 points
-empiricalMLEexistence(1,500,K)  --0
+empiricalMLEexistence(1,10000,K)  --0
 --Only checking if there are critical points
 empiricalMLENoPD(1,500,K)  --500
 --Enforce real and non-singular to the previous case
@@ -132,8 +132,11 @@ existenceCount    -- 4668 out of 10000
 --as opposed to PART II, and the ML-degree seems to be always 3.
 
 --example for MLE to exist and MLdegree=3
-{441/256, 729/400, 289/100, -4407/800}
-
+U=matrix {{8/5, 2/3, 8/9}, {7/6, 1/3, 5}}
+adjA=matrix {{121/2025, -2068/1215, -902/1215}, {-2068/1215, 35344/729,
+      15416/729}, {-902/1215, 15416/729, 6724/729}}-- computed as exteriorPower of U
+coord={121/2025, 35344/729, 6724/729, 27268/729}
+MLE(K,coord)
 
 --PART IV: DEEPER INTO CRITICAL POINTS 
 

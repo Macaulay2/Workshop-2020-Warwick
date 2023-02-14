@@ -21,8 +21,13 @@ adjD_(3,3)-adjD_(1,1), adjD_(2,2)-adjD_(0,0), adjD_(1,2)-adjD_(0,3))
 Irank=minors(2,S)
 J=eliminate(toList(s_11..s_44),I+Irank)
 Jdecomp=decompose J
-isSubset(minors(4,D),Jdecomp_0)
-isSubset(minors(4,D),Jdecomp_1)
+isSubset(minors(4,D),Jdecomp_0) --true
+isSubset(minors(4,D),Jdecomp_1) --false
+isSubset(minors(3,D),Jdecomp_1) --false
+isSubset(minors(2,D),Jdecomp_1) --false
+eliminate({d_12,d_13,d_14,d_23,d_24,d_34},Jdecomp_1)
+eliminate({d_11,d_22,d_33,d_44},Jdecomp_1)
+eliminate({d_14,d_24,d_34,d_44},Jdecomp_1)
 
 ideal(d_12^2+d_14^2-d_11*d_22+2*d_14*d_23+d_23^2-d_22*d_33-2*d_12*d_34+d_
      34^2-d_11*d_44-d_33*d_44,d_14*d_23*d_24-d_13*d_24^2-d_14*d_22*d_34+d_12*d_

@@ -29,6 +29,8 @@ eliminate({d_12,d_13,d_14,d_23,d_24,d_34},Jdecomp_1)
 eliminate({d_11,d_22,d_33,d_44},Jdecomp_1)
 eliminate({d_14,d_24,d_34,d_44},Jdecomp_1)
 
+J=eliminate(toList(d_11..d_44),I+Irank)
+--results for elimination of s variables
 ideal(d_12^2+d_14^2-d_11*d_22+2*d_14*d_23+d_23^2-d_22*d_33-2*d_12*d_34+d_
      34^2-d_11*d_44-d_33*d_44,d_14*d_23*d_24-d_13*d_24^2-d_14*d_22*d_34+d_12*d_
      24*d_34+d_13*d_22*d_44-d_12*d_23*d_44,d_14^2*d_23-d_14*d_23^2-d_13*d_14*d_

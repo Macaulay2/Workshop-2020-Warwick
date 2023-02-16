@@ -18,9 +18,10 @@
 --restart
 dualVariety=(IX,n,x,u)->(
     c:=codim IX;
-    JacX:=submatrix(transpose jacobian IX,toList(0..n-1));
+    --JacX:=submatrix(transpose jacobian IX,toList(0..n-1));
+    JacX:=diff(matrix{toList(x_1..x_n)}, transpose gens IX);
     AugJacX:=matrix{toList(u_1..u_n)}||JacX;
-    SingX:=minors(c,JacX);
+    SingX:=IX+minors(c,jacobian IX);
     conormalX:=saturate(IX+minors(c+1,AugJacX),SingX);
     dualX:=eliminate(toList(x_1..x_n),conormalX);
     dualX

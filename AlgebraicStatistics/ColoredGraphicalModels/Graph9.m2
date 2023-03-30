@@ -43,9 +43,16 @@ bdry2=boundaryComponents(K,3) -- corresponds to I_G,1-- sum of dimenesions n-1 b
 boundaryComponents(K,4)-- corresponds to I_G,2=0
 algBoundary(K)
 
+I1=minors(2,K)
+minimalPrimes I1
+gens gb I1
+radical I1
 I2=minors(3,K)
 minPrimes2=minimalPrimes I2
-isSubset(minPrimes2_1,(minPrimes2_0+minPrimes2_3))
+isSubset(minPrimes2_1,(minPrimes2_0+minPrimes2_3)) --false
+isSubset(minPrimes2_0,minPrimes2_1) --false
+isSubset(minPrimes2_0,minPrimes2_3) --false
+isSubset(minPrimes2_1,(minPrimes2_0*minPrimes2_3)) --false
 for i to  (length minPrimes2)-1 list dualVariety(minPrimes2_i,n,l,t)
 
 I_G1=ideal(4*t_2*t_3-t_5^2-t_6^2,t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2) --irreducible

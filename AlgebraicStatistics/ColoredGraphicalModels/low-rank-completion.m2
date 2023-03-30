@@ -35,3 +35,8 @@ codim I
 I=dualVariety(ideal(l_1^2+l_2^2),n,l,t)
 J=dualVariety(I,n,t,l)
 I==dualVariety(J,n,l,t)
+restart
+R=QQ[a_11..a_14,a_21..a_24,,a_31..a_34,a_41..a_44]
+A=matrix{toList(a_11..a_14),toList(a_21..a_24),toList(a_31..a_34),toList(a_41..a_44)}
+M=transpose(A)*A
+minors(2,M)

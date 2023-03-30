@@ -1,0 +1,51 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      1265,         43]
+NotebookOptionsPosition[       687,         26]
+NotebookOutlinePosition[      1122,         43]
+CellTagsIndexPosition[      1079,         40]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Graph9 Contents", "ContentsTitle"],
+
+Cell["Real points on the boundary of K_L", "Outline2"],
+
+Cell["Plots", "Outline2"]
+},
+ScreenStyleEnvironment->"Brackets",
+WindowSize->{808, 679},
+WindowMargins->{{4, Automatic}, {Automatic, 4}},
+FrontEndVersion->"13.2 for Mac OS X x86 (64-bit) (November 18, 2022)",
+StyleDefinitions->"HelpBrowser.nb",
+ExpressionUUID->"92cabbc7-da84-4d3c-88f8-e26b44776595"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 40, 0, 61, "ContentsTitle",ExpressionUUID->"b41268b7-22fc-451d-9dd2-6476778bf365"],
+Cell[601, 22, 54, 0, 28, "Outline2",ExpressionUUID->"b891f419-9dec-4e77-949b-0c699d8b68f7"],
+Cell[658, 24, 25, 0, 26, "Outline2",ExpressionUUID->"7b51ba42-fef1-4b14-b639-f40a5234360a"]
+}
+]
+*)
+

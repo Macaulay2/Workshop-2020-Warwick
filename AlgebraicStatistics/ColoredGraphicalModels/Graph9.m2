@@ -1,14 +1,16 @@
 -- Graph 9 Uhler
 -- auxiliary functions (Olga's functions)
+
 dualVariety=(IX,n,x,u)->(
     c:=codim IX;
-    JacX:=submatrix(transpose jacobian IX,toList(0..n-1));
+    JacX:=diff(matrix{toList(x_1..x_n)}, transpose gens IX);
     AugJacX:=matrix{toList(u_1..u_n)}||JacX;
-    SingX:=minors(c,JacX);
+    SingX:=IX+minors(c,jacobian IX);
     conormalX:=saturate(IX+minors(c+1,AugJacX),SingX);
     dualX:=eliminate(toList(x_1..x_n),conormalX);
     dualX
     )
+
 boundaryComponents=(K,p)->(
     I:=minors(p,K);
     minPrimes:=minimalPrimes I;
@@ -33,7 +35,21 @@ K=matrix{{l_1,l_4,0,l_4},{l_4,l_2,l_5,0},{0,l_5,l_3,l_6},{l_4,0,l_6,l_2}}
 numcols K
 Sigma=genericSymmetricMatrix(R,s_11,4)
 
+--conmputation in Mathematica shows that there are no points of rank 1 on the boundary
+-- of the cone of concentration matrices (one can also directly see that if K has rank at most
+--1, then it is necessary the 0 matrix)
+boundaryComponents(K,2) -- not necessary!!!
+bdry2=boundaryComponents(K,3) -- corresponds to I_G,1-- sum of dimenesions n-1 because we're working projectively
+boundaryComponents(K,4)-- corresponds to I_G,2=0
 algBoundary(K)
+
+I2=minors(3,K)
+minPrimes2=minimalPrimes I2
+isSubset(minPrimes2_1,(minPrimes2_0+minPrimes2_3))
+for i to  (length minPrimes2)-1 list dualVariety(minPrimes2_i,n,l,t)
+
+I_G1=ideal(4*t_2*t_3-t_5^2-t_6^2,t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2) --irreducible
+isSubset(bdry2_1,(bdry2_0+bdry2_3))
 ---test with new functions
 load "functions.m2"
 (V,n,K2)=embeddedK(K)

@@ -57,6 +57,9 @@ for i to  (length minPrimes2)-1 list dualVariety(minPrimes2_i,n,l,t)
 
 I_G1=ideal(4*t_2*t_3-t_5^2-t_6^2,t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2) --irreducible
 isSubset(bdry2_1,(bdry2_0+bdry2_3))
+quotientRemainder(gens bdry2_1,gens bdry2_0)
+quotientRemainder(gens bdry2_1,gens bdry2_0|gens bdry2_3)
+quotientRemainder(gens bdry2_1,gens bdry2_3|gens bdry2_0)
 ---test with new functions
 load "functions.m2"
 (V,n,K2)=embeddedK(K)

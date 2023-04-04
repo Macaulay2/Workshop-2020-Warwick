@@ -20,7 +20,8 @@ netList IG1_*
 toString IG1 -- ideal(t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1)
 
 -- Empirical analysis of sign of the single generator of IG1
-f=IG1_0
+f=IG1_0 
+--f=t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1
 m=4 --rank of empirical covariance matrices
 k=10000 --number of points we want to try out
 L=empiricalVanishingPolynomials(IG1,m,k,p,n,stats)
@@ -41,10 +42,12 @@ sub(f,tcoord)
 
 
 --Infeasibility test (of the vanishing of the single generator of IG1)
+restart
+load "functions.m2"
 RL=QQ[t_1..t_5,u11,u12,u13,u14,u22,u23,u24,u33,u34,u44]
 LT=matrix{{u11,0,0,0},{u12,u22,0,0},{u13,u23,u33,0},{u14,u24,u34,u44}}
 PSD=LT*transpose(LT)
-f=sub(f,RL)
+f=t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1 --IG_1
 fu=sub(f,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
 
 loadPackage "SemidefiniteProgramming"
@@ -60,20 +63,31 @@ prod=apply(coefs,gene,(i,j)->i*j^2)
 sos=sum(prod)
 -fu==sos --true
 
---Computation of IG_1 with Cholesky dec
-use RL
+--Computation of IG_1 with Cholesky dec 
+--and comparison with original computation
 statsu=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)-2*PSD_(1,2)),t_5-2*PSD_(2,3)}
+netList statsu_*
 IG1u=sub(rankProjection(statsu,1,PSD),ring(statsu));
-ff=IG1u_0
-IG1_0 --one of the terms has different sign
-use RL
+ff=IG1u_0 --4*t_1*t_2-t_3^2-t_4^2-2*t_3*t_5-t_5^2
+ff+f --one of the terms has different sign
 ffu=sub(ff,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
+factor(fu+ffu)
+factor ffu
 loadPackage "SemidefiniteProgramming"
 loadPackage "SumsOfSquares"
-sol=solveSOS (-ffu)
-peek sol --no sol
+solu=solveSOS (ffu) --no sol
+sol=solveSOS (-ffu) --no sol
 
-
+length terms fu
+length terms ffu
+{(terms fu)_0,(terms ffu)_0}
+i=4
+{(terms fu)_i,(terms ffu)_i}
+netList toList apply(0..23,i->{(terms fu)_i,(terms ffu)_(i+1)})
+apply(0..23,i->(terms fu)_i==-(terms ffu)_(i+1))
+positions(o38,i->i==false)
+(terms fu)_6==(terms ffu)_7
+(terms fu)_14==(terms ffu)_15
 
 --Computation of boundary components and algebraic boundary
 restart

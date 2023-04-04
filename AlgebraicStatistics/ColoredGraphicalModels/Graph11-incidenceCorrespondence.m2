@@ -169,6 +169,12 @@ Irank=minors(2,S)
 IS==Irank
 isSubset(Irank,IS)
 isSubset(IS,Irank)
+
+Ifiber=ideal(d_11-s_11 + d_33-s_33,d_22+d_44-s_22-s_44,d_12-s_12,
+d_14+d_23-s_14-s_23, d_34-s_34)
+Iminors=ideal(d_11*d_22-d_12^2+d_22*d_33-d_23^2+d_33*d_44-d_34^2+d_11*d_44-d_14^2)
+eliminate(toList(s_11..s_44),Irank+Ifiber+Iminors)
+
 -- Graph 9
 restart
 R=QQ[s_11..s_44,d_11..d_44]

@@ -261,6 +261,11 @@ S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
 Istat=ideal(t_1-s_11-s_33,t_2-s_22-s_44,t_3-2*s_12,t_4-2*s_23-2*s_14,t_5-2*s_34)
 
+J=minors(2,S)+Istat
+--GBJ=gens gb J
+GBJ=flatten entries gens gb J
+netList GBJ
+
 I_G3=eliminate(varList,minors(4,S)+Istat)
 I_G2=eliminate(varList,minors(3,S)+Istat)
 I_G1=eliminate(varList,minors(2,S)+Istat)

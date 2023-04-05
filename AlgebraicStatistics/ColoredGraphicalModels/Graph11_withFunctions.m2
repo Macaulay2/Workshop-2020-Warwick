@@ -60,14 +60,36 @@ coefs=s#coefficients
 gene=s#generators
 netList gene
 prod=apply(coefs,gene,(i,j)->i*j^2)
+
+--prod={4*u11^2*u22^2-8*u11*u14*u22*u23+4*u14^2*u23^2+8*u11*u13*u22*u24-8*u13*u14*u23*u24+4*u13^2*u24^2,
+--      4*u13^2*u22^2-8*u12*u13*u22*u23+4*u12^2*u23^2-8*u11*u13*u22*u24+8*u11*u12*u23*u24+4*u11^2*u24^2,
+--      4*u12^2*u33^2+8*u11*u12*u33*u34+4*u11^2*u34^2, 4*u11^2*u44^2, 4*u14^2*u33^2-8*u13*u14*u33*u34+4*u13^2*u34^2, 4*u13^2*u44^2, 4*u22^2*u33^2,
+--      4*u24^2*u33^2-8*u23*u24*u33*u34+4*u23^2*u34^2, 4*u23^2*u44^2, 4*u33^2*u44^2}
 sos=sum(prod)
 -fu==sos --true
+
+restart
+load "functions.m2"
+RL=QQ[t_1..t_5,u11,u12,u13,u14,u22,u23,u24,u33,u34,u44,d_11..d_44]
+LT=matrix{{u11,0,0,0},{u12,u22,0,0},{u13,u23,u33,0},{u14,u24,u34,u44}}
+PSD=LT*transpose(LT)
+D=matrix{{d_11,d_12,d_13,d_14},{d_12,d_22,d_23,d_24},{d_13,d_23,d_33,d_34},{d_14,d_24,d_34,d_44}}
+prod={4*u11^2*u22^2-8*u11*u14*u22*u23+4*u14^2*u23^2+8*u11*u13*u22*u24-8*u13*u14*u23*u24+4*u13^2*u24^2,
+      4*u13^2*u22^2-8*u12*u13*u22*u23+4*u12^2*u23^2-8*u11*u13*u22*u24+8*u11*u12*u23*u24+4*u11^2*u24^2,
+      4*u12^2*u33^2+8*u11*u12*u33*u34+4*u11^2*u34^2, 4*u11^2*u44^2, 4*u14^2*u33^2-8*u13*u14*u33*u34+4*u13^2*u34^2, 4*u13^2*u44^2, 4*u22^2*u33^2,
+      4*u24^2*u33^2-8*u23*u24*u33*u34+4*u23^2*u34^2, 4*u23^2*u44^2, 4*u33^2*u44^2}
+
+eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},ideal(PSD-D)+ideal( sub(prod_0,RL)))
+eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},ideal(PSD-D)+ideal( sub(prod_1,RL)))
+eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},ideal(PSD-D)+ideal( sub(prod_2,RL)))
+--eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},(ideal sos)+statsu) --doesn't work, gives zero ideal
 
 --Computation of IG_1 with Cholesky dec 
 --and comparison with original computation
 statsu=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)-2*PSD_(1,2)),t_5-2*PSD_(2,3)}
 netList statsu_*
 IG1u=sub(rankProjection(statsu,1,PSD),ring(statsu));
+gens gb (statsu+minors(2,PSD))
 ff=IG1u_0 --4*t_1*t_2-t_3^2-t_4^2-2*t_3*t_5-t_5^2
 ff+f --one of the terms has different sign
 ffu=sub(ff,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})

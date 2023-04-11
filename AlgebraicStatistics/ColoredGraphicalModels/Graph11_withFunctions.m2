@@ -68,6 +68,36 @@ prod=apply(coefs,gene,(i,j)->i*j^2)
 sos=sum(prod)
 -fu==sos --true
 
+--LDL decomposition
+restart
+load "functions.m2"
+RL=QQ[t_1..t_5,u12,u13,u14,u23,u24,u34,d_1..d_4]
+LT=matrix{{1,0,0,0},{u12,1,0,0},{u13,u23,1,0},{u14,u24,u34,1}}
+D=diagonalMatrix {d_1^2,d_2^2,d_3^2,d_4^2} 
+PSD=LT*D*transpose(LT)
+f=t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1 --IG_1
+fu=sub(f,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
+
+loadPackage "SemidefiniteProgramming"
+loadPackage "SumsOfSquares"
+sol=solveSOS (-fu)
+peek sol
+s=sosPoly sol
+peek s
+coefs=s#coefficients
+gene=s#generators
+netList gene
+prod=apply(coefs,gene,(i,j)->i*j^2)
+
+--prod={4*u11^2*u22^2-8*u11*u14*u22*u23+4*u14^2*u23^2+8*u11*u13*u22*u24-8*u13*u14*u23*u24+4*u13^2*u24^2,
+--      4*u13^2*u22^2-8*u12*u13*u22*u23+4*u12^2*u23^2-8*u11*u13*u22*u24+8*u11*u12*u23*u24+4*u11^2*u24^2,
+--      4*u12^2*u33^2+8*u11*u12*u33*u34+4*u11^2*u34^2, 4*u11^2*u44^2, 4*u14^2*u33^2-8*u13*u14*u33*u34+4*u13^2*u34^2, 4*u13^2*u44^2, 4*u22^2*u33^2,
+--      4*u24^2*u33^2-8*u23*u24*u33*u34+4*u23^2*u34^2, 4*u23^2*u44^2, 4*u33^2*u44^2}
+sos=sum(prod)
+-fu==sos --true
+
+
+--trying to get an interpretation of SOS in terms of D
 restart
 load "functions.m2"
 RL=QQ[t_1..t_5,u11,u12,u13,u14,u22,u23,u24,u33,u34,u44,d_11..d_44]
@@ -84,15 +114,40 @@ eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},ideal(PSD-D)+ideal( sub(prod
 eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},ideal(PSD-D)+ideal( sub(prod_2,RL)))
 --eliminate({u11,u12,u13,u14,u22,u23,u24,u33,u34,u44},(ideal sos)+statsu) --doesn't work, gives zero ideal
 
+--computation using X^TX
+-- too SLOW!
+restart
+RL=QQ[t_1..t_5,x_1..x_16]
+X=matrix {toList (x_1..x_4),toList(x_5..x_8),toList(x_9..x_12),toList(x_13..x_16)}
+PSD=(transpose X)*X
+--statsX=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)-2*PSD_(1,2)),t_5-2*PSD_(2,3)}
+--IG1X=rankProjection(statsX,1,PSD);
+--minors(2,PSD)
+f=t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1 --IG_1
+fu=sub(f,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
+
+loadPackage "SemidefiniteProgramming"
+loadPackage "SumsOfSquares"
+sol=solveSOS (-fu)
+peek sol
+s=sosPoly sol
+peek s
+coefs=s#coefficients
+gene=s#generators
+netList gene
+prod=apply(coefs,gene,(i,j)->i*j^2)
+sos=sum(prod)
+-fu==sos
+
 --Computation of IG_1 with Cholesky dec 
 --and comparison with original computation
-statsu=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)-2*PSD_(1,2)),t_5-2*PSD_(2,3)}
+statsu=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)+2*PSD_(1,2)),t_5-2*PSD_(2,3)}
 netList statsu_*
 IG1u=sub(rankProjection(statsu,1,PSD),ring(statsu));
 gens gb (statsu+minors(2,PSD))
 ff=IG1u_0 --4*t_1*t_2-t_3^2-t_4^2-2*t_3*t_5-t_5^2
 ff+f --one of the terms has different sign
-ffu=sub(ff,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
+ffu=sub(ff,{t_1=>PSD_(0,0)+Psd_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
 factor(fu+ffu)
 factor ffu
 loadPackage "SemidefiniteProgramming"

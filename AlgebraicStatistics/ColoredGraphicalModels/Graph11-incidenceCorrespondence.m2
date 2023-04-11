@@ -172,6 +172,20 @@ isSubset(IS,Irank)
 
 Ifiber=ideal(d_11-s_11 + d_33-s_33,d_22+d_44-s_22-s_44,d_12-s_12,
 d_14+d_23-s_14-s_23, d_34-s_34)
+decompose Irank
+isPrime Irank
+isPrime Ifiber
+decompose (Irank+Ifiber)
+isPrime (Irank+Ifiber)
+bdry=eliminate(toList(s_11..s_44),Irank+Ifiber)
+polyBdry=(flatten entries gens bdry)_0
+loadPackage "SemidefiniteProgramming"
+loadPackage "SumsOfSquares"
+sol=solveSOS (-polyBdry)
+--NM=lcm drop (flatten entries jacobian sub(bdry,QQ[d_11,d_12,d_13,d_14,d_22,d_23,d_24,d_33,d_34,d_44]),{2,6})
+--minimalPrimes (sub(bdry,ring NM)+NM)
+isPrime bdry 
+delete (0,flatten entries jacobian bdry)
 Iminors=ideal(d_11*d_22-d_12^2+d_22*d_33-d_23^2+d_33*d_44-d_34^2+d_11*d_44-d_14^2)
 eliminate(toList(s_11..s_44),Irank+Ifiber+Iminors)
 
@@ -196,3 +210,26 @@ eliminate({d_12,d_13,d_14,d_23,d_24,d_34},Jdecomp_4)
 eliminate({d_11,d_22,d_33,d_44},Jdecomp_1)
 eliminate({d_14,d_24,d_34,d_44},Jdecomp_1)
 Jdecomp_4
+
+--SOS decomposition when diagonal entries are squared
+restart
+R=QQ[s_11..s_44,d_11..d_44]
+S=matrix{{s_11^2,s_12,s_13,s_14},{s_12,s_22^2,s_23,s_24},{s_13,s_23,s_33^2,s_34},{s_14,s_24,s_34,s_44^2}}
+D=matrix{{d_11^2,d_12,d_13,d_14},{d_12,d_22^2,d_23,d_24},{d_13,d_23,d_33^2,d_34},{d_14,d_24,d_34,d_44^2}}
+Irank=minors(2,S)
+Ifiber=ideal(d_11^2-s_11^2 + d_33^2-s_33^2,d_22^2+d_44^2-s_22^2-s_44^2,d_12-s_12,
+d_14+d_23-s_14-s_23, d_34-s_34)
+bdry=eliminate(toList(s_11..s_44),Irank+Ifiber)
+polyBdry=(flatten entries gens bdry)_0
+loadPackage "SemidefiniteProgramming"
+loadPackage "SumsOfSquares"
+sol=solveSOS (-polyBdry) --no solution
+peek sol
+s=sosPoly sol
+peek s
+coefs=s#coefficients
+gene=s#generators
+netList gene
+prod=apply(coefs,gene,(i,j)->i*j^2)
+sos=sum(prod)
+sos===-polyBdry

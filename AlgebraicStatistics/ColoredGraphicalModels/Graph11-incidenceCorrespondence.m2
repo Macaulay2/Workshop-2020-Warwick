@@ -7,6 +7,15 @@ Irank=ideal(s_11*s_22-s_12^2, s_11*s_33-s_13^2, s_22*s_33-s_23^2)
 eliminate(toList(s_11..s_33),I+Irank)
 -- contains d11d33, so the matrix cannot be PD
 
+-- Graph 9
+restart
+R=QQ[s_11..s_44,d_11..d_44]
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}
+adjS=exteriorPower_3 S
+D=matrix{{d_11,d_12,d_13,d_14},{d_12,d_22,d_23,d_24},{d_13,d_23,d_33,d_34},{d_14,d_24,d_34,d_44}}
+adjD=exteriorPower_3 D
+
+
 --2. Graph 11
 restart
 R=QQ[s_11..s_44,d_11..d_44]
@@ -233,3 +242,37 @@ netList gene
 prod=apply(coefs,gene,(i,j)->i*j^2)
 sos=sum(prod)
 sos===-polyBdry
+
+--elimination ideal
+restart
+n=5
+R=QQ[s_11..s_14,s_22..s_24,s_33..s_34,s_44,t_1..t_n, MonomialOrder => Lex] --you only see the boundary polynomial in gens gb J if t's come after s
+S=matrix{{s_11,s_12,s_13,s_14},{s_12,s_22,s_23,s_24},{s_13,s_23,s_33,s_34},{s_14,s_24,s_34,s_44}}--estimate
+
+--sufficient statistics
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+Istat=ideal(t_1-s_11-s_33,t_2-s_22-s_44,t_3-2*s_12,t_4-2*s_23-2*s_14,t_5-2*s_34)
+Iminors=minors(2,S)
+Itest=ideal(s_11*s_22-s_12^2)
+J=Iminors+Istat
+gens gb Istat
+gens gb Iminors
+gens gb J
+I_G1=eliminate(varList,Istat+Iminors);
+I_G1test=eliminate(varList,Istat+Itest)
+gens gb I_G1
+Istat+Iminors
+
+--Cholesky decomposition
+restart
+--load "functions.m2"
+RL=QQ[t_1..t_5,u11,u12,u13,u14,u22,u23,u24,u33,u34,u44,d_11..d_44]
+LT=matrix{{u11,0,0,0},{u12,u22,0,0},{u13,u23,u33,0},{u14,u24,u34,u44}}
+PSD=LT*transpose(LT)
+Istatsu=ideal{t_1-(PSD_(0,0)+PSD_(2,2)),t_2-(PSD_(1,1)+PSD_(3,3)),t_3-2*PSD_(0,1),t_4-(2*PSD_(0,3)+2*PSD_(1,2)),t_5-2*PSD_(2,3)}
+Iminorsu=minors(2,PSD)
+J=ideal(PSD_(0,0)*PSD_(1,1)-PSD_(0,1)^2)
+f=t_5^2+t_4^2-2*t_5*t_3+t_3^2-4*t_2*t_1 --IG_1
+fu=sub(f,{t_1=>PSD_(0,0)+PSD_(2,2),t_2=>PSD_(1,1)+PSD_(3,3),t_3=>2*PSD_(0,1),t_4=>2*PSD_(0,3)+2*PSD_(1,2),t_5=>2*PSD_(2,3)})
+--quotientRemainder(fu,u11^2*u44^2)
+--quotientRemainder(fu,u11^2*u22^2)

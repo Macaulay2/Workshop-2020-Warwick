@@ -66,7 +66,8 @@ quotientRemainder(gens bdry2_1,gens bdry2_3|gens bdry2_0)
 --incidence correspondence
 restart
 -- algebraic boundary 
-R=QQ[s_11..s_44,t_1..t_6,d_11..d_44]
+--R=QQ[s_11..s_44,t_1..t_6,d_11..d_44]
+R=QQ[s_11..s_44,d_11..d_44]
 HG= {ideal t_1, ideal t_3, ideal(4*t_2*t_3-t_5^2-t_6^2),
       ideal(t_3*t_4^2-t_1*t_5^2-2*t_1*t_5*t_6-t_1*t_6^2),
       ideal(8*t_1*t_2*t_3-t_3*t_4^2-t_1*t_5^2+2*t_1*t_5*t_6-t_1*t_6^2)}
@@ -75,17 +76,21 @@ D=matrix{{d_11,d_12,d_13,d_14},{d_12,d_22,d_23,d_24},{d_13,d_23,d_33,d_34},{d_14
 adjD=exteriorPower_3 D
 Irank=minors(2,S)
 Istat=ideal(t_1-s_11,t_2-s_22-s_44,t_3-s_33,t_4-2*(s_12+s_14),t_5-2*s_23,t_6-2*s_34)
-Ifiber=ideal(d_11-t_1,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-2*s_34,adjD_(0,2),adjD_(1,3),adjD_(1,1)-adjD_(3,3),adjD_(0,1)-adjD_(0,3))
-varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44,toList(t_1..t_6)}
-eliminate(varList,Irank+Istat+HG_0+Ifiber)
-eliminate(varList,Irank+Istat+HG_1+Ifiber)
-eliminate(varList,Irank+Istat+HG_2+Ifiber) 
-eliminate(varList,Irank+Istat+HG_3+Ifiber)  
-eliminate(varList,Irank+Istat+HG_4+Ifiber) 
+--Ifiber=ideal(d_11-t_1,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-2*s_34,adjD_(0,2),adjD_(1,3),adjD_(1,1)-adjD_(3,3),adjD_(0,1)-adjD_(0,3))
+Ifiber=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-s_34,adjD_(0,2),adjD_(1,3),adjD_(1,1)-adjD_(3,3),adjD_(0,1)-adjD_(0,3))
+varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
+--varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44,toList(t_1..t_6)}
+--eliminate(varList,Irank+Istat+HG_0+Ifiber)
+--eliminate(varList,Irank+Istat+HG_1+Ifiber)
+--eliminate(varList,Irank+Istat+HG_2+Ifiber) 
+--eliminate(varList,Irank+Istat+HG_3+Ifiber)  
+--eliminate(varList,Irank+Istat+HG_4+Ifiber) 
+
+eliminate(varList, Irank+Ifiber)
 
 --conditions from S
 Irank=minors(2,S)
-Ifiber=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-2*s_34)
+Ifiber=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-s_34)
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
 eliminate(varList,Irank+Ifiber)
 
@@ -684,6 +689,13 @@ netList I_*
 I==ideal{HG_2,HG_4}
 I==ideal{HG_3,HG_4}
 netList (flatten entries gens gb I)
+
+--Principal minors
+restart
+R=QQ[s22,s44,s23,s33,s34,d22,d44,d23,d33,d34] 
+I=ideal(s22*s33-s23^2,s33*s44-s34^2,d22+d44-s22-s44,d23-s23,d33-s33,d34-s34)
+J=ideal(d22*d33-d23^2+d33*d44-d34^2)
+isSubset(J,I)
 
 -- EXTENSION THEOREM ------------------------------------------------------------------------
 RE=QQ[drop(gens R,6),t_8,t_7]

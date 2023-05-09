@@ -92,8 +92,47 @@ eliminate(varList, Irank+Ifiber)
 Irank=minors(2,S)
 Ifiber=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-s_34)
 varList=flatten {toList(s_11..s_14), toList(s_22..s_24),s_33,s_34,s_44}
-eliminate(varList,Irank+Ifiber)
+J1=eliminate(varList,Irank+Ifiber)
 
+--manual derivation using combinatorial conditions
+Igens1=ideal(s_22*s_33-s_23^2,s_33*s_44-s_34^2) --- numgens J2=1, J2 is subset of J1
+Igens2=ideal(s_22*s_33-s_23^2+s_33*s_44-s_34^2) --- numgens J2=1, J2 is subset of J1, J2 the same as after Igens1
+Igens3=ideal(s_22*s_33-s_23^2+s_33*s_44-s_34^2,s_11*s_22-s_12^2+s_11*s_44-s_14^2) --- numgens J2=1, J2 is subset of J1, J2 the same as after Igens1
+Igens=ideal(s_22*s_33-s_23^2+s_33*s_44-s_34^2,s_11*s_22-s_12^2+s_11*s_44-s_14^2,s_12*s_34-s_23*s_14) --numgens J2= 2, J2 is subset of J1, (codim,degree)=(2, 8)
+Igens=ideal(s_22*s_33-s_23^2,s_33*s_44-s_34^2,s_11*s_22-s_12^2,s_11*s_44-s_14^2,s_12*s_34-s_23*s_14) --numgens J2= 5, J2 is subset of J1, (codim,degree)=(2, 6)
+Igens=ideal(s_11*s_22-s_12^2,s_11*s_44-s_14^2,s_12*s_34-s_23*s_14)
+Igens=ideal(s_22*s_33-s_23^2+s_33*s_44-s_34^2,s_11*s_22-s_12^2+s_11*s_44-s_14^2,s_12*s_34-s_23*s_14+s_22*s_33-s_23^2+s_33*s_44*s_34^2)
+J2=eliminate(varList,Igens+Ifiber)
+
+isSubset(J2,J1)
+isSubset(J1,J2)
+
+codim J2, degree J2
+codim J1, degree J1 --(2, 6)
+decompose J1
+decompose J2
+minimalPrimes J1 === minimalPrimes J2
+minimalPrimes J2
+radical J2 == J1
+
+
+radical Igens==Irank
+minimalPrimes Irank
+minimalPrimes Igens
+
+isSubset(Irank,Igens)
+isSubset(Igens,Irank)
+
+isPrime Irank
+isPrime Igens
+
+radical Igens
+
+J3=eliminate({s_13,s_24},Irank)
+isPrime J3
+radical Igens==J3
+trim J3
+trim Igens
 --elimination for HG_2,3,4 without conditions on entries of K
 J=ideal(4*d_23^2-4*d_22*d_33+d_34^2-4*d_33*d_44,d_12^2*d_33+2*d_12*d_14*d_33+d_14^2*d_33-d_11*d_22*d_33-d_11*d_23*d_34-d_11*d_33*d_44)
 decompose J

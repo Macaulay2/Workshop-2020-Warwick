@@ -33,7 +33,7 @@ AllVar=for i in L list s_i
 R=QQ[AllVar] 
 ElimVar= for i in ElimL list s_i
 S = genericSymmetricMatrix(R,n)
-Igcr=eliminate(ElimVar,minors(k+1,S)) --expected non-zero because two minors survive
+Igcr=eliminate(ElimVar,minors(k+1,S))
 Imlt=eliminate(ElimVar,minors(k,S))
 
 restart
@@ -52,7 +52,7 @@ AllVar=for i in L list s_i
 R=QQ[AllVar] 
 ElimVar= for i in ElimL list s_i
 S = genericSymmetricMatrix(R,n)
-Igcr=eliminate(ElimVar,minors(k+1,S)) --expected non-zero because two minors survive
+Igcr=eliminate(ElimVar,minors(k+1,S)) 
 Imlt=eliminate(ElimVar,minors(k,S))
 
 restart
@@ -71,7 +71,7 @@ AllVar=for i in L list s_i
 R=QQ[AllVar] 
 ElimVar= for i in ElimL list s_i
 S = genericSymmetricMatrix(R,n)
-Igcr=eliminate(ElimVar,minors(k+1,S)) --expected non-zero because two minors survive
+Igcr=eliminate(ElimVar,minors(k+1,S))
 Imlt=eliminate(ElimVar,minors(k,S))
 
 

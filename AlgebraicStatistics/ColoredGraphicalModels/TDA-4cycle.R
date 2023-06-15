@@ -33,6 +33,9 @@ summary(stats3[,statId])
 summary(stats2[,statId])
 summary(stats1[,statId])
 
+wilcox.test(stats4,stats3) #fail to reject
+wilcox.test(stats4,stats2) #reject the null
+wilcox.test(stats4,stats1) #reject the null
 # Generate auxiliary rank 4 sufficient stats for mixing
 # Generating separately to ensure independence 
 stats4for4<-genStats(1,4,4,1000,length(statVector))
@@ -52,6 +55,18 @@ stats4.phom<-calculate_homology(stats4, dim=0)
 stats3.phom<-calculate_homology(stats3, dim=0)
 stats2.phom<-calculate_homology(stats2, dim=0)
 stats1.phom<-calculate_homology(stats1, dim=0)
+
+stats4all.phom<-calculate_homology(stats4)
+plot_barcode(stats4all.phom)
+plot_persist(stats4all.phom)
+
+joint2with1<-rbind(stats2,stats1) 
+joint2with1.phom<-calculate_homology(joint2with1)
+plot_barcode(joint2with1.phom)
+plot_persist(joint2with1.phom)
+
+stats1all.phom<-calculate_homology(stats1)
+plot_persist(stats1all.phom)
 
 stats3aux.phom<-calculate_homology(stats3aux, dim=0)
 stats2aux.phom<-calculate_homology(stats2aux, dim=0)
@@ -149,6 +164,18 @@ stats1<-genStats(1,4,1,1000,numStats)
 #summary(stats3[,statId])
 #summary(stats2[,statId])
 #summary(stats1[,statId])
+
+stats4all.phom<-calculate_homology(stats4)
+plot_barcode(stats4all.phom)
+plot_persist(stats4all.phom)
+
+joint2with1<-rbind(stats2,stats1) 
+joint2with1.phom<-calculate_homology(joint2with1)
+plot_barcode(joint2with1.phom)
+plot_persist(joint2with1.phom)
+
+stats1all.phom<-calculate_homology(stats1)
+plot_persist(stats1all.phom)
 
 # Generate auxiliary rank 4 sufficient stats for mixing
 # Generating separately to ensure independence 
@@ -261,7 +288,7 @@ qr(testMatrix)$rank
 stats4<-genStats(1,4,4,1000,numStats)
 stats3<-genStats(1,4,3,1000,numStats)
 stats2<-genStats(1,4,2,1000,numStats)
-stats1<-genStats(1,4,1,1000,numStats)
+stats1<-genStats(1,4,1,10,numStats)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
@@ -294,6 +321,10 @@ stats1.phom<-calculate_homology(stats1, dim=0)
 stats3aux.phom<-calculate_homology(stats3aux, dim=0)
 stats2aux.phom<-calculate_homology(stats2aux, dim=0)
 stats1aux.phom<-calculate_homology(stats1aux, dim=0)
+
+stats1all.phom<-calculate_homology(stats1, dim=7)
+plot_persist(stats1all.phom)
+plot_barcode(stats1all.phom)
 
 #null-hypothesis: X and Y have the same probability distribution
 wilcox.test(stats4.phom[,3],stats3.phom[,3]) #fail to reject

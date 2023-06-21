@@ -1,13 +1,7 @@
 # reject null if p<0.05
 library("TDAstats")
 
-# uncolored 4-cycle
-statVector<-c(1,5,6,10,11,13,15,16)
-statsComp<-function(m){
-  return(c(m)[statVector])
-}
-
-genStats<-function(magn,numVar,r,sampleSize,numStats){
+genStats1<-function(magn,numVar,r,sampleSize,numStats){
   randL<-runif(numVar*r*sampleSize,-magn,magn)
   sample<-array(randL,dim=c(r,numVar,sampleSize))
   statsM<-matrix(,nrow = sampleSize, ncol = numStats)
@@ -18,22 +12,55 @@ genStats<-function(magn,numVar,r,sampleSize,numStats){
   return(statsM)
 }
 
+genStats<-function(magn,numVar,r,sampleSize,numStats){
+  randL<-runif(numVar*r*sampleSize,-magn,magn)
+  sample<-array(randL,dim=c(r,numVar,sampleSize))
+  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
+  for(i in 1:sampleSize){
+    stats<-statsComp(t(sample[,,i])%*%(sample[,,i]))
+    statsM[i,]<-stats
+  }
+  return(statsM)
+}
+
+# uncolored 4-cycle
+statVector<-c(1,5,6,10,11,13,15,16)
+statsComp<-function(m){
+  return(c(m)[statVector])
+}
+
+# magn=1
+# numVar=4
+# r=4
+# sampleSize=1
+# numStats=8
+# m=(sample[,,1])%*%t(sample[,,1])
+# (matrix(sample[,,1]))%*%t(matrix(sample[,,1]))
+# stats<-statsComp(m)
+# diag(m)
+# sample[,,1]
+
 
 #Generate sufficient stats for matrices of different rank
-stats4<-genStats(1,4,4,1000,length(statVector))
-stats3<-genStats(1,4,3,1000,length(statVector))
-stats2<-genStats(1,4,2,1000,length(statVector))
-stats1<-genStats(1,4,1,1000,length(statVector))
+stats4<-genStats(1,4,4,5000,length(statVector))
+stats3<-genStats(1.1,4,3,5000,length(statVector))
+stats2<-genStats(1.3,4,2,5000,length(statVector))
+stats1<-genStats1(1.85,4,1,5000,length(statVector))
+
+write.table(stats4, "G18-4.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "G18-3.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "G18-2.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "G18-1.csv", sep=",",  col.names=FALSE)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
-statId=8
+statId=3
 summary(stats4[,statId])
 summary(stats3[,statId])
 summary(stats2[,statId])
 summary(stats1[,statId])
 
-wilcox.test(stats4,stats3) #fail to reject
+wilcox.test(stats4,stats3) #reject the null
 wilcox.test(stats4,stats2) #reject the null
 wilcox.test(stats4,stats1) #reject the null
 # Generate auxiliary rank 4 sufficient stats for mixing
@@ -73,7 +100,7 @@ stats2aux.phom<-calculate_homology(stats2aux, dim=0)
 stats1aux.phom<-calculate_homology(stats1aux, dim=0)
 
 #null-hypothesis: X and Y have the same probability distribution
-wilcox.test(stats4.phom[,3],stats3.phom[,3]) #fail to reject
+wilcox.test(stats4.phom[,3],stats3.phom[,3]) #reject
 wilcox.test(stats4.phom[,3],stats2.phom[,3]) #reject
 wilcox.test(stats4.phom[,3],stats1.phom[,3]) #reject
 
@@ -139,31 +166,24 @@ statsComp<-function(m){
   return(c(m[1,1]+m[3,3],m[2,2],m[4,4],m[1,2],m[2,3],m[3,4],m[1,4]))
 }
 
-genStats<-function(magn,numVar,r,sampleSize,numStats){
-  randL<-runif(numVar*r*sampleSize,-magn,magn)
-  sample<-array(randL,dim=c(r,numVar,sampleSize))
-  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
-  for(i in 1:sampleSize){
-    stats<-statsComp((matrix(sample[,,i]))%*%t(matrix(sample[,,i])))
-    statsM[i,]<-stats
-  }
-  return(statsM)
-}
-
-
 #Generate sufficient stats for matrices of different rank
-stats4<-genStats(1,4,4,1000,numStats)
-stats3<-genStats(1,4,3,1000,numStats)
-stats2<-genStats(1,4,2,1000,numStats)
-stats1<-genStats(1,4,1,1000,numStats)
+stats4<-genStats(1,4,4,5000,numStats)
+stats3<-genStats(1,4,3,5000,numStats)
+stats2<-genStats(1.1,4,2,5000,numStats)
+stats1<-genStats1(1.5,4,1,5000,numStats)
+
+write.table(stats4, "G17-4.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "G17-3.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "G17-2.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "G17-1.csv", sep=",",  col.names=FALSE)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
-#statId=8
-#summary(stats4[,statId])
-#summary(stats3[,statId])
-#summary(stats2[,statId])
-#summary(stats1[,statId])
+statId=5
+summary(stats4[,statId])
+summary(stats3[,statId])
+summary(stats2[,statId])
+summary(stats1[,statId])
 
 stats4all.phom<-calculate_homology(stats4)
 plot_barcode(stats4all.phom)
@@ -203,7 +223,7 @@ stats1aux.phom<-calculate_homology(stats1aux, dim=0)
 
 #null-hypothesis: X and Y have the same probability distribution
 wilcox.test(stats4.phom[,3],stats3.phom[,3]) #fail to reject
-wilcox.test(stats4.phom[,3],stats2.phom[,3]) #reject
+wilcox.test(stats4.phom[,3],stats2.phom[,3]) #fail to reject
 wilcox.test(stats4.phom[,3],stats1.phom[,3]) #reject
 
 #Calculate homology of dim=0 for sufficients stats of union of different types of stats
@@ -268,35 +288,38 @@ statsComp<-function(m){
   return(c(m[1,1]+m[2,2],m[3,3],m[4,4],m[1,2],m[2,3],m[3,4],m[1,4]))
 }
 
-genStats<-function(magn,numVar,r,sampleSize,numStats){
-  randL<-runif(numVar*r*sampleSize,-magn,magn)
-  sample<-array(randL,dim=c(r,numVar,sampleSize))
-  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
-  for(i in 1:sampleSize){
-    stats<-statsComp((matrix(sample[,,i]))%*%t(matrix(sample[,,i])))
-    statsM[i,]<-stats
-  }
-  return(statsM)
-}
-
 tesPts=runif(4*1*1,-1,1)
 testSample<-array(tesPts,dim=c(1,4,1))
 testMatrix=matrix(testSample[,,1])%*%t(matrix(testSample[,,1]))
 qr(testMatrix)$rank
 
 #Generate sufficient stats for matrices of different rank
-stats4<-genStats(1,4,4,1000,numStats)
-stats3<-genStats(1,4,3,1000,numStats)
-stats2<-genStats(1,4,2,1000,numStats)
-stats1<-genStats(1,4,1,10,numStats)
+stats4<-genStats(1,4,4,5000,numStats)
+stats3<-genStats(1.1,4,3,5000,numStats)
+stats2<-genStats(1.3,4,2,5000,numStats)
+stats1<-genStats1(1.7,4,1,5000,numStats)
+
+# stats4<-genStats(1,4,4,5000,numStats)
+# stats3<-genStats(1,4,3,5000,numStats)
+# stats2<-genStats(1,4,2,5000,numStats)
+# stats1<-genStats1(1,4,1,5000,numStats)
+
+write.table(stats4, "G16-4.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "G16-3.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "G16-2.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "G16-1.csv", sep=",",  col.names=FALSE)
+
+wilcox.test(stats4,stats3) #fail to reject
+wilcox.test(stats4,stats2) #fail reject
+wilcox.test(stats4,stats1) #fail reject
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
-#statId=8
-#summary(stats4[,statId])
-#summary(stats3[,statId])
-#summary(stats2[,statId])
-#summary(stats1[,statId])
+statId=7
+summary(stats4[,statId])
+summary(stats3[,statId])
+summary(stats2[,statId])
+summary(stats1[,statId])
 
 # Generate auxiliary rank 4 sufficient stats for mixing
 # Generating separately to ensure independence 
@@ -395,31 +418,25 @@ statsComp<-function(m){
   return(c(m[1,1]+m[2,2]+m[3,3],m[4,4],m[1,2],m[2,3],m[3,4],m[1,4]))
 }
 
-genStats<-function(magn,numVar,r,sampleSize,numStats){
-  randL<-runif(numVar*r*sampleSize,-magn,magn)
-  sample<-array(randL,dim=c(r,numVar,sampleSize))
-  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
-  for(i in 1:sampleSize){
-    stats<-statsComp((matrix(sample[,,i]))%*%t(matrix(sample[,,i])))
-    statsM[i,]<-stats
-  }
-  return(statsM)
-}
-
 
 #Generate sufficient stats for matrices of different rank
-stats4<-genStats(1,4,4,1000,numStats)
-stats3<-genStats(0.95,4,3,1000,numStats)
-stats2<-genStats(0.95,4,2,1000,numStats)
-stats1<-genStats(0.95,4,1,1000,numStats)
+stats4<-genStats(1,4,4,5000,numStats)
+stats3<-genStats(1.1,4,3,5000,numStats)
+stats2<-genStats(1.3,4,2,5000,numStats)
+stats1<-genStats1(1.7,4,1,5000,numStats)
+
+write.table(stats4, "G15-4.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "G15-3.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "G15-2.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "G15-1.csv", sep=",",  col.names=FALSE)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
-#statId=8
-#summary(stats4[,statId])
-#summary(stats3[,statId])
-#summary(stats2[,statId])
-#summary(stats1[,statId])
+statId=2
+summary(stats4[,statId])
+summary(stats3[,statId])
+summary(stats2[,statId])
+summary(stats1[,statId])
 
 # Generate auxiliary rank 4 sufficient stats for mixing
 # Generating separately to ensure independence 

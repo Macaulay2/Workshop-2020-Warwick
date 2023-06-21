@@ -8,7 +8,7 @@ statsComp<-function(m){
   return(c(diag(m),c(m[1:5,6:10])))
 }
 
-genStats<-function(magn,numVar,r,sampleSize,numStats){
+genStats1<-function(magn,numVar,r,sampleSize,numStats){
   randL<-runif(numVar*r*sampleSize,-magn,magn)
   sample<-array(randL,dim=c(r,numVar,sampleSize))
   statsM<-matrix(,nrow = sampleSize, ncol = numStats)
@@ -19,23 +19,73 @@ genStats<-function(magn,numVar,r,sampleSize,numStats){
   return(statsM)
 }
 
+genStats<-function(magn,numVar,r,sampleSize,numStats){
+  randL<-runif(numVar*r*sampleSize,-magn,magn)
+  sample<-array(randL,dim=c(r,numVar,sampleSize))
+  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
+  for(i in 1:sampleSize){
+    stats<-statsComp(t(sample[,,i])%*%(sample[,,i]))
+    statsM[i,]<-stats
+  }
+  return(statsM)
+}
+#magn=1
+#numVar=10
+#r=10
+#sampleSize=1
+#numStats=35
+#m=(sample[,,1])%*%t(sample[,,1])
+#stats<-statsComp(m)
+#diag(m)
+#sample[,,1]
 
 #Generate sufficient stats for matrices of different rank
+stats10<-genStats(1,10,10,5000,numStats)
+stats9<-genStats(1.2,10,9,5000,numStats)
+stats8<-genStats(1.3,10,8,5000,numStats)
+stats7<-genStats(1.4,10,7,5000,numStats)
+stats6<-genStats(1.5,10,6,5000,numStats)
+stats5<-genStats(1.6,10,5,5000,numStats)
+stats4<-genStats(1.7,10,4,5000,numStats)
+stats3<-genStats(1.8,10,3,5000,numStats)
+stats2<-genStats(1.9,10,2,5000,numStats)
+stats1<-genStats1(2,10,1,5000,numStats)
+
+write.table(stats10, "K55-10.csv", sep=",",  col.names=FALSE)
+write.table(stats9, "K55-9.csv", sep=",",  col.names=FALSE)
+write.table(stats8, "K55-8.csv", sep=",",  col.names=FALSE)
+write.table(stats7, "K55-7.csv", sep=",",  col.names=FALSE)
+write.table(stats6, "K55-6.csv", sep=",",  col.names=FALSE)
+write.table(stats5, "K55-5.csv", sep=",",  col.names=FALSE)
+write.table(stats4, "K55-4.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "K55-3.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "K55-2.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "K55-1.csv", sep=",",  col.names=FALSE)
+
 stats10<-genStats(1,10,10,1000,numStats)
+stats9<-genStats(1,10,9,1000,numStats)
+stats8<-genStats(1,10,8,1000,numStats)
+stats7<-genStats(1,10,7,1000,numStats)
 stats6<-genStats(1,10,6,1000,numStats)
 stats5<-genStats(1,10,5,1000,numStats)
 stats4<-genStats(1,10,4,1000,numStats)
 stats3<-genStats(1,10,3,1000,numStats)
 stats2<-genStats(1,10,2,1000,numStats)
-stats1<-genStats(1,10,1,1000,numStats)
+stats1<-genStats1(1,10,1,1000,numStats)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats
-#statId=8
-#summary(stats4[,statId])
-#summary(stats3[,statId])
-#summary(stats2[,statId])
-#summary(stats1[,statId])
+statId=32
+summary(stats10[,statId])
+summary(stats9[,statId])
+summary(stats8[,statId])
+summary(stats7[,statId])
+summary(stats6[,statId])
+summary(stats5[,statId])
+summary(stats4[,statId])
+summary(stats3[,statId])
+summary(stats2[,statId])
+summary(stats1[,statId])
 
 # Generate auxiliary rank 10 sufficient stats for mixing
 # Generating separately to ensure independence 
@@ -54,7 +104,7 @@ stats5aux<-genStats(1,10,5,1000,numStats)
 stats4aux<-genStats(1,10,4,1000,numStats)
 stats3aux<-genStats(1,10,3,1000,numStats)
 stats2aux<-genStats(1,10,2,1000,numStats)
-stats1aux<-genStats(1,10,1,1000,numStats)
+stats1aux<-genStats1(1,10,1,1000,numStats)
 
 
 #Calculate homology of dim=0 for sufficients stats of different rank
@@ -83,11 +133,11 @@ wilcox.test(stats10.phom[,3],stats1.phom[,3])
 
 # #Calculate homology of dim=0 for sufficients stats of union of different types of stats
 # #4 with 4 vs 4 with 3
-# joint4with3<-rbind(stats4for3,stats3) #need to use a different set of full rank stats to ensure independence
-# joint4with3.phom<-calculate_homology(joint4with3, dim=0)
-# joint4with4<-rbind(stats4for4,stats4) #need to use a different set of full rank stats to ensure independence
-# joint4with4.phom<-calculate_homology(joint4with4, dim=0)
-# wilcox.test(joint4with4.phom[,3],joint4with3.phom[,3]) #fail to reject the null
+joint10with6<-rbind(stats10for6,stats6) #need to use a different set of full rank stats to ensure independence
+joint10with6.phom<-calculate_homology(joint10with6, dim=0)
+joint10with10<-rbind(stats10for10,stats10) #need to use a different set of full rank stats to ensure independence
+joint10with10.phom<-calculate_homology(joint10with10, dim=0)
+wilcox.test(joint10with10.phom[,3],joint10with6.phom[,3]) #reject the null
 # 
 # ##plot histogram
 # c1 <- rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue")

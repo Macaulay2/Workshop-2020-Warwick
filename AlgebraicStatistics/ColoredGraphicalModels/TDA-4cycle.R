@@ -1,5 +1,7 @@
 # reject null if p<0.05
 library("TDAstats")
+library("proxy")
+library("Matrix")
 
 genStats1<-function(magn,numVar,r,sampleSize,numStats){
   randL<-runif(numVar*r*sampleSize,-magn,magn)
@@ -15,6 +17,32 @@ genStats1<-function(magn,numVar,r,sampleSize,numStats){
 genStats<-function(magn,numVar,r,sampleSize,numStats){
   randL<-runif(numVar*r*sampleSize,-magn,magn)
   sample<-array(randL,dim=c(r,numVar,sampleSize))
+  statsM<-matrix(,nrow = sampleSize, ncol = numStats)
+  for(i in 1:sampleSize){
+    stats<-statsComp(t(sample[,,i])%*%(sample[,,i]))
+    statsM[i,]<-stats
+  }
+  return(statsM)
+}
+
+#magn=1
+#numVar=4
+#r=4
+#sampleSize=1
+#numStats=8
+#pos=c(2)
+#tol=100
+genStatsNbourhood<-function(magn,numVar,r,sampleSize,numStats,pos, tol){
+  sample<-array(,dim=c(r,numVar,sampleSize))
+  for(i in 1:sampleSize){
+    for (j in pos){
+  sample[j,,i]<-runif(numVar,-magn,magn)
+    }
+    for (k in setdiff(1:r,pos))
+  sample [k,,i]<-runif(numVar,-magn/tol,magn/tol)    
+  }
+  #randL<-runif(numVar*r*sampleSize,-magn,magn)
+  #sample<-array(randL,dim=c(r,numVar,sampleSize))
   statsM<-matrix(,nrow = sampleSize, ncol = numStats)
   for(i in 1:sampleSize){
     stats<-statsComp(t(sample[,,i])%*%(sample[,,i]))
@@ -42,15 +70,57 @@ statsComp<-function(m){
 
 
 #Generate sufficient stats for matrices of different rank
-stats4<-genStats(1,4,4,5000,length(statVector))
-stats3<-genStats(1.1,4,3,5000,length(statVector))
-stats2<-genStats(1.3,4,2,5000,length(statVector))
-stats1<-genStats1(1.85,4,1,5000,length(statVector))
+stats4<-genStats(0.1,4,4,10,length(statVector))
+stats3<-genStats(0.1,4,3,10,length(statVector))
+stats2<-genStats(0.1,4,2,10,length(statVector))
+stats1<-genStats1(0.1,4,1,10,length(statVector))
+jointAll<-rbind(stats4,stats3,stats2,stats1) 
 
-write.table(stats4, "G18-4.csv", sep=",",  col.names=FALSE)
-write.table(stats3, "G18-3.csv", sep=",",  col.names=FALSE)
-write.table(stats2, "G18-2.csv", sep=",",  col.names=FALSE)
-write.table(stats1, "G18-1.csv", sep=",",  col.names=FALSE)
+median(stats4)
+median(stats3)
+median(stats2)
+median(stats1)
+median(jointAll)
+
+dist4=dist(stats4,method="euclidean")
+dist3=dist(stats3,method="euclidean")
+dist2=dist(stats2,method="euclidean")
+dist1=dist(stats1,method="euclidean")
+distAll=dist(jointAll,method="euclidean")
+
+median(dist4)
+median(dist3)
+median(dist2)
+median(dist1)
+median(distAll)
+
+stats1<-genStats1(0.1,4,1,4000,length(statVector))
+stats4N1pos1<-genStatsNbourhood(0.1,4,4,1000,length(statVector),c(1), 100)
+stats4N1pos2<-genStatsNbourhood(0.1,4,4,1000,length(statVector),c(2), 100)
+stats4N1pos3<-genStatsNbourhood(0.1,4,4,1000,length(statVector),c(3), 100)
+stats4N1pos4<-genStatsNbourhood(0.1,4,4,1000,length(statVector),c(4), 100)
+stats4N1<-rbind(stats4N1pos1,stats4N1pos2,stats4N1pos3,stats4N1pos4)
+jointAll<-rbind(stats1,stats4N1)
+
+c(median(stats1[,1]),median(stats1[,2]),median(stats1[,3]),median(stats1[,4]),
+  median(stats1[,5]),median(stats1[,6]),median(stats1[,7]),median(stats1[,8]))
+c(median(stats4N1[,1]),median(stats4N1[,2]),median(stats4N1[,3]),median(stats4N1[,4]),
+  median(stats4N1[,5]),median(stats4N1[,6]),median(stats4N1[,7]),median(stats4N1[,8]))
+c(median(jointAll[,1]),median(jointAll[,2]),median(jointAll[,3]),median(jointAll[,4]),
+  median(jointAll[,5]),median(jointAll[,6]),median(jointAll[,7]),median(jointAll[,8]))
+
+dist1=dist(stats1,method="euclidean")
+dist4N1=dist(stats4N1,method="euclidean")
+distAll=dist(jointAll,method="euclidean")
+
+median(dist1)
+median(dist4N1)
+median(distAll)
+
+write.table(stats4, "G18-4-01.csv", sep=",",  col.names=FALSE)
+write.table(stats3, "G18-3-01.csv", sep=",",  col.names=FALSE)
+write.table(stats2, "G18-2-01.csv", sep=",",  col.names=FALSE)
+write.table(stats1, "G18-1-01.csv", sep=",",  col.names=FALSE)
 
 #Compare basic descriptive properties of each statistic (pay attention to range!)
 #sometimes rank 1 does not go to -1 for some stats

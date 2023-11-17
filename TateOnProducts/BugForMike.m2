@@ -73,5 +73,22 @@ assert isComplexMorphism Newe2
 
 liftedmap = (transfer1 * NewT2.dd_-6 // NewT1.dd_-6)
 
-(NewT1.dd_-6 * liftedmap)_{0..3}^{0..3}
-(transfer1 * NewT2.dd_-6)_{0..3}^{0..3}
+liftedmap = (transfer1 * NewT2.dd_-7 // NewT1.dd_-7)
+
+f1 = (NewT1.dd_-7 * liftedmap)  -- _{0..3}^{0..3}
+f2 = (transfer1 * NewT2.dd_-7)  -- _{0..3}^{0..3}
+
+NewT2.dd_7
+
+NewT1
+NewT2
+
+prune HH_-7 NewT1
+prune HH_-7 NewT2
+
+Newe1_-8 == transfer1
+Newe1_-8 * dd^NewT2_-7
+g1 = (Newe1_-8 * dd^NewT2_-7) // dd^NewT1_-7
+(Newe1_-8 * dd^NewT2_-7) % dd^NewT1_-7
+
+(Newe1_-8 * dd^NewT2_-7) - dd^NewT1_-7 * g1 -- nonzero...

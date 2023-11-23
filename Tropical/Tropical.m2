@@ -39,6 +39,7 @@ export{
   "ComputeMultiplicities",
   "Prime",
   "stableIntersection",
+  "stableIntersectionFan",
   "tropicalVariety",
   "isTropicalBasis",
   "multiplicities",
@@ -536,75 +537,68 @@ if not all(L, a-> isHomogeneous a) then error "Not implemented for non homogeneo
 	)
 
 
-stableIntersection = method(TypicalValue =>
-TropicalCycle, Options => {Strategy=> if polymakeOK then "atint" else "gfan"})
+stableIntersection = method()
 
-stableIntersection (TropicalCycle, TropicalCycle) := o -> (T1,T2) -> (
---TODOS:
---4) gfan strategy outputs only a fan, not a tropical cycle
---5) test cases
---6) make tropical an immutable hash table
-    if (o.Strategy=="atint") then (
-	--in polymake, the lineality span (1,...,1) is default.
-	--we embed the fans in a higher dimensional fan in case our lineality span does not contain (1,...,1)
-	C1 := tropicalCycle(embedFan fan T1, multiplicities T1);
-	C2 := tropicalCycle(embedFan fan T2, multiplicities T2);
+stableIntersection (TropicalCycle, TropicalCycle) := TropicalCycle => (T1,T2) -> (
+    --polymake notes to remember: in polymake, the lineality span
+    --(1,...,1) is default.  we embed the fans in a higher
+    --dimensional fan in case our lineality span does not contain
+    --(1,...,1):
+    C1 := tropicalCycle(embedFan fan T1, multiplicities T1);
+    C2 := tropicalCycle(embedFan fan T2, multiplicities T2);
 
-	filename := temporaryFileName();
-	--ugly declaration of helping strings
-	openingStr := "\"_type SymmetricFan\\n\\nAMBIENT_DIM\\n\";";
-	dimStr := "\"\\n\\nDIM\\n\";";
-	linDimStr := "\"\\n\\nLINEALITY_DIM\\n\";";
-	raysStr := "\"\\n\\nRAYS\\n\";";
-	nRaysStr := "\"\\nN_RAYS\\n\";";
-	linSpaceStr := "\"\\n\\nLINEALITY_SPACE\\n\";";
-	orthLinStr := "\"\\n\\nORTH_LINEALITY_SPACE\\n\";";
-	fStr := "\"\\n\\nF_VECTOR\\n\";";
-	simpStr := "\"\\n\\nSIMPLICIAL\\n\";";
-	pureStr := "\"\\n\\nPURE\\n\";";
-	coneStr := "\"\\n\\nCONES\\n\";";
-	maxConeStr := "\"MAXIMAL_CONES\\n\";";
-	weightStr := "\"\\nMULTIPLICITIES\\n\";";
-	filename << "use application 'tropical';" << "my $c = "|convertToPolymake(C1) << "my $d = "|convertToPolymake(C2) << "my $i = intersect($c,$d);" << "use strict;" << "my $filename = '" << filename << "';" << "open(my $fh, '>', $filename);" << "print $fh " << openingStr << "print $fh $i->AMBIENT_DIM;" << "print $fh " << dimStr << "print $fh $i->DIM;" << "print $fh " << linDimStr << "print $fh $i->LINEALITY_DIM;" << "print $fh " << raysStr << "print $fh $i->RAYS;" << "print $fh " << nRaysStr << "print $fh $i->N_RAYS;" << "print $fh " << linSpaceStr << "print $fh $i->LINEALITY_SPACE;" << "print $fh " << orthLinStr << "print $fh $i->ORTH_LINEALITY_SPACE;" << "print $fh " << fStr << "print $fh $i->F_VECTOR;" << "print $fh " << simpStr << "print $fh $i->SIMPLICIAL;" << "print $fh " << pureStr << "print $fh $i->PURE;" << "print $fh " << coneStr << "my $cones = $i->CONES;" << "$cones =~ s/['\\>','\\<']//g;" << "print $fh $cones;" << "print $fh " << maxConeStr << "print $fh $i->MAXIMAL_CONES;" << "print $fh " << weightStr << "print $fh $i->WEIGHTS;" << "close $fh;" << close;
+    filename := temporaryFileName();
+    --ugly declaration of helping strings
+    openingStr := "\"_type SymmetricFan\\n\\nAMBIENT_DIM\\n\";";
+    dimStr := "\"\\n\\nDIM\\n\";";
+    linDimStr := "\"\\n\\nLINEALITY_DIM\\n\";";
+    raysStr := "\"\\n\\nRAYS\\n\";";
+    nRaysStr := "\"\\nN_RAYS\\n\";";
+    linSpaceStr := "\"\\n\\nLINEALITY_SPACE\\n\";";
+    orthLinStr := "\"\\n\\nORTH_LINEALITY_SPACE\\n\";";
+    fStr := "\"\\n\\nF_VECTOR\\n\";";
+    simpStr := "\"\\n\\nSIMPLICIAL\\n\";";
+    pureStr := "\"\\n\\nPURE\\n\";";
+    coneStr := "\"\\n\\nCONES\\n\";";
+    maxConeStr := "\"MAXIMAL_CONES\\n\";";
+    weightStr := "\"\\nMULTIPLICITIES\\n\";";
+    filename << "use application 'tropical';" << "my $c = "|convertToPolymake(C1) << "my $d = "|convertToPolymake(C2) << "my $i = intersect($c,$d);" << "use strict;" << "my $filename = '" << filename << "';" << "open(my $fh, '>', $filename);" << "print $fh " << openingStr << "print $fh $i->AMBIENT_DIM;" << "print $fh " << dimStr << "print $fh $i->DIM;" << "print $fh " << linDimStr << "print $fh $i->LINEALITY_DIM;" << "print $fh " << raysStr << "print $fh $i->RAYS;" << "print $fh " << nRaysStr << "print $fh $i->N_RAYS;" << "print $fh " << linSpaceStr << "print $fh $i->LINEALITY_SPACE;" << "print $fh " << orthLinStr << "print $fh $i->ORTH_LINEALITY_SPACE;" << "print $fh " << fStr << "print $fh $i->F_VECTOR;" << "print $fh " << simpStr << "print $fh $i->SIMPLICIAL;" << "print $fh " << pureStr << "print $fh $i->PURE;" << "print $fh " << coneStr << "my $cones = $i->CONES;" << "$cones =~ s/['\\>','\\<']//g;" << "print $fh $cones;" << "print $fh " << maxConeStr << "print $fh $i->MAXIMAL_CONES;" << "print $fh " << weightStr << "print $fh $i->WEIGHTS;" << "close $fh;" << close;
+    runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
+    run runstring;
+    result := get filename;
+    removeFile (filename|".out");
+    removeFile (filename|".err");
+    removeFile (filename);
+    parsedResult := gfanParsePolyhedralFan(result);
+    if instance(parsedResult, String) then return parsedResult;
+    (polyfan, mult) := parsedResult;
+    --now we still need to transform things back to our format:
+    --1) adjust the rays
+    R := rays polyfan;
+    row := (entries R)#0;
+    ind := -1;
+    scan(#row, i -> if ((row#i)==1) then ind = i);
+    R = submatrix'(R, {0} , {ind});
+    --2)adjust the maximal cones
+    C := maxCones polyfan;
+    C = apply(C, c -> delete(ind, c));
+    C = apply(C, c -> apply(c, n -> if (n > ind) then (n-1) else (n) ));
+    --3)adjust lineality space
+    L := linSpace polyfan;
+    L = submatrix'(L, {0} , );
+    --	L = L|(transpose matrix {apply(numgens target L , i -> 1)});
+    --4)inverse of our function embedFan
+    F := unembedFan fan(R,L,C);
+    tropicalCycle (F,mult)
+)
 
-	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
-	run runstring;
-	result := get filename;
-	removeFile (filename|".out");
-	removeFile (filename|".err");
-	removeFile (filename);
-	parsedResult := gfanParsePolyhedralFan(result);
-	if instance(parsedResult, String) then return parsedResult;
-	(polyfan, mult) := parsedResult;
---now we still need to transform things back to our format:
---1) adjust the rays
-	R := rays polyfan;
-	row := (entries R)#0;
-	ind := -1;
-	scan(#row, i -> if ((row#i)==1) then ind = i);
-	R = submatrix'(R, {0} , {ind});
---2)adjust the maximal cones
-	C := maxCones polyfan;
-	C = apply(C, c -> delete(ind, c));
-	C = apply(C, c -> apply(c, n -> if (n > ind) then (n-1) else (n) ));
---3)adjust lineality space
-	L := linSpace polyfan;
-	L = submatrix'(L, {0} , );
---	L = L|(transpose matrix {apply(numgens target L , i -> 1)});
---4)inverse of our function embedFan
-	F := unembedFan fan(R,L,C);
-	return tropicalCycle (F,mult);
-    )
-    else if (o.Strategy=="gfan") then (
-	F1 := fan(T1);
-	m1 := multiplicities(T1);
-	F2 := fan(T2);
-	m2 := multiplicities(T2);
-	return gfanStableIntersection(F1,m1,F2,m2);
-    )
-    else (
-	return "Strategy unknown: Choose 'atint' or 'gfan'";
-    );
+stableIntersectionFan = method()
+stableIntersectionFan(TropicalCycle, TropicalCycle) := Fan => (T1,T2) -> (
+    F1 := fan T1;
+    m1 := multiplicities T1;
+    F2 := fan T2;
+    m2 := multiplicities T2;
+    gfanStableIntersection(F1,m1,F2,m2)
 )
 
 embedFan = F -> (
@@ -1087,44 +1081,77 @@ doc///
     Key
 	stableIntersection
 	(stableIntersection,TropicalCycle,TropicalCycle)
-	[stableIntersection, Strategy]
     Headline
     	computes the stable intersection of two tropical varieties
     Usage
 	stableIntersection(F,G)
-	stableIntersection(L,Strategy=>S)
     Inputs
 	F:TropicalCycle
 	  a tropical cycle
   	G:TropicalCycle
   	  another tropical cycle
-	Strategy=>String
-	  Strategy ("atint" (polymake) or "gfan")
     Outputs
         T:TropicalCycle
-		  a tropical cycle
+	  a tropical cycle
     Description
     	Text
-	    This computes the stable intersection of two tropical
+            This function requires polymake to be installed: if so,
+	    this computes the stable intersection of two tropical
 	    cycles.  For details on the definition of stable
-	    intersection, see, for example, Section 3.6 of ["Introduction to Tropical Geometry", Maclagan, Sturmfels].
-	    If a recent enough version of polymake is installed,
-	    the Strategy "atint" is default. Otherwise "gfan" will be used,
-	    which only computes the fan of the stable intersection
-	    without multiplicities.
+	    intersection, see, for example, Section 3.6 of
+	    ["Introduction to Tropical Geometry", Maclagan,
+	    Sturmfels].
 	Example
 	    QQ[x,y,z];
 	    I = ideal(x^2+y^2+z^2-1);
-	    T1 = tropicalVariety(I);
+	    T1 = tropicalVariety I;
 	    J = ideal(x*y+y*z+x*z+1);
-	    T2 = tropicalVariety(J);
+	    T2 = tropicalVariety J;
 	    V = tropicalVariety(I+J);
-	    -- W1 =  stableIntersection(T1,T2,Strategy=>"atint");
-	    W2 =  stableIntersection(T1,T2,Strategy=>"gfan");
-	    -- V#"Fan" == W1#"Fan"
-	    -- V#"Multiplicities" == W1#"Multiplicities"
-	    V#"Fan" == W2
+	    W = stableIntersection(T1,T2);
+	    V#"Fan" == W#"Fan"
+	    V#"Multiplicities" == W#"Multiplicities"
+        Text
+            If polymake is not installed, one can still use 
+            @TO "stableIntersectionFan"@ to compute the 
+            underlying fan, without the multiplicities.
+    SeeAlso
+        stableIntersectionFan
+///
 
+doc///
+    Key
+	stableIntersectionFan
+	(stableIntersectionFan,TropicalCycle,TropicalCycle)
+    Headline
+    	computes the fan of the stable intersection of two tropical varieties
+    Usage
+	F = stableIntersectionFan(T1, T2)
+    Inputs
+	T1:TropicalCycle
+        T2:TropicalCycle
+    Outputs
+        F:Fan
+          the fan of the stable intersection, i.e. the tropical cycle without
+          multiplicities
+    Description
+    	Text
+	    This computes the stable intersection fan of two tropical
+	    cycles.  For details on the definition of stable
+	    intersection, see, for example, Section 3.6 of
+	    ["Introduction to Tropical Geometry", Maclagan,
+	    Sturmfels].
+	Example
+	    QQ[x,y,z];
+	    I = ideal(x^2+y^2+z^2-1);
+	    T1 = tropicalVariety I;
+	    J = ideal(x*y+y*z+x*z+1);
+	    T2 = tropicalVariety J;
+	    V = tropicalVariety(I+J);
+	    F = stableIntersectionFan(T1,T2);
+	    V#"Fan" == F
+    SeeAlso
+        stableIntersection
 ///
 
 
@@ -1818,47 +1845,42 @@ assert((rays F) == matrix {{1,-1,0},{0,-1,1}})
 -----------------------
 
 TEST///
-
-F=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
-T= tropicalCycle(F,{1,1,1});
-T2= stableIntersection(T,T,Strategy=>"gfan")
-assert(dim T2 == 3)
-assert(maxCones T2 == {{1, 2}, {0, 2}, {0, 1}})
-
+    F = fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
+    T = tropicalCycle(F,{1,1,1});
+    G = stableIntersectionFan(T,T)
+    assert(dim G == 3)
+    assert(maxCones G == {{1, 2}, {0, 2}, {0, 1}})
 ///
-
 
 if polymakeOK then (
 TEST///
+    F1:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
+    T1:= tropicalCycle(F1,{1,1,1});
+    R1:= stableIntersection(T1,T1);
+    R2:= stableIntersectionFan(T1,T1);
+    assert(R1#"Fan" == R2)
+    assert(dim R2 == 3)
+    assert(maxCones R2 == {{1, 2}, {0, 2}, {0, 1}})
 
-F1:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
-T1:= tropicalCycle(F1,{1,1,1});
-R1:= stableIntersection(T1,T1,Strategy=>"atint");
-R2:= stableIntersection(T1,T1,Strategy=>"gfan");
-assert(R1#"Fan" == R2)
-assert(dim R2 == 3)
-assert(maxCones R2 == {{1, 2}, {0, 2}, {0, 1}})
+    R =QQ[x,y,z,t];
+    I=ideal(x+y+z+t);
+    J=ideal(4*x+y-2*z+5*t);
+    T1 = stableIntersection(tropicalVariety(I),tropicalVariety(J));
+    T2 = tropicalVariety(I+J);
+    assert(T1#"Fan" == T2#"Fan")
+    assert(T1#"Multiplicities" == T2#"Multiplicities")
 
-R =QQ[x,y,z,t];
-I=ideal(x+y+z+t);
-J=ideal(4*x+y-2*z+5*t);
-T1 = stableIntersection(tropicalVariety(I),tropicalVariety(J));
-T2 = tropicalVariety(I+J);
-assert(T1#"Fan" == T2#"Fan")
-assert(T1#"Multiplicities" == T2#"Multiplicities")
-
-R = QQ[x,y,z];
-I = ideal(x^2+y^2+z^2-1);
-T1 = tropicalVariety(I);
-J = ideal(x*y+y*z+x*z+1);
-T2 = tropicalVariety(J);
-V = tropicalVariety(I+J);
-W1 =  stableIntersection(T1,T2,Strategy=>"gfan");
-W2 =  stableIntersection(T1,T2,Strategy=>"atint");
-assert(V#"Fan" == W1)
-assert(V#"Fan" == W2#"Fan")
-assert(V#"Multiplicities" == W2#"Multiplicities")
-
+    R = QQ[x,y,z];
+    I = ideal(x^2+y^2+z^2-1);
+    T1 = tropicalVariety(I);
+    J = ideal(x*y+y*z+x*z+1);
+    T2 = tropicalVariety(J);
+    V = tropicalVariety(I+J);
+    W1 =  stableIntersectionFan(T1,T2);
+    W2 =  stableIntersection(T1,T2);
+    assert(V#"Fan" == W1)
+    assert(V#"Fan" == W2#"Fan")
+    assert(V#"Multiplicities" == W2#"Multiplicities")
 ///
 )
 

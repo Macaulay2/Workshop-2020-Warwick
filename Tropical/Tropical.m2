@@ -1,25 +1,17 @@
---      AuxiliaryFiles => true,
---path = prepend ("~/src/M2/Workshop-2018-Leipzig/Tropical/", path)
---Delete the line above when the "loading the wrong version" has been fixed.
---polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version 2>&1") >= "3.0" else false;
---polymakeOkay := try replace( "polymake version ", "", first lines get "!polymake --version") >= "3.0" else false;
-
---optArgs := new OptionTable from if (version#"VERSION" > "1.10") then {OptionalComponentsPresent => polymakeOkay} else {}
-
 newPackage(
     	"Tropical",
-Version => "1.1",
-        Date => "May 2021",
-        Authors => {
-                  {Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
-                  {Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
-                  {Name => "Sara Lamboglia", Email => "", HomePage=>""},
-                  {Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwic$
-                  {Name => "Ben Smith", Email => "benjamin.smith-3@manchester.ac.uk", HomePage=>""},
-                  {Name => "Jeff Sommars", Email => "", HomePage=>""},
-                  {Name => "Paolo Tripoli", Email => "", HomePage=>""},
-                  {Name => "Magdalena Zajaczkowska", Email => "", HomePage=>""}
-              },
+	Version => "1.1",
+	Date => "May 2021",
+	Authors => {
+	    	{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
+	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
+  		{Name => "Sara Lamboglia", Email => "", HomePage=>""},
+	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
+   		{Name => "Ben Smith", Email => "benjamin.smith-3@manchester.ac.uk", HomePage=>""},
+   		{Name => "Jeff Sommars", Email => "", HomePage=>""},
+    		{Name => "Paolo Tripoli", Email => "", HomePage=>""},
+   		{Name => "Magdalena Zajaczkowska", Email => "", HomePage=>""}
+		},
 	Headline => "A package for doing computations in tropical geometry",
 	Configuration => {
 		"path" => "",
@@ -30,26 +22,17 @@ Version => "1.1",
 		"tropicalMax" => false,
 		"polymakeCommand" =>""
 	},
-
-    --Might need PackageImports here - should Polyhedra be here instead??
-tropicalVarietyWithPuiseuxVal--        PackageExports => {"gfanInterface","EliminationMatrices","Polyhedra","Binomials","Matroids"},
+    	OptionalComponentsPresent => true,
         PackageExports => {"gfanInterface","EliminationMatrices","Matroids","Polyhedra"},
 	DebuggingMode => true,
 	AuxiliaryFiles => true,
 --	AuxiliaryFiles => false,
 	CacheExampleOutput => true
---	optArgs
 )
 
---We would like to have the following command:
---     OptionalComponentsPresent => polymakeOkay := run "type polymake
---     >/dev/null 2>&1" === 0 This would be put above.  However the
---     problem is that polymake is run in different ways on different
---     operating systems, so we haven't done it this way.
 
 export{
   "TropicalCycle",
---"TropicalCycle1",
   "tropicalCycle",
   "isBalanced",
   "tropicalPrevariety",
@@ -57,26 +40,20 @@ export{
   "Prime",
   "stableIntersection",
   "tropicalVariety",
---"tropicalVarietyWithValExternal",
---"tropicalVarietyWithPuiseuxVal",
   "isTropicalBasis",
   "multiplicities",
   "IsHomogeneous",
   "Symmetry",
   "visualizeHypersurface",
   "Valuation",
-  "isBalancedCurves",
-  "BergmanFan",
-  "polyhedronFromFace"
+  "BergmanFan"
   }
-
--- TropicalCycle1, tropicalVarietyWithPuiseuxVal and tropicalVarietyWithValExternal commented out until fixed.
 
 
 polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
 polymakeOK = polymakeCommand != ""
 
---ToDo: Probably delete this once the package is debugged.
+--Do we want to keep this?
 if polymakeOK then << "-- polymake is installed\n" else << "-- polymake not present\n";
 
 
@@ -246,10 +223,12 @@ star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
 );
 
 
-isBalanced = method(TypicalValue => Boolean)
+isBalanced = method(TypicalValue => Boolean, Options => {Strategy => "gfan"} ) -- or "polymake"
 
-isBalanced (TropicalCycle):= T->(
-    if polymakeOK then (
+isBalanced TropicalCycle := Boolean => opts -> T -> (
+    if opts.Strategy === "polymake" and not polymakeOK then
+        error "polymake is not installed";
+    if opts.Strategy === "polymake" then (
 --in polymake, the lineality span (1,...,1) is default.  we embed the
 --fans in a higher dimensional fan in case our lineality span does not
 --contain (1,...,1)
@@ -273,7 +252,7 @@ isBalanced (TropicalCycle):= T->(
 	else if (substring(0,result)=="") then return false
 	else return "Polymake throws an error";
     )
-    else (
+    else if opts.Strategy === "gfan" then (
 	if dim T == 1 then return (isBalancedCurves T) else (
 	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
 	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
@@ -289,7 +268,8 @@ isBalanced (TropicalCycle):= T->(
 	);
     	return balanced;
        );
-    );
+    )
+    else error "expected Strategy optional argument to be \"gfan\" or \"polymake\"";
 );
 
 --F is a fan and f is a list describing a face of F
@@ -757,7 +737,7 @@ dim TropicalCycle:= T->( dim fan T)
 
 ambDim TropicalCycle:= T->( ambDim fan T)
 
-fVector (TropicalCycle) := o->T->(Polyhedra$fVector fan T)
+fVector (TropicalCycle) := T->(Polyhedra$fVector fan T)
 
 fan TropicalCycle := T -> (T#"Fan")
 
@@ -779,22 +759,11 @@ isSimplicial TropicalCycle:= Boolean => T->( isSimplicial(fan(T)))
 --Bergman fan code
 --------------------
 
--- BergmaneI returns the indicator vector (as a list) for a subset I
--- of the ground set of a matroid M. 
---DM: This is being deprecated
---BergmaneI = (M, I) -> (
---    groundSetM:=#M.groundSet;
---    L:={};
---    scan(groundSetM, i->(
---	if member(i,I) then L =  append(L,1) else L = append(L,0);
---	));
---    L
---    )
 
 -- BergmanconeC returns the matrix of of generators of the cones
 -- corresponding to the chain of flats C it does not check whether C
--- is a chain of flat or not This calls and therefore depends on
--- BergmaneI We will remove redundancies later
+-- is a chain of flat or not 
+
 BergmanconeC  = (M, C) -> (
     groundSetM:=#M.groundSet;
     L := {};
@@ -827,176 +796,6 @@ BergmanFan = (M) -> (
     mults:=apply(#(maxCones F),i->1);
     tropicalCycle(F,mults)    
     )
-
-
-----------------------
--- EXPERIMENTAL CODE
-----------------------
-
---Setting up the data type TropicalCycle1
-
-TropicalCycle1 = new Type of MutableHashTable
-TropicalCycle1.synonym = "tropical polyhedral complex"
-TropicalCycle1.GlobalAssignHook = globalAssignFunction
-TropicalCycle1.GlobalReleaseHook = globalReleaseFunction
-
-
---basic operations on a tropical cycle
-
-tropicalCycle1 = method(TypicalValue => TropicalCycle1)
-
-tropicalCycle1 (PolyhedralComplex, List) := (PC,mult)->(
-    --- if #maxCones(PC) != #mult then error("The multiplicity list has the wrong length");
-    T := new TropicalCycle1;
-    T#"Multiplicities" = mult;
-    T#"PolyhedralComplex" = PC;
-    return T
-)    
-
-fan TropicalCycle1 := T -> (T#"PolyhedralComplex")
-multiplicities (TropicalCycle1) := T -> (T#"Multiplicities")
-
-tropicalVarietyWithValExternal = method(
-    TypicalValue => TropicalCycle,  
-    Options => {
-	IsHomogeneous => true,
-	Valuation => false
-    }
-)
-
---EXPERIMENTAL: Tropicalization with adic valuation and puisseux valuation.
--- In development. Merge with tropicalVariety method when done.
-tropicalVarietyWithValExternal (Ideal) := o -> (I) ->(
-    local T;
-    local F;
-    R := ring I;
-
---Adic valuation
-
-    if (instance(o.Valuation, ZZ)) then (
-	if (not isPrime(o.Valuation)) then
-	    error("The 'p' in the p-adic valuation has to be prime");
-
-	if (not isHomogeneous(I)) then (
-	    error("Support for non-homogeneous ideals not implemented yet");
-	    --homogenize here
-	);
-
-	inputToSingular := "LIB \"gfanlib.so\"; \n" |
-			  "ring R = 0, (" | replace("[{}]", "", toString gens R) | "), dp; \n" |
-			  "ideal I = " | replace("ideal", "", toString I ) | ";  \n" |
-		          "fan TI = tropicalVariety (I, number( " | o.Valuation | ")); \n" |
-	       	          "write(\":w <<FILENAME>>\",TI);\n" |
-			  "quit;";
-
-	output := runSingularCommand(inputToSingular);
-	return output;
-	--Implement processing of output. Perhaps the following code is useful
-
-	-- since Singular returns a file in the same format, can we use this method to read it?
-	-- this would be a polyhedral fan with miltiplicities for the max cones
-	--F = gfanParsePolyhedralFan output;
-	--return F;
-	--if (instance(F,String)) then
-	--    return F;
-
-	----T=tropicalCycle(F_0,F_1); -- TODO replace with the correct constructor to get:
-	--T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromFan F);
-     );
-
---- Puiseux valuation
-      if (instance(o.Valuation, R)) then (
-	     return "We have not implemented Puiseux valuation yet";
-	-- we need the correct method name from fan
-	--- make sure the "t" is the first variable!!
-	---T = TropicalCycleFromPolyhedralComplex (PolyhedralComplexFromSliceOfFan (tropicalVariety (I)));
-	);
-
---Otherwise, we don't understand the given valuation. (or maybe no valuation was given?)
-
-       return "Can't handle the given valuation. Maybe no valuation given? Then use tropicalVariety";
-)
-
-tropicalVarietyWithPuiseuxVal = method(
-    TypicalValue => TropicalCycle1,  
-    Options => {
-	Prime => true,
-	IsHomogeneous => true
-    }
-)
-
-tropicalVarietyWithPuiseuxVal (Ideal) := o -> (I) ->(
-    
-    --- we expect that we are working over 	QQ{{t}}, where t is the first variable of the poly ring.
-
-	local T;
-    local F;
-	listOfSlicedCones := {};
-	T = tropicalVariety(I);
-	
-		-- now slice the fan with a plane at height 1 for min convention (or -1) for max convention
-		addsemiringAdd := minmax();
-		heightCut := 0;
-		if (addsemiringAdd == "Min") then
-			heightCut = 1
-		else heightCut = -1;
-			
-		M := matrix{{join(toSequence{1},(numgens ring I -1): 0)}}; 
-		N := matrix{{(numgens ring I): 0}}; 
-		slicePlane := polyhedronFromHData(N, matrix{{0}}, M, matrix{{heightCut}});
-
-		--- for each cone in the fan fan T, slice and append to PolyhedralComplex Output
-		raysMatrix := rays (T);
-		listOfMaxCones := maxCones(T);
-		numberOfMaxCones := length listOfMaxCones; 
-
-		if (numberOfMaxCones == 0) then (print "The vartiey is empty!"; return T;)
-		else( 
-			for i from 1 when i < (numberOfMaxCones) do (
-				currentMaxCone := coneFromVData submatrix(raysMatrix, listOfMaxCones#i);  
-				slicedMaxCone := intersection(currentMaxCone, slicePlane);
-				A := submatrix'(id_(ZZ^(numgens ring I)), {0}, );
-				newSlicedMaxCone := affineImage(A,slicedMaxCone);
-				listOfSlicedCones = listOfSlicedCones | {newSlicedMaxCone};
-			)
-		);
-
-		PC := tropicalCycle1(polyhedralComplex listOfSlicedCones, multiplicities(T));
-		return PC;
-     )
-
-	 ------------------------------------------------------------------------------
-
---EXPERIMENTAL: RAW function to execute singular code
---This function should make its own package of interface to singular, but for now it is just a function to execute raw code
---TODO: Write wrappers around several singular functions
-runSingularCommand = (data) -> (
-	tmpName := temporaryFileName();
-	--the command to run has a placeholder <<FILENAME>> for the name of the output
-	data = replace("<<FILENAME>>", tmpName | ".out", data);
-	tmpFile := openOut tmpName;
-	tmpFile << data << close;
-	-- return tmpName;
-
-	-- in the future we want to make this check when we install SingularInterface package
-
-	if run ("Singular -q -c 'quit;'") =!= 0 then 
-		return("You need to install Singular for using tropicalVarietyWithValExternal") 
-	else (
-	ex := "Singular -q  < " | tmpName | " 2> " | tmpName | ".err";
-
-	returnvalue := run ex;
-
-     	if(returnvalue != 0) then
-	     error("Singular returned an error message.\n",
-	     "COMMAND RUN:\n    ", ex,
-	     "\nINPUT:\n", get(tmpName),
-	     "\nERROR:\n", get(tmpName |".err")  );
-
-	out := get(tmpName | ".out");
-	return out;
-	);
-)
 
 
 ----------------------------------------------------------------------------
@@ -1040,11 +839,23 @@ doc ///
     	     }@
 ///
 
+doc ///
+  Key
+    Valuation
+  Headline
+    a key for use in visualizeHypersurface
+  Description
+    Text
+      Not sure what this does yet!
+  SeeAlso
+    visualizeHypersurface
+///
 
 doc ///
 	Key
 		visualizeHypersurface
 		(visualizeHypersurface,RingElement)
+		[visualizeHypersurface,Valuation]
 	Headline
 		visualize the tropical hypersurface of the given polynomial
 	Usage
@@ -1128,25 +939,6 @@ doc ///
 			tropicalCycle(F, mult)
 ///
 
-doc ///
-    Key
-	tropicalCycle1
-	(tropicalCycle1, PolyhedralComplex, List)
-    Headline
-    	constructs a TropicalCycle from a polyhedral complex and a list with multiplicities
-    Usage
-    	tropicalCycle1(PC,mult)
-    Inputs
-    	PC:PolyhedralComplex
-		mult:List
-    Outputs
-    	T:TropicalCycle1
-    Description
-		Text
-			This function creates a tropical cycle from a fpolyhedral complex and a list of multiplicities.
-			The multiplicities must be given in the same order as the maximal cones
-			appear in the MaximalCones list.
-///
 
 doc///
     Key
@@ -1290,61 +1082,6 @@ doc///
 ///
 
 
--*
-doc///
-    Key
-      tropicalVarietyWithValExternal
-      (tropicalVarietyWithValExternal, Ideal)
-      [tropicalVarietyWithValExternal, IsHomogeneous]
-      [tropicalVarietyWithValExternal, Valuation]
-
-    Headline
-      EXPERIMENTAL: tropical variety with valuations
-    Usage
-      tropicalVarietyWithValExternal(I,Valuation=>11)
-    Inputs
-      I:Ideal
-	  of polynomials
-      IsHomogeneous=>Boolean
-        is the ideal homogeneous?
-    Outputs
-        F:TropicalCycle
-    Description
-       Text
-         EXPERIMENTAL feature to implement p-adic and puiseux valuation. Not yet done, contact a developer if you wish to help!
-      Example
-       R = QQ[x,y,z]
-       I = ideal(x+y+z)
-	   tropicalVarietyWithValExternal(I)
-	   tropicalVarietyWithValExternal(I, Valuation=>11)
-       tropicalVarietyWithValExternal(I, Valuation=>x)
-///
-*-
-
--*
-doc///
-    Key
-      tropicalVarietyWithPuiseuxVal
-      (tropicalVarietyWithPuiseuxVal, Ideal)
-
-    Headline
-      EXPERIMENTAL: tropical variety with valuations
-    Usage
-      tropicalVarietyWithPuiseuxVal(I)
-    Inputs
-      I:Ideal
-	  of polynomials in QQ[t, x_1, ..., x_n], later interpreted as I in QQ{{t}}[x_1, ..., x_n]
-    Outputs
-        F:TropicalCycle1
-    Description
-       Text
-         EXPERIMENTAL feature to implement puiseux valuation.
-      Example
-      	QQ[t,x,y]
-	  	I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
-      	tropicalVarietyWithPuiseuxVal(I)
-///
-*-
 
 doc///
     Key
@@ -1491,35 +1228,17 @@ doc///
 
     Description
 		Text
-			If the option value "true" is provided, then homogeneity of the ideal is not tested.
-      By default the ideal is	always assumed not homogeneous and a test is
-			performed before applying the function tropicalVariety.
+			If the option value "true" is provided, then
+            	    homogeneity of the ideal is not tested.  By
+            	    default the ideal is always assumed not
+            	    homogeneous and a test is performed before
+            	    applying the function tropicalVariety.
 		Example
 		          QQ[x,y];
 			  I=ideal(x+y+1);
 			  T=tropicalVariety (I,IsHomogeneous=>false)
 ///
 
--*
-doc///
-    Key
-	Valuation
-    Headline
-		option to declare a valuation for tropicalization
-    Usage
-    	tropicalVarietyWithVal(I,Valuation=>7)
-
-    Description
-		Text
-			EXPERIMENTAL: Declare a p-adic or a puiseux valuation
-		Example
-		          QQ[x,y, z];
-			  I=ideal(x+y+z);
-			  tropicalVarietyWithVal (I,Valuation=>7)
-
-
-///
-*-
 
 doc///
     Key
@@ -1554,7 +1273,7 @@ doc///
     Key
 	(fan,TropicalCycle)
     Headline
-	    computes the fan assocated to the tropical cycle
+	    computes the fan associated to the tropical cycle
     Usage
     	fan(T)
     Inputs
@@ -1604,7 +1323,7 @@ doc///
     Key
 	(isPure,TropicalCycle)
     Headline
-	determines whether a tropical cycle is pure
+	determines whether  a tropical cycle is pure
     Usage
     	isPure(T)
     Inputs
@@ -1639,7 +1358,7 @@ doc///
 
     Description
 		Text
-		       This function determines if the fan associated to the tropical cycle T is simplicial, i.e. if for each cone the rays generating  it are linearly independent.
+		       This function determines whether the fan associated to the tropical cycle T is simplicial, i.e. if for each cone the rays generating  it are linearly independent.
 		Example
 		       F=fan ({posHull(matrix{{1,2,3},{0,2,0}}),posHull(matrix{{0},{1}})});
 		       T=tropicalCycle (F,{1,2});
@@ -1786,7 +1505,10 @@ doc///
 
     Description
 		Text
-		        This function computes the lineality space of the fan associated to the tropical cycle T. The generators of the lineality space are the columns of the output matrix.
+		        This function computes the lineality space of
+		        the fan associated to the tropical cycle
+		        T. The generators of the lineality space are
+		        the columns of the output matrix
 		Example
 		        QQ[x,y,z];
 			I=ideal(x-y);
@@ -1860,34 +1582,6 @@ doc///
 		linealitySpace T
 ///
 
--*
-doc ///
-    Key 
-        (star,TropicalCycle,Polyhedron)
-    Headline
-    	computes the start of a Polyhedron in the Fan of a TropicalCycle
-    Usage
-    	star(T,P)
-    Inputs
-    	T:TropicalCycle
-	P:Polyhedron
-    Outputs
-    	T:TropicalCycle
-    Description
-    	     Text
-	     	 This function computes the star of a polyhedron in the fan of a TropicalCycle
-	     Example
-	     	 QQ[x,y];
-		 I=ideal(x+y+1);
-		 T=tropicalVariety(I);
-		 P=convexHull(matrix{{0},{0}});
-		 ST=star(T,P)
-		 dim ST
-		 P=convexHull(matrix{{0},{0}},matrix{{1},{0}});
-		 ST=star(T,P)
-		 dim ST
-///		 
-*-
 	      
 
 ----- TESTS -----
@@ -2294,36 +1988,11 @@ assert(rank source R ==17)
 assert(dim(T)==rank(A))
 ///
 
--*
------------------------
---tropicalVarietyWithPuiseuxVal
------------------------
-TEST///
-QQ[t,x,y]
-I = ideal (t*x^2+x*y+t*y^2+x+y+t^2)
-T:=tropicalVarietyWithPuiseuxVal(I)
-assert(vertices(T#"PolyhedralComplex")==transpose matrix{{0,0},{-1,0},{0,-1},{2,2}})
-///
-*-
 
 -----------------------
 --convertToPolymake
 -----------------------
 
-
--*
------------------------
---isBalancedCurves
------------------------
-TEST///
-R = QQ[x, y];
-I = ideal (x+y+1);
-T = tropicalVariety(I);
-assert (isBalancedCurves T == true)
-U = tropicalCycle(fan T, {1, 2, 3});
-assert (isBalancedCurves U == false)
-///
-*-
 
 -----------------------
 --star
@@ -2347,51 +2016,14 @@ assert(dim starT== 1);
 ///
 
 
--*
---Rest of star test for when it's working in full dimensions
-P2=convexHull(matrix{{0},{0},{0}});
-starT2=star(T,P2);
-assert(dim(starT2)==dim(T));
-assert(rank source rays starT2 == 4)
-*-
 
 
--*
-TEST///
-P1 = convexHull matrix {{2,2,0},{1,-1,0}};
-P2 = convexHull matrix {{2,-2,0},{1,1,0}};
-P3 = convexHull matrix {{-2,-2,0},{1,-1,0}};
-P4 = convexHull matrix {{-2,-2,0},{-1,-1,0}};
-F = polyhedralComplex {P1,P2,P3,P4};
-apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
-assert (star (F, ) == TODO)
-F = hypercube 3
-apply(Polyhedra$faces(1, F), f -> (vertices F)_(f#0))
-assert (star (F, ) == TODO)
-///
-*-
-
-end
+end--
 
 
 restart
 uninstallPackage "Tropical"
-
+restart
 installPackage "Tropical"
 check "Tropical"
 
----playing with some commands
-
-F = fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
-(tropicalCycle(F,{1,1,1}))#"Fan"== F
-(tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1}
-T = tropicalCycle(F,{1,1,1})
-r = rays T
-r == matrix{{0,0,0},{1,-1,0},{0,-1,1}}
-isBalanced T
-Q= QQ[x_0..x_3]
-TP = tropicalPrevariety({x_0-x_1, x_1-x_2+x_3, x_2-x_3})
-L={x_0-x_1, x_1-x_2+x_3, x_2-x_3}
-rays TP
-TV = tropicalVariety(ideal(L)) --this is empty...is this right? Gives error, should it be zero instead?
-rays TV

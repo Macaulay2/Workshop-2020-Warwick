@@ -16,12 +16,6 @@ newPackage(
 		},
 	Headline => "A package for doing computations in tropical geometry",
 	Configuration => {
---		"path" => "",
---		"fig2devpath" => "",
---		"keepfiles" => true,
---"keepfiles" => false,
---		"polymakeCommand" =>""
---		"cachePolyhedralOutput" => true,
 		"tropicalMax" => false
 	},
     	OptionalComponentsPresent => true,
@@ -223,52 +217,51 @@ star (TropicalCycle, Polyhedron) := (Sigma, P) -> (
 
 isBalanced = method(TypicalValue => Boolean, Options => {Strategy => "gfan"} ) -- or "polymake"
 
-isBalanced TropicalCycle := Boolean => opts -> T -> (
-    if opts.Strategy === "polymake" and not polymakeOK then
-        error "polymake is not installed";
-    if opts.Strategy === "polymake" then (
---in polymake, the lineality span (1,...,1) is default.  we embed the
---fans in a higher dimensional fan in case our lineality span does not
---contain (1,...,1)
+-- Perhaps temporary
+isBalancedPolymake = method()
+
+isBalancedPolymake TropicalCycle := Boolean => T -> (
+        --in polymake, the lineality span (1,...,1) is default.  we embed the
+        --fans in a higher dimensional fan in case our lineality span does not
+        --contain (1,...,1)
 	C := tropicalCycle(embedFan fan T, multiplicities T);
--- parse object into a polymake script, run polymake and get result back from the same file (which got overwritten by polymake)
+        -- parse object into a polymake script, run polymake and get
+        -- result back from the same file (which got overwritten by
+        -- polymake)
 	filename := temporaryFileName();
         filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) <<
 	endl << "print is_balanced($c);" << endl;
 	filename<<close;
---	filename << "use strict;" << endl << "my $filename = '" << filename << "';" << endl << "open(my $fh, '>', $filename);" << endl;
---	filename << "print $fh is_balanced($c);" << endl << "close $fh;" << endl << close;
-	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
-	run runstring;
-	removeFile (filename|".err");
-	result := get (filename|".out");
-	removeFile (filename|".out");
-	removeFile (filename);
-	if (substring(-4,result)=="true") then return true
-	else if  (substring(-5,result)=="false")  then return false
-	else if (substring(-1,result)=="1") then return true
-	else if (substring(0,result)=="") then return false
-	else return "Polymake throws an error";
-    )
-    else if opts.Strategy === "gfan" then (
-	if dim T == 1 then return (isBalancedCurves T) else (
+        progrun := runProgram(polymake, filename);
+	removeFile filename;
+        if progrun#"error" =!= "" then error ("polymake error: "|progrun#"error");
+        progrun#"output" === "true" or progrun#"output" === "1"
+        )
+
+isBalanced TropicalCycle := Boolean => opts -> T -> (
+    if opts.Strategy === "polymake" and not polymakeOK then
+        error "polymake is not installed";
+    if opts.Strategy === "polymake" then (
+        return isBalancedPolymake T;
+        );
+    if opts.Strategy === "gfan" then (
+	if dim T == 1 then return isBalancedCurves T;
 	--loop over all co-dimension 1 faces F of T (use faces(ZZ, PolyhedralObject))
 	--for each F, compute star F / lineality space F (can use linSpace, write star of polyhedral complex)
 	--use isBalancedCurves to check if balanced for all F
 	d:=dim T;
 	balanced:=true;
-	F:= Polyhedra$faces(1, fan T);
+	F:= faces(1, fan T);
 	i:=0;
 	while balanced and i<#F do (
---change next line when PolyhedralComplex change is made
+            --change next line when PolyhedralComplex change is made
 	    balanced = isBalancedCurves(star(T,polyhedronFromFace(fan T,F_i)));
 	    i=i+1;
-	);
+	    );
     	return balanced;
-       );
+        );
+    error "expected Strategy optional argument to be \"gfan\" or \"polymake\"";
     )
-    else error "expected Strategy optional argument to be \"gfan\" or \"polymake\"";
-);
 
 --F is a fan and f is a list describing a face of F
 polyhedronFromFace = (F, f) -> (

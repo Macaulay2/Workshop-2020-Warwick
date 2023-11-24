@@ -1,3 +1,5 @@
+polymake := findProgram("polymake", "polymake --version", RaiseError => false)
+
 newPackage(
     	"Tropical",
 	Version => "1.1",
@@ -14,13 +16,13 @@ newPackage(
 		},
 	Headline => "A package for doing computations in tropical geometry",
 	Configuration => {
-		"path" => "",
-		"fig2devpath" => "",
+--		"path" => "",
+--		"fig2devpath" => "",
 --		"keepfiles" => true,
-"keepfiles" => false,
-		"cachePolyhedralOutput" => true,
-		"tropicalMax" => false,
-		"polymakeCommand" =>""
+--"keepfiles" => false,
+--		"polymakeCommand" =>""
+--		"cachePolyhedralOutput" => true,
+		"tropicalMax" => false
 	},
     	OptionalComponentsPresent => true,
         PackageExports => {"gfanInterface","EliminationMatrices","Matroids","Polyhedra"},
@@ -50,14 +52,9 @@ export{
   "BergmanFan"
   }
 
-
-polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-polymakeOK = polymakeCommand != ""
-
---Do we want to keep this?
-if polymakeOK then << "-- polymake is installed\n" else << "-- polymake not present\n";
-
-
+polymakeOK = (polymake =!= null);
+if polymakeOK then << "-- polymake is installed\n" else  << "-- polymake not present\n";
+polymakeCommand = "polymake"
 ------------------------------------------------------------------------------
 -- CODE
 ------------------------------------------------------------------------------
@@ -236,7 +233,7 @@ isBalanced TropicalCycle := Boolean => opts -> T -> (
 	C := tropicalCycle(embedFan fan T, multiplicities T);
 -- parse object into a polymake script, run polymake and get result back from the same file (which got overwritten by polymake)
 	filename := temporaryFileName();
-       filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) <<
+        filename << "use application 'tropical';" << endl << "my $c = "|convertToPolymake(C) <<
 	endl << "print is_balanced($c);" << endl;
 	filename<<close;
 --	filename << "use strict;" << endl << "my $filename = '" << filename << "';" << endl << "open(my $fh, '>', $filename);" << endl;
@@ -811,7 +808,7 @@ doc ///
 
     	    The package defaults to using the min convention for tropical geometry.
 	    To switch to the max convention, reload the package using the command
-            loadPackage("Tropical",Configuration=>{"tropicalMax"=>true});
+            {\tt loadPackage("Tropical",Configuration=>{"tropicalMax"=>true});}
 
 	    The main command is @TO tropicalVariety@.
 
@@ -2049,3 +2046,4 @@ restart
 installPackage "Tropical"
 check "Tropical"
 
+needsPackage "Tropical"

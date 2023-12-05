@@ -86,7 +86,7 @@ polynomialCoeffs := (parameter,polyn) -> (
 --inputs: var power of a monomial
 --outputs: term with power as coefficient
 expToCoeff = (var) -> (
-    temp := separate("^",toString(var));
+    temp := separate("\\^",toString(var));
     if (length temp === 1) then return var else return concatenate(temp_1,temp_0);
 )
 
@@ -95,7 +95,7 @@ expToCoeff = (var) -> (
 toTropPoly = method(TypicalValue=>String)
 
 toTropPoly (RingElement) := (polyn) ->(
-    termList := apply(apply(terms polyn,toString),term->separate("*",term));
+    termList := apply(apply(terms polyn,toString),term->separate("\\*",term));
     tropTerms := apply(apply(apply(termList, term->apply(term,expToCoeff)),term->between("+",term)),concatenate);
     return "min("|concatenate(between(",",tropTerms))|")";
 )
@@ -104,7 +104,7 @@ toTropPoly (RingElement) := (polyn) ->(
 --outputs: min of linear polynomials for polymake
 toTropPoly (Matrix,Matrix) := (termList,coeffs) ->(
     noCoeffs := sum flatten entries termList;
-    termString := apply(apply(terms noCoeffs,toString),term->separate("*",term));
+    termString := apply(apply(terms noCoeffs,toString),term->separate("\\*",term));
     tropTerms := apply(apply(apply(termString, term->apply(term,expToCoeff)),term->between("+",term)),concatenate);
     withCoeffs := for i when i<numColumns termList list toString((flatten entries coeffs)_i)|"+"|tropTerms_i;
     return "min("|concatenate(between(",",withCoeffs))|")";
@@ -118,20 +118,19 @@ visualizeHypersurface = method(Options=>{
 	})
 
 visualizeHypersurface (RingElement) := o-> (polyn)->(
-    polynomial := toTropPoly(polyn);
-    if (instance(o.Valuation,Number)) then polynomial = toTropPoly(pAdicCoeffs(o.Valuation,polyn));
-    if (instance(o.Valuation,RingElement)) then polynomial = toTropPoly(polynomialCoeffs(o.Valuation,polyn));
-    if (instance(o.Valuation,String) and o.Valuation == "constant") then polynomial = toTropPoly(sum flatten entries (coefficients polyn)_0);
-    print polynomial;
+    polynomial := if instance(o.Valuation,Number) then 
+            toTropPoly(pAdicCoeffs(o.Valuation, polyn))
+        else if instance(o.Valuation,RingElement) then 
+            toTropPoly(polynomialCoeffs(o.Valuation, polyn))
+        else if instance(o.Valuation,String) and o.Valuation == "constant" then 
+            toTropPoly(sum flatten entries (coefficients polyn)_0)
+        else toTropPoly polyn;
     filename := temporaryFileName();
     filename << "use application 'tropical';" << endl << "visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\")));" << close;
-    runstring := polymakeCommand | " " |filename | " > "|filename|".out  2> "|filename|".err";
-    run runstring;
-    removeFile (filename|".err");
-    removeFile (filename|".out");
-    removeFile (filename);
-)
-
+    progrun := runProgram(polymake, filename);
+    removeFile filename;
+    if progrun#"error" =!= "" then error ("polymake error: "|progrun#"error");
+    )
 
 --Example hypersurface
 --visualizeHypersurface("min(12+3*x0,-131+2*x0+x1,-67+2*x0+x2,-9+2*x0+x3,-131+x0+2*x1,-129+x0+x1+x2,-131+x0+x1+x3,-116+x0+2*x2,-76+x0+x2+x3,-24+x0+2*x3,-95+3*x1,-108+2*x1+x2,-92+2*x1+x3,-115+x1+2*x2,-117+x1+x2+x3,-83+x1+2*x3,-119+3*x2,-119+2*x2+x3,-82+x2+2*x3,-36+3*x3)")
@@ -838,7 +837,7 @@ doc ///
     a key for use in visualizeHypersurface
   Description
     Text
-      Not sure what this does yet!
+      Currently, only used in @TO visualizeHypersurface@, where it is explained.
   SeeAlso
     visualizeHypersurface
 ///
@@ -868,20 +867,24 @@ doc ///
 		should be entered as a homogeneous polynomial. Running
 		this method opens an image in a new browser window. The
 		coefficients can be intereted as p-adic coefficients or as
-		polynomials via the option @TO Valuation@. Examples are
-		commented out because they open a new browser window.
+		polynomials via the option @TO Valuation@. The actual calls to
+                {\tt visualizeHypersurface} are not run here, as 
+		they open a new browser window.
 	    Example
 	    	--Examples are commented because they open in browser. Uncomment to run.
     	        R=ZZ[x,y,z]
 		f=2*x*y+x*z+y*z+z^2
-		--visualizeHypersurface(Valuation=>2,f)
-
+            CannedExample
+		visualizeHypersurface(Valuation=>2,f)
+            Example
 		f=2*x^2+x*y+2*y^2+x*z+y*z+2*z^2
-		--visualizeHypersurface(f)
-
+            CannedExample
+		visualizeHypersurface(f)
+            Example
 		R=ZZ[w,x,y,z]
 		f=8*x^2+8*y^2+8*z^2+8*w^2+2*x*y+2*x*z+2*y*z+2*x*w+2*y*w+2*z*w
-		--visualizeHypersurface(f)
+            CannedExample
+		visualizeHypersurface(f)
 ///
 
 
@@ -2080,4 +2083,9 @@ restart
 installPackage "Tropical"
 check "Tropical"
 
+restart
 needsPackage "Tropical"
+
+R=ZZ[x,y,z]
+polyn = 2*x*y+x*z+y*z+z^2
+visualizeHypersurface polyn

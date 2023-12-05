@@ -159,7 +159,17 @@ tropicalCycle (Fan, List) := (F,mult)->(
     return T
 )
 
-
+isWellDefined TropicalCycle := Boolean => T -> (
+    if not isWellDefined fan T then (
+        if debugLevel > 0 then << "fan is not well-defined" << endl;
+        return false;
+        );
+    if not isBalanced T then (
+        if debugLevel > 0 then << "tropical cycle is not balanced" << endl;
+        return false;
+        );
+    true
+    )
 --functions to switch to min-convention
 
 minmaxSwitch = method ()
@@ -1532,6 +1542,31 @@ doc///
 
 ///
 
+doc ///
+    Key
+        (isWellDefined, TropicalCycle)
+    Headline
+        check whether a tropical cycle is well-defined
+    Usage
+        isWellDefined T
+    Inputs
+        T:TropicalCycle
+    Outputs
+        :Boolean
+    Description
+        Text
+            This checks whether the underlying fan is well-defined, and if so,
+            whether the cycle is balanced.
+        Example
+            I = Grassmannian(1,4,QQ[a..j])
+            T = tropicalVariety I
+            isWellDefined T
+    Caveat
+        The check whether a fan is well-defined is often expensive.
+    SeeAlso
+        (isWellDefined, Fan)
+        (isBalanced, TropicalCycle)
+///
 
 doc///
    Key
@@ -1609,7 +1644,7 @@ TEST ///
 F:=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}})
 assert((tropicalCycle(F,{1,1,1}))#"Fan"== F)
 assert((tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1})
-
+assert isWellDefined tropicalCycle(F,{1,1,1})
 ///
 
 -----------------------
@@ -1617,7 +1652,7 @@ assert((tropicalCycle(F,{1,1,1}))#"Multiplicities"== {1,1,1})
 -----------------------
 
 TEST ///
-assert(isTropicalBasis (flatten entries gens Grassmannian(1,4,QQ[a..l]))==true)
+assert isTropicalBasis (flatten entries gens Grassmannian(1,4,QQ[a..l]))
 R:=QQ[x,y,z]
 assert( not isTropicalBasis({x+y+z,2*x+3*y-z}))
 ///
@@ -2025,8 +2060,16 @@ starT=star(T,P);
 assert(dim starT== 1);
 ///
 
-
-
+-----------------------
+-- Interesting example(s)
+-----------------------
+TEST ///
+I = Grassmannian(1,4,QQ[a..j])
+T = tropicalVariety I
+assert isWellDefined T
+maxCones T
+rays T
+///
 
 end--
 

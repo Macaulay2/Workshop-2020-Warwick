@@ -2,11 +2,11 @@ polymake := findProgram("polymake", "polymake --version", RaiseError => false)
 
 newPackage(
     	"Tropical",
-	Version => "1.1",
-	Date => "May 2021",
+	Version => "1.2",
+	Date => "December 2023",
 	Authors => {
-	    	{Name => "Carlos Amendola", Email => "carlos.amendola@tum.de", HomePage=>""},
-	    	{Name => "Kathlen Kohn", Email => "kathlen.korn@gmail.com", HomePage=>""},
+	    	{Name => "Carlos Amendola", Email => "amendola@math.tu-berlin.de", HomePage=>""},
+	    	{Name => "Kathlen Kohn", Email => "kathlen@kth.se", HomePage=>""},
   		{Name => "Sara Lamboglia", Email => "", HomePage=>""},
 	    	{Name => "Diane Maclagan", Email => "D.Maclagan@warwick.ac.uk", HomePage=>"http://homepages.warwick.ac.uk/staff/D.Maclagan/"},
    		{Name => "Ben Smith", Email => "benjamin.smith-3@manchester.ac.uk", HomePage=>""},
@@ -804,7 +804,7 @@ doc ///
     	Text
 	    This is the main M2 package for all tropical computations.
 	    This uses Anders Jensen's package gfan, Michael Joswig's
-	    package Polymake, and also internal M2 computations.
+	    software Polymake, and also internal M2 computations.
 
     	    The package defaults to using the min convention for tropical geometry.
 	    To switch to the max convention, reload the package using the command
@@ -812,7 +812,9 @@ doc ///
 
 	    The main command is @TO tropicalVariety@.
 
-	    To use the Polymake commands see the @TO "Polymake interface instructions"@.
+	    The software program Polymake is not distributed with
+       	    Macaulay2, so to use the Polymake commands the user needs
+       	    to install Polymake on their own machine.
 
         Text
             @SUBSECTION "Contributors"@
@@ -820,6 +822,7 @@ doc ///
 	    The following people have also contributed to the package:
 	Text
 	     @UL {
+	       {HREF("https://pi.math.cornell.edu/~mike/","Michael Stillman")},
 	       {HREF("https://users.math.yale.edu/~km995/","Kalina Mincheva")},
 	       {HREF("http://www.math.unibe.ch/ueber_uns/personen/vargas_de_leon_alejandro/index_ger.html","Alejandro Vargas de Leon")},
 	       {HREF("http://www.math.harvard.edu/~cmwang/","Charles Wang")},
@@ -939,21 +942,29 @@ doc///
     Key
 	isBalanced
 	(isBalanced, TropicalCycle)
+	[isBalanced, Strategy]
     Headline
 		determines whether a tropical cycle is balanced
     Usage
     	isBalanced T
+	isBalanced(T,Strategy=>S)
     Inputs
 		T:TropicalCycle
+		Strategy=>String
+		  Strategy "gfan" (default) or "polymake"
     Outputs
     	B:Boolean
     Description
 		Text
-			This function determines whether a tropical cycle is balanced.
+			This function determines whether a tropical cycle is balanced. 
+			This computation can be either based on the gfan package or use the software polymake.
+			The user can choose by specifying the Strategy as either "gfan" or "polymake".
+			When nothing is specified, "gfan" is used by default.
 		Example
 			QQ[x,y,z]
 			V = tropicalVariety(ideal(x+y+z))
 			isBalanced V
+			isBalanced(V, Strategy => "polymake")
 			F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
 			mult = {1,2,-3,1}
 			isBalanced (tropicalCycle(F, mult))
@@ -1572,37 +1583,6 @@ doc ///
 ///
 
 doc///
-   Key
-       "Polymake interface instructions"
-   Headline
-       instructions for loading Polymake with this package.
-   Description
-       Text
-       	   The software program Polymake is not distributed with
-       	   Macaulay2, so to use the Polymake commands the user needs
-       	   to install Polymake on their own machine, and tell
-       	   Macaulay2 where to find it.  This is done with the
-       	   Configuration option "polymakeCommand".  The default is
-       	   that this is empty, which means that Polymake options will
-       	   not be used.  To tell the package where your copy of Polymake is installed, use either
-	   loadPackage("Tropical",Configuration=>{"polymakeCommand"=>"YOUR COMMAND"}), or
-	   edit the init-Tropical.m2 file (created after you install the package)
-	   by changing "polymakeCommand" => "", into "polymakeCommand" => "YOUR COMMAND"
-
-	   On a Mac, the default value for YOUR COMMAND is
-	   /Applications/polymake.app/Contents/MacOS/polymake.start
-	   and the init-Tropical.m2 file is usually in ~/Library/Application Support/Macaulay2.
-
-	   On Unix, the default value for YOUR COMMAND is
-           /usr/bin/polymake
-	   and the init-Tropical.m2 file is usually in ~/.Macaulay2.
-	   If polymake is installed in a nonstandard location, you can
-	   find YOUR COMMAND with the terminal command "which polymake".
-
-	   This package should work with Polymake versions > 3.2, and has been tested up to 4.2.
-///
-
-doc///
         Key
 	  BergmanFan
 	Headline
@@ -1804,18 +1784,15 @@ assert((cones(1,T))==({{}}))
 -----------------------
 
 TEST///
-
 F=fan(matrix{{0,0,0},{1,0,-1},{0,1,-1}},matrix{{1},{1},{1}},{{0,1},{0,2},{1,2}});
 T= tropicalCycle(F,{1,1,1});
 assert(isBalanced T)
 
 T2 = tropicalCycle(F,{1,2,3});
 assert(not isBalanced T2);
-
 ///
 
 TEST///
-
 R=QQ[x,y,z];
 V = tropicalVariety(ideal(x+y+z))
 assert(isBalanced V)
@@ -1823,22 +1800,30 @@ assert(isBalanced V)
 G = V;
 G#"Multiplicities" = {1,2,1}
 assert(not isBalanced G)
-
 ///
 
+if polymakeOK then (
 TEST///
+R=QQ[x,y,z];
+V = tropicalVariety(ideal(x+y+z))
+assert(isBalanced (V, Strategy=>"polymake"))
 
+G = V;
+G#"Multiplicities" = {1,2,1}
+assert(not isBalanced (G, Strategy=>"polymake"))
+///
+)
+
+TEST///
 S = QQ[x,y];
 V = tropicalVariety(ideal(x+y+1))
 assert(isBalanced V)
 ///
 
 TEST///
-
 F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
 mult = {1,2,-3,1}
 assert(not isBalanced (tropicalCycle(F, mult)))
-
 ///
 
 

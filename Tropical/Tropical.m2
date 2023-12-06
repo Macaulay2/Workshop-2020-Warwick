@@ -126,10 +126,13 @@ visualizeHypersurface (RingElement) := o-> (polyn)->(
             toTropPoly(sum flatten entries (coefficients polyn)_0)
         else toTropPoly polyn;
     filename := temporaryFileName();
-    filename << "use application 'tropical';" << endl << "visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\")));" << close;
+    --filename << "use application 'tropical';" << endl << "visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\")));" << close;
+    filename << "use application 'tropical';" << endl << "threejs(visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\"))), File=>\"my-foo.html\");" << close;
+    print get filename;
     progrun := runProgram(polymake, filename);
     removeFile filename;
-    if progrun#"error" =!= "" then error ("polymake error: "|progrun#"error");
+    run("open my-foo.html");
+    --if progrun#"error" =!= "" then error ("polymake error: "|progrun#"error");
     )
 
 --Example hypersurface
@@ -2074,3 +2077,8 @@ needsPackage "Tropical"
 R=ZZ[x,y,z]
 polyn = 2*x*y+x*z+y*z+z^2
 visualizeHypersurface polyn
+
+R=ZZ[x,y,z]
+polyn = 2*x*y+x*z+y*z+x*z^4
+visualizeHypersurface polyn
+

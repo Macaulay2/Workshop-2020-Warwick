@@ -114,10 +114,12 @@ toTropPoly (Matrix,Matrix) := (termList,coeffs) ->(
 minmax = () -> (if (Tropical#Options#Configuration#"tropicalMax") then return "Max" else return "Min";)
 
 visualizeHypersurface = method(Options=>{
-	Valuation=>null
+	Valuation=>null,
+        FileName => "my-visual.html"
 	})
 
 visualizeHypersurface (RingElement) := o-> (polyn)->(
+    if not isHomogeneous polyn then error "visualization of tropical inhomogeneous polynomials not yet supported";
     polynomial := if instance(o.Valuation,Number) then 
             toTropPoly(pAdicCoeffs(o.Valuation, polyn))
         else if instance(o.Valuation,RingElement) then 
@@ -126,12 +128,14 @@ visualizeHypersurface (RingElement) := o-> (polyn)->(
             toTropPoly(sum flatten entries (coefficients polyn)_0)
         else toTropPoly polyn;
     filename := temporaryFileName();
+    htmlfile := o.FileName;
     --filename << "use application 'tropical';" << endl << "visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\")));" << close;
-    filename << "use application 'tropical';" << endl << "threejs(visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\"))), File=>\"my-foo.html\");" << close;
-    print get filename;
+    filename << "use application 'tropical';" << endl 
+      << "threejs(visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\"))), File=>\""|htmlfile|"\");" << close;
+    --print get filename;
     progrun := runProgram(polymake, filename);
     removeFile filename;
-    run("open my-foo.html");
+    run("open "|htmlfile);
     --if progrun#"error" =!= "" then error ("polymake error: "|progrun#"error");
     )
 
@@ -861,18 +865,22 @@ doc ///
 		visualizeHypersurface(Valuation=>t,polyn)
 	Inputs
 		polyn: RingElement
-		    polynomial
+		    polynomial, currently the polynomial should be homogeneous 
+                    (in the standard grading) and an element of a polynomial ring
+                    over the integers or rationals
 		Valuation=>Number
 		    use p-adic coefficients with given p
 		Valuation=>RingElement
 		    use coefficients in R[t] with given t
+                FileName => String
+                    file to place the html code that will be used by the browser
 	Description
 	    Text
 	        This function wraps the Polymake visualization for a
 		tropical hypersurface given an input polynomial. The input
 		should be entered as a homogeneous polynomial. Running
 		this method opens an image in a new browser window. The
-		coefficients can be intereted as p-adic coefficients or as
+		coefficients can be interpreted as p-adic coefficients or as
 		polynomials via the option @TO Valuation@. The actual calls to
                 {\tt visualizeHypersurface} are not run here, as 
 		they open a new browser window.
@@ -880,12 +888,23 @@ doc ///
 	    	--Examples are commented because they open in browser. Uncomment to run.
     	        R=ZZ[x,y,z]
 		f=2*x*y+x*z+y*z+z^2
+            Text
+                The following line brings up a browser window showing the given tropical 
+                hypersurface.  There are buttons where you can interact with the visualization.
+                This particular example should be a tropical plane curve of genus zero.
             CannedExample
 		visualizeHypersurface(Valuation=>2,f)
             Example
 		f=2*x^2+x*y+2*y^2+x*z+y*z+2*z^2
+            Text
+                The function writes into a specific file in your current directory 
+                (often "my-visual.html").  You can change this to another html file
+                (but it is important to have it end with .html as otherwise the browser will
+                not be able to open it).
             CannedExample
-		visualizeHypersurface(f)
+		visualizeHypersurface(f, FileName => "my-beautiful-curve.html")
+            Text
+                Here is an example of a surface, not a curve.
             Example
 		R=ZZ[w,x,y,z]
 		f=8*x^2+8*y^2+8*z^2+8*w^2+2*x*y+2*x*z+2*y*z+2*x*w+2*y*w+2*z*w
@@ -2079,6 +2098,13 @@ polyn = 2*x*y+x*z+y*z+z^2
 visualizeHypersurface polyn
 
 R=ZZ[x,y,z]
-polyn = 2*x*y+x*z+y*z+x*z^4
+polyn = 2*x*y+x*z+y*z+x*z^4+x*y*z^2
 visualizeHypersurface polyn
 
+R = ZZ[x,y,z]
+polyn = x^2*z^3 + 3*x*y*z^3 + 2 * y^3*z^2 + x*y^4 + 10*x^3*y^2
+visualizeHypersurface polyn
+
+R=QQ[x,y,z]
+polyn=2/3*x*y+x*z+y*z+z^2
+visualizeHypersurface polyn

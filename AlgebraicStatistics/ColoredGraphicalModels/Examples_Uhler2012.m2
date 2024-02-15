@@ -18,9 +18,9 @@
 --restart
 dualVariety=(IX,n,x,u)->(
     c:=codim IX;
-    JacX:=submatrix(transpose jacobian IX,toList(0..n-1));
+    JacX:=diff(matrix{toList(x_1..x_n)}, transpose gens IX);
     AugJacX:=matrix{toList(u_1..u_n)}||JacX;
-    SingX:=minors(c,JacX);
+    SingX:=IX+minors(c,jacobian IX);
     conormalX:=saturate(IX+minors(c+1,AugJacX),SingX);
     dualX:=eliminate(toList(x_1..x_n),conormalX);
     dualX
@@ -54,6 +54,8 @@ algBoundary=(K)->(
 
 --Example 6.2 in Uhler (Example 5.1 in Sturmfels and Uhler)
 --restart
+--load functions.m2
+restart
 n=5
 R=QQ[l_1..l_n,t_1..t_n,s_11..s_14,s_22..s_24,s_33..s_34,s_44]
 K=matrix{{l_1,l_3,0,l_4},{l_3,l_1,l_4,0},{0,l_4,l_2,l_5},{l_4,0,l_5,l_2}}

@@ -8,6 +8,7 @@ S=matrix{{s_11,s_12,s_13,s_14,s_15},{s_12,s_22,s_23,s_24,s_25},{s_13,s_23,s_33,s
 
 p=2
 J1=minors(p,K)
+gens gb J1
 minPrimes1=minimalPrimes J1
 dualVariety(minPrimes1_0,n,l,t)
 

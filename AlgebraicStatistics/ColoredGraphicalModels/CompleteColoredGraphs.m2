@@ -150,7 +150,7 @@ load "functions.m2"
 R=QQ[l_1..l_4]
 K=matrix{{l_1,l_2,l_3},{l_2,l_1,l_4},{l_3,l_4,l_1}}
 p=3
-n=1
+n=3
 X=random(QQ^p,QQ^n);              
 S=(1/n)*X*transpose(X);
 rank S
@@ -167,6 +167,8 @@ dim J, degree J
 --n=2 MLdeg=4
 --n=1 MLdeg=3
 
+sols=zeroDimSolve(J);
+netList sols
 
 -----------------------------------------------------------
 --3-cycle with 3 edges equal
@@ -609,7 +611,7 @@ netList empiricalVanishingPolynomials(IG1,3,10000,p,n,stats)
 
 
 --Intersection of the algebraic boundary with the interior
-m=3 --rank of empirical covariance matrices
+m=1 --rank of empirical covariance matrices
 k=1000 --number of points we want to try out
 use ring IG1
 L=empiricalVanishingPolynomials(IG1,m,k,p,n,stats)

@@ -29,6 +29,18 @@ eliminate({d_12,d_13,d_14,d_23,d_24,d_34},Jdecomp_1)
 eliminate({d_11,d_22,d_33,d_44},Jdecomp_1)
 eliminate({d_14,d_24,d_34,d_44},Jdecomp_1)
 
+--without the adjoints conditions (i.e. we do not impose that D^{-1} belongs to L_G)
+Isuf=ideal(d_11-s_11 + d_33-s_33,d_22+d_44-s_22-s_44,d_12-s_12,
+d_14+d_23-s_14-s_23, d_34-s_34)
+Irank=minors(2,S)
+J=time eliminate(toList(s_11..s_44),Isuf+Irank);
+Jdecomp=time decompose J;
+length Jdecomp
+netList (Jdecomp_0)_*
+length terms (Jdecomp_0)_0
+--not conclusive
+
+
 J=eliminate(toList(d_11..d_44),I+Irank)
 --results for elimination of s variables
 ideal(d_12^2+d_14^2-d_11*d_22+2*d_14*d_23+d_23^2-d_22*d_33-2*d_12*d_34+d_
@@ -185,8 +197,9 @@ adjD=exteriorPower_3 D
 I=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-s_34,
     adjD_(0,2), adjD_(1,3),adjD_(2,2)-adjD_(0,0),adjD_(0,3)-adjD_(2,3))
 Irank=minors(2,S)
-J=eliminate(toList(s_11..s_44),I+Irank)
-Jdecomp=decompose J
+J=time eliminate(toList(s_11..s_44),I+Irank);
+Jdecomp=time decompose J;
+length  Jdecomp
 isSubset(minors(4,D),Jdecomp_0) --true
 isSubset(minors(4,D),Jdecomp_1) --true
 isSubset(minors(4,D),Jdecomp_2) --true
@@ -195,4 +208,15 @@ isSubset(minors(4,D),Jdecomp_4) --false
 eliminate({d_12,d_13,d_14,d_23,d_24,d_34},Jdecomp_4)
 eliminate({d_11,d_22,d_33,d_44},Jdecomp_1)
 eliminate({d_14,d_24,d_34,d_44},Jdecomp_1)
-Jdecomp_4
+netList (Jdecomp_4)_*
+--first element is a principal minor
+
+--without the adjoints conditions (i.e. we do not impose that D^{-1} belongs to L_G)
+Isuf=ideal(d_11-s_11,d_22+d_44-s_22-s_44,d_33-s_33,d_12+d_14-s_12-s_14,d_23-s_23,d_34-s_34)
+Irank=minors(2,S)
+J=time eliminate(toList(s_11..s_44),Isuf+Irank);
+Jdecomp=time decompose J;
+length Jdecomp
+netList (Jdecomp_0)_*
+factor (Jdecomp_0)_1
+minimalPrimes Jdecomp_0

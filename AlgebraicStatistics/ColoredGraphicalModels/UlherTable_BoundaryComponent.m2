@@ -184,6 +184,14 @@ K=matrix{{l_1,l_3,0,l_6},{l_3,l_2,l_4,0},{0,l_4,l_1,l_5},{l_6,0,l_5,l_2}}
 
 load "functions.m2"
 (V,n,K2)=embeddedK(K);
+minimalPrimes ideal{det K}
+isPrime ideal{det K}
+loadPackage "Resultants"
+dualVariety ideal{det K}
+conormalVariety ideal{det K}
+
+dualVariety(ideal{det K2},n,l,t)
+
 BC4=boundaryComponents(K2,4,n) --empty
 BC3=boundaryComponents(K2,3,n) -- 3 quartics
 BC2=boundaryComponents(K2,2,n) -- empty

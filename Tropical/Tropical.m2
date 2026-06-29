@@ -989,7 +989,10 @@ doc///
 			isBalanced(V, Strategy => "polymake")
 			F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
 			mult = {1,2,-3,1}
-			isBalanced (tropicalCycle(F, mult))
+                CannedExample
+                        i7 : isBalanced (tropicalCycle(F, mult))
+
+                        o7 = false
 ///
 
 
@@ -1142,9 +1145,16 @@ doc///
 	    J = ideal(x*y+y*z+x*z+1);
 	    T2 = tropicalVariety J;
 	    V = tropicalVariety(I+J);
-	    W = stableIntersection(T1,T2);
-	    V#"Fan" == W#"Fan"
-	    V#"Multiplicities" == W#"Multiplicities"
+        CannedExample
+            i7 : W = stableIntersection(T1,T2);
+
+            i8 : V#"Fan" == W#"Fan"
+
+            o8 = true
+
+            i9 : V#"Multiplicities" == W#"Multiplicities"
+
+            o9 = true
         Text
             If polymake is not installed, one can still use 
             @TO "stableIntersectionFan"@ to compute the 

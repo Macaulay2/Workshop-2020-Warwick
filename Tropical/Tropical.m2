@@ -982,17 +982,25 @@ doc///
 			This computation can be either based on the gfan package or use the software polymake.
 			The user can choose by specifying the Strategy as either "gfan" or "polymake".
 			When nothing is specified, "gfan" is used by default.
-		Example
 			QQ[x,y,z]
 			V = tropicalVariety(ideal(x+y+z))
 			isBalanced V
-			isBalanced(V, Strategy => "polymake")
-			F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
-			mult = {1,2,-3,1}
                 CannedExample
-                        i7 : isBalanced (tropicalCycle(F, mult))
+                        i4 : isBalanced(V, Strategy => "polymake")
 
-                        o7 = false
+                        o4 = true
+
+                        i5 : F = fan {posHull matrix {{1},{0},{0}}, posHull matrix {{0},{1},{0}}, posHull matrix {{0},{0},{1}}, posHull matrix {{-1},{-1},{-1}}}
+
+                        o5 = F
+
+                        o5 : Fan
+
+                        i6 : mult = {1,2,-3,1}
+
+                        o6 = {1, 2, -3, 1}
+
+                        o6 : List
 ///
 
 
